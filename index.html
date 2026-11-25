@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tem nhựa xay trộn N2P</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Be+Vietnam+Pro:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one working column of cards under a navy bar; forms left, printed label right on wide screens. */
+:root{
+  --bg:#f3f5f9; --surface:#ffffff; --ink:#14213a; --muted:#5b6780; --line:#d9dfea;
+  --navy:#12326b; --blue:#1f6fd6; --green:#2a9d63; --on-navy:#ffffff;
+  --warn:#b26a00; --warn-bg:#fff3d9; --crit:#b3261e; --crit-bg:#fde7e5; --ok-bg:#e2f4ea;
+  --zin:#1f6fd6; --xp:#b26a00; --tr:#2a9d63;
+  --display:"Barlow Semi Condensed","Be Vietnam Pro",Arial,sans-serif;
+  --body:"Be Vietnam Pro","Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1524; --surface:#172136; --ink:#e8edf7; --muted:#9aa7c0; --line:#2b3852;
+    --navy:#0b1f47; --blue:#6aa6f5; --green:#56c48b; --on-navy:#ffffff;
+    --warn:#f0b354; --warn-bg:#3a2c10; --crit:#f2867f; --crit-bg:#40191a; --ok-bg:#143524;
+    --zin:#6aa6f5; --xp:#f0b354; --tr:#56c48b; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1524; --surface:#172136; --ink:#e8edf7; --muted:#9aa7c0; --line:#2b3852;
+  --navy:#0b1f47; --blue:#6aa6f5; --green:#56c48b; --on-navy:#ffffff;
+  --warn:#f0b354; --warn-bg:#3a2c10; --crit:#f2867f; --crit-bg:#40191a; --ok-bg:#143524;
+  --zin:#6aa6f5; --xp:#f0b354; --tr:#56c48b; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+a{color:var(--blue)}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h2{font-size:20px} h3{font-size:16px;color:var(--muted)}
+.top{background:var(--navy);color:var(--on-navy);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;border-bottom:3px solid var(--green)}
+.brand{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:.2px}
+.brand small{font-family:var(--body);font-weight:400;font-size:12px;opacity:.8;margin-left:8px}
+nav{display:flex;flex-wrap:wrap;gap:6px}
+nav a{color:var(--on-navy);text-decoration:none;padding:7px 12px;border-radius:6px;font-weight:600;font-size:14px;opacity:.85}
+nav a[aria-current="page"]{background:var(--on-navy);color:#12326b;opacity:1}
+nav a:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.drop:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+main{max-width:1120px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.banner{max-width:1120px;margin:12px auto 0;padding:0 16px}
+.note{padding:10px 14px;border-radius:8px;background:var(--warn-bg);color:var(--warn);border:1px solid currentColor;font-size:14px}
+.note.crit{background:var(--crit-bg);color:var(--crit)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{flex:1 1 150px;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;border-left:5px solid var(--k)}
+.seg button b{display:block;font-family:var(--display);font-size:17px}
+.seg button span{font-size:12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:var(--k);box-shadow:inset 0 0 0 1px var(--k)}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form .full{grid-column:1/-1}
+@media (max-width:480px){.form{grid-template-columns:minmax(0,1fr)}}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%;min-width:0}
+label.chk{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);align-self:end;padding:9px 0}
+label.chk input{width:20px;height:20px;flex:none;padding:0}
+input:disabled{opacity:.6}
+.btn{font:inherit;font-weight:700;border-radius:7px;border:1px solid var(--blue);background:var(--blue);color:#fff;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+:root[data-theme="dark"] .btn{color:#0e1524}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#0e1524}}
+.btn.ghost,.btn.ghost:link{background:transparent;color:var(--blue)}
+.btn.danger{background:transparent;border-color:var(--crit);color:var(--crit)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.lotprev{font-family:var(--display);font-size:22px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
+.drop{border:2px dashed var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.drop.over{border-color:var(--green)}
+.drop img{max-width:100%;max-height:180px;border-radius:6px}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--k,var(--muted));color:var(--k,var(--muted));white-space:nowrap}
+.pill.solid{background:var(--ok-bg);border-color:var(--green);color:var(--green)}
+.pill.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.pill.crit{background:var(--crit-bg);border-color:var(--crit);color:var(--crit)}
+.k-ZIN{--k:var(--zin)} .k-XP{--k:var(--xp)} .k-TR{--k:var(--tr)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--k,var(--muted));border-radius:10px;padding:12px;min-width:0}
+.tile span{font-size:13px;color:var(--muted);display:block}
+.tile b{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.first td{background:var(--ok-bg)}
+.baghead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
+.lot{font-family:var(--display);font-size:34px;font-weight:700;line-height:1.1;overflow-wrap:anywhere}
+.remain{text-align:right}
+.remain span{display:block;font-size:12px;color:var(--muted)}
+.remain b{font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums}
+dl.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 16px;margin:0}
+dl.facts div{min-width:0}
+dl.facts dt{font-size:12px;color:var(--muted)}
+dl.facts dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+ul.tree{list-style:none;margin:0;padding-left:18px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:6px}
+ul.tree li{overflow-wrap:anywhere}
+.labelimg{width:100%;max-width:640px;border:1px solid var(--line);border-radius:4px;background:#fff;display:block}
+.labels{display:flex;flex-direction:column;gap:14px}
+details summary{cursor:pointer;font-weight:600;color:var(--muted)}
+.lines{display:flex;flex-direction:column;gap:10px}
+.line{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.empty{color:var(--muted);padding:8px 0}
+ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+#scanov{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.scanbox{display:flex;flex-direction:column;gap:12px;align-items:center;max-width:520px;width:100%;color:#fff}
+.scanbox video{width:100%;max-height:65vh;border-radius:8px;background:#000}
+.scanbox p{margin:0;font-weight:600;text-align:center}
+#toast{z-index:60;position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Tem nhựa xay trộn<small>Kho nhựa · QA/QC</small></div>
+  <nav aria-label="Chức năng">
+    <a href="#tao-tem" data-nav="tao-tem">Tạo tem</a>
+    <a href="#quet" data-nav="quet">Quét mã</a>
+    <a href="#xuat-may" data-nav="xuat-may">Xuất cho máy</a>
+    <a href="#kho" data-nav="kho">Tồn kho FIFO</a>
+    <a href="#lich-su" data-nav="lich-su">Lịch sử</a>
+  </nav>
+</header>
+<div class="banner" id="banner"></div>
+<main id="view"><p class="empty">Đang tải…</p></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';document.head.appendChild(s)"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';document.head.appendChild(s)"></script>
+<script>
+(function(){
+"use strict";
+/* ====== CẤU HÌNH: dán link "Web app" của Google Apps Script vào giữa hai dấu nháy ====== */
+var API_URL="https://script.google.com/macros/s/AKfycbwOYOfIwX6iR4umea9SZOlpOEN1qQdiMkLZDbCDA8hF5VPyVPMuPDzWvQPdqntmtGqu-A/exec";
+/* ======================================================================================= */
+var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",pin:""};
+var PAGE=location.origin+location.pathname;
+
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+var KIND={
+  ZIN:{vi:"Nhựa zin",en:"Virgin resin",ko:"신재",sfx:"",desc:"Nhập kho bao nhựa mới"},
+  XP:{vi:"Nhựa xay",en:"Regrind resin",ko:"분쇄재",sfx:"-XP",desc:"Sau máy xay: lot gốc + XP"},
+  TR:{vi:"Nhựa trộn",en:"Mixed resin",ko:"혼합재",sfx:"-TR",desc:"Zin + xay: lot gốc + TR"}
+};
+var STATUS={PENDING:"Chờ cân",IN_STOCK:"Trong kho",USED_UP:"Đã dùng hết",VOID:"Đã hủy"};
+var EV={IN:"Nhập kho",CREATE:"Tạo tem",WEIGH:"Cân thực tế",OUT:"Xuất",ADJUST:"Điều chỉnh tồn",VOID:"Hủy tem"};
+var L2={
+  en:{grade:"Grade",color:"Color",base:"Original lot",wt:"Net weight",ratio:"Mix ratio",part:"Part - Machine",sup:"Supplier",src:"Source",date:"Date",bag:"Bag ID",
+      w1:"FIFO: use the oldest lot first.",w2:"Scan the QR code to record actual weight and issues.",foot:"AN MY N2P VINA - Regrind and mixed resin control"},
+  ko:{grade:"그레이드",color:"색상",base:"원 Lot",wt:"중량",ratio:"혼합 비율",part:"품번 - 호기",sup:"공급업체",src:"출처",date:"일자",bag:"포대 ID",
+      w1:"선입선출: 오래된 Lot부터 사용.",w2:"QR 스캔 후 실중량 입력 및 출고 처리.",foot:"AN MY N2P VINA - 분쇄재·혼합재 관리"}
+};
+
+var myId=null;
+var canWrite=true,ready=false,memMode=false,slow=false,dbError="";
+var bags=new Map(),names={};
+var view="tao-tem",curId=null,mode="ZIN",stockKind="",labelIds=[],bagLabel=false,voidArm=false;
+var lang="en";
+try{var sv=localStorage.getItem("n2p-label-lang");if(sv==="ko"||sv==="en")lang=sv;}catch(e){}
+
+/* ---------- helpers ---------- */
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function num(v){var n=parseFloat(String(v==null?"":v).trim().replace(",","."));return isFinite(n)?n:NaN;}
+function r2(n){return Math.round(n*100)/100;}
+function fmtKg(n){return n==null?"—":r2(n).toLocaleString("vi-VN",{maximumFractionDigits:2})+" kg";}
+function p2(n){return (n<10?"0":"")+n;}
+function fmtDate(iso){var d=new Date(iso);if(isNaN(d))return "—";return p2(d.getDate())+"/"+p2(d.getMonth()+1)+"/"+d.getFullYear()+" "+p2(d.getHours())+":"+p2(d.getMinutes());}
+function ageDays(iso){return Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/86400000));}
+function stripSfx(lot){return String(lot||"").trim().replace(/-(XP|TR)$/i,"");}
+function ID(id){return String(id||"").toUpperCase();}
+function kindOf(k){return KIND[k]?k:"ZIN";}
+function kindPill(k){k=kindOf(k);return '<span class="pill k-'+k+'">'+esc(KIND[k].vi)+'</span>';}
+function statusPill(s){var c=s==="IN_STOCK"?"solid":s==="PENDING"?"warn":s==="VOID"?"crit":"";return '<span class="pill '+c+'">'+esc(STATUS[s]||s)+'</span>';}
+function toast(msg){var t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show");},3500);}
+function genId(){var a="23456789abcdefghjkmnpqrstuvwxyz",s;do{s="";for(var i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];}while(bags.has(s));return s;}
+function ev(type,kg,note){return {t:new Date().toISOString(),type:type,kg:kg==null?null:r2(kg),by:myId||null,note:note||""};}
+function newBag(o){
+  var b={id:genId(),kind:"ZIN",lotNo:"",baseLot:"",grade:"",color:"",supplier:"",partCode:"",machine:"",plannedKg:null,actualKg:null,remainKg:0,
+    status:"PENDING",createdAt:new Date().toISOString(),createdBy:myId||null,sources:[],ratio:null,note:"",events:[]};
+  for(var k in o)b[k]=o[k];
+  return b;
+}
+function errMsg(e,def){
+  var c=e&&e.code;
+  return c==="not_member"?"Bạn chưa ở trong nhóm Telegram của kho nên không dùng được app.":
+    c==="bad_auth"||c==="expired"?"Phiên làm việc đã hết hạn. Đóng app rồi mở lại từ Telegram.":
+    c==="no_group"?"Chưa cài nhóm Telegram nhận phiếu. Xem bước 5 trong file hướng dẫn.":
+    c==="need_start"?"Bot chưa nhắn được cho bạn. Mở chat với bot, bấm Start rồi thử lại.":
+    c==="no_ocr"?"Chưa bật đọc chữ từ ảnh. Nhập tay theo ảnh.":
+    c==="bad_pin"?"Sai mã PIN. Hỏi lại quản lý kho.":
+    c==="locked"?"Nhập sai PIN quá nhiều lần. Thử lại sau 10 phút.":
+    c==="no_web"?"App chưa bật chế độ dùng ngoài Telegram. Hãy mở từ Telegram.":
+    c==="server"&&e.message?e.message:def;
+}
+async function api(action,data){
+  var body={action:action};if(INIT)body.initData=INIT;else{body.pin=cred.pin;body.name=cred.name;}for(var k in (data||{}))body[k]=data[k];
+  var r=await fetch(API_URL,{method:"POST",body:JSON.stringify(body),redirect:"follow"});
+  var j=await r.json();
+  if(!j||!j.ok){var e=new Error((j&&j.error)||"Lỗi máy chủ");e.code=(j&&j.code)||"server";throw e;}
+  return j;
+}
+function saveFile(name,blob){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();}
+function blobB64(blob){return new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(String(fr.result).split(",")[1]);};fr.onerror=rej;fr.readAsDataURL(blob);});}
+async function save(b){
+  bags.set(b.id,b);
+  if(memMode)return;
+  pending++;writeSeq++;
+  try{await api("saveBag",{bag:b});}
+  catch(e){toast(errMsg(e,"Không lưu được. Kiểm tra mạng rồi thử lại."));throw e;}
+  finally{pending--;}
+}
+function all(){return Array.from(bags.values());}
+function inStock(kind){return all().filter(function(b){return b.status==="IN_STOCK"&&b.remainKg>0&&(!kind||b.kind===kind);}).sort(function(a,b){return a.createdAt<b.createdAt?-1:a.createdAt>b.createdAt?1:0;});}
+function fifoKey(b){return b.kind+"|"+String(b.grade||"").toUpperCase()+"|"+String(b.color||"").toUpperCase();}
+function olderThan(b){return inStock(b.kind).filter(function(o){return o.id!==b.id&&fifoKey(o)===fifoKey(b)&&o.createdAt<b.createdAt;});}
+function qrText(id){return WEBQR?PAGE+"#tem-"+id:BOT?"https://t.me/"+BOT+"?startapp=tem-"+id:"tem-"+id;}
+function tgScan(){try{return !!(tg&&INIT&&tg.showScanQrPopup&&tg.isVersionAtLeast&&tg.isVersionAtLeast("6.4"));}catch(e){return false;}}
+function camScan(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&typeof jsQR==="function");}
+function canScan(){return tgScan()||camScan();}
+function webScan(text,onText){
+  var old=$("#scanov");if(old)old.remove();
+  var ov=document.createElement("div");ov.id="scanov";
+  ov.innerHTML='<div class="scanbox"><p>'+esc(text)+'</p><video playsinline muted></video><button type="button" class="btn" id="scan-close">Đóng</button></div>';
+  document.body.appendChild(ov);
+  var v=$("video",ov),c=document.createElement("canvas"),x=c.getContext("2d",{willReadFrequently:true}),stream=null,raf=0,last="",lastT=0,dead=false;
+  function stop(){dead=true;cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(function(t){t.stop();});ov.remove();}
+  $("#scan-close",ov).addEventListener("click",stop);
+  function tick(){
+    if(dead)return;
+    if(v.readyState>=2&&v.videoWidth){
+      var k=Math.min(1,800/v.videoWidth);c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);
+      x.drawImage(v,0,0,c.width,c.height);
+      var r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height);
+      if(r&&r.data){var now=Date.now();if(r.data!==last||now-lastT>3000){last=r.data;lastT=now;if(onText(r.data)===true){stop();return;}}}
+    }
+    raf=requestAnimationFrame(tick);
+  }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false}).then(function(st){if(dead){st.getTracks().forEach(function(t){t.stop();});return;}stream=st;v.srcObject=st;v.play();tick();})
+    .catch(function(){stop();toast("Không mở được camera. Cho phép quyền camera, hoặc dùng ảnh mã QR.");});
+}
+function scanQR(text,onText){
+  if(tgScan()){try{tg.showScanQrPopup({text:text},function(t){return onText(t);});return;}catch(e){}}
+  if(camScan())webScan(text,onText);else toast("Thiết bị này không mở được trình quét. Dùng ảnh mã QR.");
+}
+function parseCode(t){var m=/tem-([0-9a-z]{6})(?![0-9a-z])/i.exec(String(t||""))||/^\s*([0-9a-z]{6})\s*$/i.exec(String(t||""));return m?m[1].toLowerCase():null;}
+
+/* ---------- label drawing (white paper, 2:1, like the sample label) ---------- */
+var fontsReady=null;
+function loadFonts(){
+  if(fontsReady)return fontsReady;
+  var t="Nhựa trộn xay Khối lượng ấầệ";
+  try{
+    fontsReady=Promise.all(['800 60px "Be Vietnam Pro"','700 40px "Be Vietnam Pro"','400 30px "Be Vietnam Pro"','italic 400 30px "Be Vietnam Pro"'].map(function(f){return document.fonts.load(f,t);})).catch(function(){});
+  }catch(e){fontsReady=Promise.resolve();}
+  return fontsReady;
+}
+function F(w,s,it){return (it?"italic ":"")+w+" "+s+'px "Be Vietnam Pro","Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif';}
+function fitText(x,text,w,size,maxW,it){
+  var s=size;x.font=F(w,s,it);
+  while(s>14&&x.measureText(text).width>maxW){s-=2;x.font=F(w,s,it);}
+  return s;
+}
+function drawQR(x,text,px,py,size,id){
+  var ok=false;
+  try{
+    if(typeof qrcode==="function"){
+      var q=qrcode(0,"M");q.addData(text);q.make();
+      var n=q.getModuleCount(),cell=size/n;
+      x.fillStyle="#000";
+      for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))x.fillRect(px+Math.floor(c*cell),py+Math.floor(r*cell),Math.ceil(cell),Math.ceil(cell));
+      ok=true;
+    }
+  }catch(e){}
+  if(!ok){x.strokeStyle="#000";x.lineWidth=3;x.strokeRect(px,py,size,size);x.fillStyle="#000";x.font=F(700,34);x.textAlign="center";x.fillText("Mã bao",px+size/2,py+size/2-10);x.fillText(ID(id),px+size/2,py+size/2+36);x.textAlign="left";}
+}
+function labelRows(b,T){
+  var rows=[["Loại nhựa",T.grade,b.grade||"—"],["Màu",T.color,b.color||"—"],["Lot gốc",T.base,b.baseLot||"—"]];
+  var wt=b.actualKg!=null?fmtKg(b.actualKg):(b.plannedKg!=null?"Dự kiến "+fmtKg(b.plannedKg)+"   Thực tế: ________ kg":"________ kg");
+  rows.push(["Khối lượng",T.wt,wt]);
+  if(b.kind==="TR"&&b.ratio)rows.push(["Tỷ lệ trộn",T.ratio,"Zin "+b.ratio.zinPct+"% : Xay "+b.ratio.xpPct+"%"]);
+  if(b.kind==="XP"&&(b.partCode||b.machine))rows.push(["Mã hàng - Máy",T.part,[b.partCode,b.machine].filter(Boolean).join(" - ")]);
+  if(b.kind==="ZIN"&&b.supplier)rows.push(["Nhà cung cấp",T.sup,b.supplier]);
+  if(b.sources&&b.sources.length)rows.push(["Nguồn",T.src,b.sources.map(function(s){return s.lotNo+(s.bagId?" ("+ID(s.bagId)+")":"");}).join(" + ")]);
+  rows.push(["Ngày tạo",T.date,fmtDate(b.createdAt)]);
+  return rows;
+}
+function drawLabel(x,b,ox,oy,sc){
+  var W=1600,H=800,T=L2[lang]||L2.en,k=KIND[kindOf(b.kind)];
+  x.save();x.translate(ox,oy);x.scale(sc,sc);
+  x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  x.strokeStyle="#000";x.lineWidth=4;x.strokeRect(3,3,W-6,H-6);
+  x.fillStyle="#000";x.textBaseline="alphabetic";x.textAlign="left";
+  var qs=300,qx=W-qs-40,qy=36;
+  drawQR(x,qrText(b.id),qx,qy,qs,b.id);
+  x.fillStyle="#000";x.font=F(700,32);x.textAlign="center";x.fillText(ID(b.id),qx+qs/2,qy+qs+38);x.textAlign="left";
+  fitText(x,b.lotNo,800,118,qx-70);x.fillText(b.lotNo,36,138);
+  x.font=F(700,56);x.fillText(k.vi,36,212);
+  x.font=F(700,56);x.fillText(k[lang]||k.en,36,278);
+  var rows=labelRows(b,T),y=350,step=46;
+  rows.forEach(function(r){
+    x.font=F(400,31);x.fillText(r[0]+"/ ",36,y);var w=x.measureText(r[0]+"/ ").width;
+    x.font=F(400,31,true);x.fillText(r[1],36+w,y);
+    x.font=F(400,31);x.fillText(":",560,y);
+    var maxW=(y<420?qx-600:W-620);
+    fitText(x,String(r[2]),600,31,maxW);x.fillText(String(r[2]),584,y);
+    y+=step;
+  });
+  x.font=F(400,26);x.fillText("- Dùng lot cũ trước (FIFO)/ ",36,700);var w1=x.measureText("- Dùng lot cũ trước (FIFO)/ ").width;
+  x.font=F(400,26,true);x.fillText(T.w1,36+w1,700);
+  x.font=F(400,26);x.fillText("- Quét mã QR để nhập kg thực tế và xuất kho/ ",36,734);var w2=x.measureText("- Quét mã QR để nhập kg thực tế và xuất kho/ ").width;
+  x.font=F(400,26,true);fitText(x,T.w2,400,26,W-72-w2,true);x.fillText(T.w2,36+w2,734);
+  x.font=F(700,25);x.textAlign="center";x.fillText(T.foot,W/2,776);
+  x.restore();
+}
+async function labelCanvas(ids,sc){
+  await loadFonts();
+  var c=document.createElement("canvas");c.width=Math.round(1600*sc);c.height=Math.round(800*sc)*ids.length;
+  var x=c.getContext("2d");
+  ids.forEach(function(id,i){var b=bags.get(id);if(b)drawLabel(x,b,0,Math.round(800*sc)*i,sc);});
+  return c;
+}
+async function renderLabels(box,ids){
+  if(!box)return;
+  box.textContent="";
+  for(var i=0;i<ids.length;i++){
+    var b=bags.get(ids[i]);if(!b)continue;
+    var c=await labelCanvas([ids[i]],0.75);
+    var wrap=document.createElement("div");wrap.className="labels";
+    var img=document.createElement("img");img.className="labelimg";img.alt="Tem "+b.lotNo+" mã bao "+ID(b.id);img.src=c.toDataURL("image/png");
+    var row=document.createElement("div");row.className="row";
+    row.innerHTML='<button type="button" class="btn small" data-act="dl" data-id="'+esc(b.id)+'">'+(webMode?'Tải tem PNG':'Gửi tem vào Telegram của tôi')+'</button><a class="btn small ghost" href="#tem-'+esc(b.id)+'">Mở bao '+esc(ID(b.id))+'</a>';
+    wrap.appendChild(img);wrap.appendChild(row);box.appendChild(wrap);
+  }
+}
+function canvasBlob(c){return new Promise(function(res){c.toBlob(function(b){res(b);},"image/png");});}
+async function downloadLabels(ids){
+  if(memMode){toast("Chưa kết nối máy chủ. Nhấn giữ vào ảnh tem để lưu.");return;}
+  var c=await labelCanvas(ids,ids.length>1?0.75:1),b=bags.get(ids[0]);
+  var name=(ids.length>1?"tem-"+ids.length+"-bao-":"tem-")+String(b.lotNo).replace(/[^0-9A-Za-z-]+/g,"_")+"-"+ID(b.id)+".png";
+  if(webMode){saveFile(name,await canvasBlob(c));toast("Đã tải ảnh tem. In ở khổ 100 × 50 mm.");return;}
+  toast("Đang gửi tem…");
+  try{await api("send",{target:"me",kind:"document",filename:name,mime:"image/png",b64:c.toDataURL("image/png").split(",")[1],caption:"Tem "+b.lotNo+(ids.length>1?" ("+ids.length+" bao)":" · bao "+ID(b.id))+" · in khổ 100 × 50 mm"});toast("Đã gửi tem vào chat của bạn với bot. Mở chat đó để in.");}
+  catch(e){toast(errMsg(e,"Không gửi được tem. Nhấn giữ vào ảnh tem để lưu."));}
+}
+/* ---------- images: QR decode and label photo ---------- */
+function loadImg(file){
+  return new Promise(function(res,rej){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){res(im);};im.onerror=function(){rej(new Error("img"));};im.src=u;});
+}
+async function decodeQR(file){
+  if(typeof jsQR!=="function")return null;
+  var im=await loadImg(file),sizes=[1500,1000,640];
+  for(var i=0;i<sizes.length;i++){
+    var s=Math.min(1,sizes[i]/Math.max(im.width,im.height)),c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));
+    var x=c.getContext("2d");x.drawImage(im,0,0,c.width,c.height);
+    var d=x.getImageData(0,0,c.width,c.height),r=jsQR(d.data,c.width,c.height);
+    if(r&&r.data)return r.data;
+  }
+  return null;
+}
+async function shrink(file,max){
+  var im=await loadImg(file),s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");
+  c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+  return new Promise(function(res){c.toBlob(function(b){res(b||file);},"image/jpeg",0.85);});
+}
+var OCR_PROMPT='Ảnh là tem dán trên bao nhựa nguyên liệu (hạt nhựa). Đọc tem và trả về DUY NHẤT một đối tượng JSON, không giải thích: {"grade":string|null,"color":string|null,"lotNo":string|null,"netKg":number|null,"supplier":string|null}. grade = tên thương mại và mã grade ghép lại, ví dụ "LUPOX GP2306F". color = mã màu. lotNo = đúng từng ký tự của LOT NO. netKg = khối lượng tịnh tính bằng kg (chỉ số). supplier = tên hãng nếu có in. Trường nào không thấy thì null.';
+async function askOcr(prompt,file,max){
+  if(memMode||!hasOcr){var e=new Error("no_ocr");e.code="no_ocr";throw e;}
+  var blob=await shrink(file,max),b64=await blobB64(blob);
+  var r=await api("ocr",{prompt:prompt,b64:b64,mime:blob.type||"image/jpeg"});
+  var m=/\{[\s\S]*\}/.exec(r.text||"");return JSON.parse(m[0]);
+}
+async function runOCR(file){
+  var st=$("#ocr-status");if(!st)return;
+  if(memMode||!hasOcr){st.textContent="Chưa bật đọc chữ từ ảnh. Nhập tay theo ảnh bên trên.";return;}
+  st.textContent="Đang đọc tem từ ảnh…";
+  try{
+    var o=await askOcr(OCR_PROMPT,file,1600);
+    var put=function(sel,v){var el=$(sel);if(el&&v!=null&&String(v).trim()!=="")el.value=String(v).trim().slice(0,80);};
+    put("#zin-grade",o.grade);put("#zin-color",o.color);put("#zin-lot",o.lotNo);put("#zin-supplier",o.supplier);
+    if(typeof o.netKg==="number"&&o.netKg>0)put("#zin-kg",o.netKg);
+    st.textContent="Đã điền từ ảnh. Kiểm tra lại từng ô trước khi lưu.";
+  }catch(e){st.textContent=errMsg(e,"Không đọc được tem. Nhập tay theo ảnh bên trên.");}
+}
+function handlePhoto(file){
+  if(!file||!/^image\//.test(file.type))return;
+  var th=$("#zin-thumb");if(th){th.src=URL.createObjectURL(file);th.hidden=false;}
+  runOCR(file);
+}
+
+/* ---------- actions ---------- */
+async function createZin(f){
+  var grade=f.grade.value.trim(),lot=f.lot.value.trim(),kg=num(f.kg.value),qty=Math.round(num(f.qty.value)||1);
+  if(!grade||!lot){toast("Cần nhập Grade và Lot No.");return;}
+  if(!(kg>0)){toast("Khối lượng mỗi bao phải lớn hơn 0.");return;}
+  if(qty<1||qty>10){toast("Mỗi lần tạo từ 1 đến 10 bao.");return;}
+  var rd=f.istoday.checked?"":f.rdate.value,back=null;
+  if(!f.istoday.checked){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(rd)){toast("Chọn ngày nhận nhựa, hoặc tích Nhận hôm nay.");return;}
+    if(rd>today()){toast("Ngày nhận không được sau hôm nay.");return;}
+    if(rd<today()){var nw=new Date();back=new Date(+rd.slice(0,4),+rd.slice(5,7)-1,+rd.slice(8,10),nw.getHours(),nw.getMinutes(),nw.getSeconds());}
+  }
+  var ids=[];
+  for(var i=0;i<qty;i++){
+    var b=newBag({kind:"ZIN",lotNo:lot,baseLot:lot,grade:grade,color:f.color.value.trim(),supplier:f.supplier.value.trim(),plannedKg:r2(kg),actualKg:r2(kg),remainKg:r2(kg),status:"IN_STOCK",note:f.note.value.trim()});
+    if(back)b.createdAt=new Date(back.getTime()+i*1000).toISOString();
+    b.events.push(ev("IN",kg,"Nhập kho nhựa zin"+(qty>1?" (bao "+(i+1)+"/"+qty+")":"")+(back?" · ngày nhận "+rd.split("-").reverse().join("/")+", ghi sổ sau":"")));
+    await save(b);ids.push(b.id);
+  }
+  done(ids,"Đã nhập kho "+qty+" bao nhựa zin.");
+}
+async function createXP(f){
+  var sid=f.src.value,src=sid?bags.get(sid):null,base,grade,color,sources=[];
+  if(src){base=src.baseLot;grade=src.grade;color=src.color;sources=[{bagId:src.id,lotNo:src.lotNo,kind:src.kind,kg:null}];}
+  else{base=stripSfx(f.mlot.value);grade=f.mgrade.value.trim();color=f.mcolor.value.trim();if(!base||!grade){toast("Chọn bao nguồn, hoặc nhập Lot gốc và Grade.");return;}sources=[{bagId:null,lotNo:f.mlot.value.trim(),kind:/-TR$/i.test(f.mlot.value.trim())?"TR":"ZIN",kg:null}];}
+  var pk=f.kg.value.trim()===""?null:num(f.kg.value);
+  if(pk!=null&&!(pk>0)){toast("Kg dự kiến phải lớn hơn 0, hoặc để trống.");return;}
+  var b=newBag({kind:"XP",lotNo:base+"-XP",baseLot:base,grade:grade,color:color,partCode:f.part.value.trim(),machine:f.machine.value.trim(),plannedKg:pk==null?null:r2(pk),sources:sources,note:f.note.value.trim()});
+  b.events.push(ev("CREATE",pk,"Tạo tem nhựa xay từ "+sources[0].lotNo));
+  await save(b);done([b.id],"Đã tạo tem nhựa xay. Xay xong thì quét mã để nhập kg thực tế.");
+}
+async function createTR(f){
+  var z=bags.get(f.zin.value),x=bags.get(f.xp.value),kz=num(f.kgz.value),kx=num(f.kgx.value);
+  if(!z||!x){toast("Chọn một bao nhựa zin và một bao nhựa xay còn tồn.");return;}
+  if(!(kz>0)||!(kx>0)){toast("Nhập số kg lấy từ mỗi bao.");return;}
+  if(kz>z.remainKg+0.001){toast("Bao zin "+ID(z.id)+" chỉ còn "+fmtKg(z.remainKg)+".");return;}
+  if(kx>x.remainKg+0.001){toast("Bao xay "+ID(x.id)+" chỉ còn "+fmtKg(x.remainKg)+".");return;}
+  var base=f.base&&f.base.value?f.base.value:x.baseLot,tot=kz+kx,zp=Math.round(kz/tot*100);
+  var b=newBag({kind:"TR",lotNo:base+"-TR",baseLot:base,grade:z.grade,color:z.color,plannedKg:r2(tot),ratio:{zinPct:zp,xpPct:100-zp},
+    sources:[{bagId:z.id,lotNo:z.lotNo,kind:"ZIN",kg:r2(kz)},{bagId:x.id,lotNo:x.lotNo,kind:"XP",kg:r2(kx)}],note:f.note.value.trim()});
+  b.events.push(ev("CREATE",tot,"Trộn zin "+ID(z.id)+" + xay "+ID(x.id)));
+  await save(b);
+  await issue(z.id,kz,"Trộn → "+b.lotNo+" ("+ID(b.id)+")");
+  await issue(x.id,kx,"Trộn → "+b.lotNo+" ("+ID(b.id)+")");
+  done([b.id],"Đã tạo tem nhựa trộn và trừ tồn hai bao nguồn.");
+}
+function done(ids,msg){labelIds=ids;toast(msg);render();var o=$("#result");if(o&&o.scrollIntoView)o.scrollIntoView({block:"nearest"});}
+async function issue(id,kg,dest,slip){
+  var b=clone(bags.get(id));b.remainKg=r2(b.remainKg-kg);
+  if(b.remainKg<=0.005){b.remainKg=0;b.status="USED_UP";}
+  var oe=ev("OUT",kg,dest);if(slip)oe.slip=slip;b.events.push(oe);await save(b);
+}
+async function weigh(id,kg){
+  var b=clone(bags.get(id));b.actualKg=r2(kg);b.remainKg=r2(kg);b.status="IN_STOCK";
+  b.events.push(ev("WEIGH",kg,"Kg thực tế sau khi "+(b.kind==="TR"?"trộn":"xay")));await save(b);
+}
+async function adjust(id,kg,note){
+  var b=clone(bags.get(id));b.remainKg=r2(kg);if(b.actualKg==null)b.actualKg=r2(kg);b.status=kg>0?"IN_STOCK":"USED_UP";
+  b.events.push(ev("ADJUST",kg,note||"Điều chỉnh tồn"));await save(b);
+}
+async function voidBag(id){
+  var b=clone(bags.get(id));b.status="VOID";b.remainKg=0;b.events.push(ev("VOID",null,"Hủy tem"));await save(b);
+}
+
+/* ---------- views ---------- */
+function opt(b,extra){return '<option value="'+esc(b.id)+'">'+esc(ID(b.id)+" · "+b.lotNo+" · "+b.grade+(b.color?" "+b.color:"")+(extra||""))+'</option>';}
+function dis(){return canWrite?"":" disabled";}
+function viewCreate(){
+  var h='<div class="seg" role="group" aria-label="Loại tem">';
+  ["ZIN","XP","TR"].forEach(function(k){h+='<button type="button" class="k-'+k+'" data-act="mode" data-mode="'+k+'" aria-pressed="'+(mode===k)+'"><b>'+esc(KIND[k].vi)+'</b><span>'+esc(KIND[k].desc)+'</span></button>';});
+  h+='</div><div class="cols"><section class="card">';
+  if(mode==="ZIN"){
+    h+='<h2>Nhập kho nhựa zin</h2>'+
+    '<form id="f-zin" class="form" novalidate>'+
+    '<div class="drop full" id="drop" tabindex="0"><p class="hint"><b>Dán ảnh tem bao nhựa</b> (Ctrl+V), kéo thả vào đây, hoặc chọn ảnh. Ảnh chỉ dùng để đọc chữ, không lưu lại.</p>'+
+    '<label class="btn small ghost" for="zin-photo">Chọn hoặc chụp ảnh</label><input type="file" id="zin-photo" accept="image/*" hidden>'+
+    '<img id="zin-thumb" alt="Ảnh tem bao nhựa vừa chọn" hidden><p class="hint" id="ocr-status" aria-live="polite"></p></div>'+
+    '<label class="f">Grade *<input id="zin-grade" name="grade" placeholder="LUPOX GP2306F" autocomplete="off"></label>'+
+    '<label class="f">Màu<input id="zin-color" name="color" placeholder="KA34" autocomplete="off"></label>'+
+    '<label class="f">Lot No *<input id="zin-lot" name="lot" placeholder="I2690805-15" autocomplete="off"></label>'+
+    '<label class="f">Kg mỗi bao *<input id="zin-kg" name="kg" inputmode="decimal" placeholder="1000"></label>'+
+    '<label class="f">Số bao (1–10)<input id="zin-qty" name="qty" inputmode="numeric" value="1"></label>'+
+    '<label class="f">Nhà cung cấp<input id="zin-supplier" name="supplier" autocomplete="off"></label>'+
+    '<label class="f">Ngày nhận nhựa<input type="date" id="zin-date" name="rdate" value="'+today()+'" max="'+today()+'" disabled></label>'+
+    '<label class="chk" for="zin-today"><input type="checkbox" id="zin-today" name="istoday" checked> Nhận hôm nay</label>'+
+    '<label class="f full">Ghi chú<input id="zin-note" name="note" autocomplete="off"></label>'+
+    '<div class="full"><button class="btn"'+dis()+'>Nhập kho và tạo tem</button></div></form>';
+  }else if(mode==="XP"){
+    var srcs=all().filter(function(b){return (b.kind==="ZIN"||b.kind==="TR")&&b.status!=="VOID";}).sort(function(a,b){return a.createdAt<b.createdAt?1:-1;});
+    h+='<h2>Tạo tem nhựa xay (XP)</h2><p class="hint">Chọn bao nhựa đã dùng để ép ra cuống/hàng NG đem xay. Lot trên tem = lot gốc + XP (bao nguồn là TR thì bỏ TR, ghi XP).</p>'+
+    '<form id="f-xp" class="form" novalidate>'+
+    '<label class="f full">Bao nguồn<select id="xp-src" name="src"><option value="">— Bao nguồn chưa có trong hệ thống: nhập tay —</option>'+srcs.map(function(b){return opt(b);}).join("")+'</select></label>'+
+    '<div class="full row">'+(canScan()?'<button type="button" class="btn small" data-act="scan-src">Quét QR bao nguồn</button>':'')+'<label class="btn small ghost" for="src-scan">Chọn bao nguồn bằng ảnh mã QR</label><input type="file" id="src-scan" accept="image/*" hidden></div>'+
+    '<label class="f" data-manual>Lot gốc *<input id="xp-mlot" name="mlot" placeholder="I2690805-15" autocomplete="off"></label>'+
+    '<label class="f" data-manual>Grade *<input id="xp-mgrade" name="mgrade" autocomplete="off"></label>'+
+    '<label class="f" data-manual>Màu<input id="xp-mcolor" name="mcolor" autocomplete="off"></label>'+
+    '<label class="f">Mã hàng<input id="xp-part" name="part" placeholder="C60-795288" autocomplete="off"></label>'+
+    '<label class="f">Máy ép / máy xay<input id="xp-machine" name="machine" autocomplete="off"></label>'+
+    '<label class="f">Kg dự kiến (có thể để trống)<input id="xp-kg" name="kg" inputmode="decimal"></label>'+
+    '<label class="f full">Ghi chú<input id="xp-note" name="note" autocomplete="off"></label>'+
+    '<div class="full"><p class="hint">Lot No trên tem</p><div class="lotprev" id="xp-prev">—</div></div>'+
+    '<div class="full"><button class="btn"'+dis()+'>Tạo tem nhựa xay</button></div></form>';
+  }else{
+    var zs=inStock("ZIN"),xs=inStock("XP");
+    h+='<h2>Tạo tem nhựa trộn (TR)</h2><p class="hint">Danh sách xếp theo FIFO, bao cũ nhất đứng đầu. Tạo tem xong, hai bao nguồn được trừ tồn ngay.</p>';
+    if(!zs.length||!xs.length){h+='<p class="note">Cần ít nhất một bao nhựa zin và một bao nhựa xay đang <b>Trong kho</b>. '+(zs.length?"":"Chưa có nhựa zin tồn. ")+(xs.length?"":"Chưa có nhựa xay đã cân.")+'</p>';}
+    h+='<form id="f-tr" class="form" novalidate>'+
+    '<label class="f">Bao nhựa zin<select id="tr-zin" name="zin">'+zs.map(function(b,i){return opt(b," · còn "+fmtKg(b.remainKg)+(i===0?" · FIFO":""));}).join("")+'</select></label>'+
+    '<label class="f">Kg zin lấy ra<input id="tr-kgz" name="kgz" inputmode="decimal" placeholder="80"></label>'+
+    '<label class="f">Bao nhựa xay<select id="tr-xp" name="xp">'+xs.map(function(b,i){return opt(b," · còn "+fmtKg(b.remainKg)+(i===0?" · FIFO":""));}).join("")+'</select></label>'+
+    '<label class="f">Kg xay lấy ra<input id="tr-kgx" name="kgx" inputmode="decimal" placeholder="20"></label>'+
+    '<label class="f full" id="tr-basewrap" hidden>Hai bao khác lot gốc. Lot gốc ghi trên tem<select id="tr-base" name="base"></select></label>'+
+    '<label class="f full">Ghi chú<input id="tr-note" name="note" autocomplete="off"></label>'+
+    '<div class="full"><p class="hint">Lot No trên tem</p><div class="lotprev" id="tr-prev">—</div><p class="hint" id="tr-hint"></p></div>'+
+    '<div class="full"><button class="btn"'+dis()+'>Tạo tem nhựa trộn</button></div></form>';
+  }
+  h+='</section><section class="card" id="result"><h2>Tem để in</h2>';
+  if(labelIds.length){
+    h+='<div class="row"><label class="f">Ngôn ngữ thứ hai trên tem<select id="lang"><option value="en"'+(lang==="en"?" selected":"")+'>English</option><option value="ko"'+(lang==="ko"?" selected":"")+'>한국어</option></select></label>'+
+       (labelIds.length>1?'<button type="button" class="btn small" data-act="dl-all">'+(webMode?'Tải':'Gửi')+' cả '+labelIds.length+' tem (1 ảnh)</button>':'')+'</div>'+
+       '<div id="labels" class="labels"></div><p class="hint">'+(webMode?'':'Bot gửi file tem vào chat riêng của bạn. ')+'Tem tỷ lệ 2:1, in ở khổ 100 × 50 mm rồi dán lên bao.</p>';
+  }else{
+    h+='<ol class="steps"><li>Nhập nhựa zin: dán ảnh tem bao nhựa, kiểm tra thông tin, tạo tem QR.</li><li>Xay: tạo tem XP từ bao nguồn. Xay xong quét mã, nhập kg thực tế.</li><li>Trộn: chọn bao zin và bao xay theo FIFO, tạo tem TR. Trộn xong quét mã, nhập kg thực tế.</li><li>Mỗi lần lấy nhựa đi sản xuất: quét mã bao, nhập kg xuất.</li></ol>';
+  }
+  h+='</section></div>';
+  return h;
+}
+function updHints(){
+  if(view!=="tao-tem")return;
+  if(mode==="XP"){
+    var s=$("#xp-src");if(!s)return;var src=s.value?bags.get(s.value):null;
+    $$("[data-manual]").forEach(function(el){el.hidden=!!src;});
+    var base=src?src.baseLot:stripSfx($("#xp-mlot").value);
+    $("#xp-prev").textContent=base?base+"-XP":"—";
+  }else if(mode==="TR"){
+    var zs=$("#tr-zin"),xs=$("#tr-xp");if(!zs)return;
+    var z=bags.get(zs.value),x=bags.get(xs.value),bw=$("#tr-basewrap"),bs=$("#tr-base"),hint=[];
+    if(z&&x){
+      if(z.baseLot!==x.baseLot){
+        var keep=bs.value;bs.innerHTML='<option value="'+esc(x.baseLot)+'">'+esc(x.baseLot)+' (lot của nhựa xay)</option><option value="'+esc(z.baseLot)+'">'+esc(z.baseLot)+' (lot của nhựa zin)</option>';
+        if(keep===z.baseLot)bs.value=keep;bw.hidden=false;
+      }else{bs.innerHTML='<option value="'+esc(x.baseLot)+'">'+esc(x.baseLot)+'</option>';bw.hidden=true;}
+      $("#tr-prev").textContent=(bs.value||x.baseLot)+"-TR";
+      var kz=num($("#tr-kgz").value),kx=num($("#tr-kgx").value);
+      if(kz>0&&kx>0){var zp=Math.round(kz/(kz+kx)*100);hint.push("Tổng "+fmtKg(kz+kx)+" · Zin "+zp+"% : Xay "+(100-zp)+"%.");}
+      if(String(z.grade).toUpperCase()!==String(x.grade).toUpperCase())hint.push("Cảnh báo: hai bao khác grade ("+z.grade+" và "+x.grade+").");
+      if(zs.selectedIndex>0)hint.push("Bao zin đang chọn không phải bao cũ nhất.");
+      if(xs.selectedIndex>0)hint.push("Bao xay đang chọn không phải bao cũ nhất.");
+    }else $("#tr-prev").textContent="—";
+    $("#tr-hint").textContent=hint.join(" ");
+  }
+}
+function viewScan(){
+  return '<section class="card"><h2>Quét mã trên bao</h2>'+
+  '<p class="hint">Quét mã QR trên tem bao nhựa hoặc trên phiếu xuất. Nếu không quét được, chọn ảnh mã QR hoặc gõ 6 ký tự mã bao in dưới mã QR.</p>'+
+  '<div class="row">'+(canScan()?'<button type="button" class="btn" data-act="scan-open">Quét mã QR bằng camera</button>':'')+'<label class="btn'+(canScan()?' ghost':'')+'" for="scan-file">Chọn ảnh mã QR</label><input type="file" id="scan-file" accept="image/*" hidden></div>'+
+  '<form id="f-open" class="row" novalidate><label class="f">Mã bao<input id="open-code" name="code" placeholder="A7K2M9" maxlength="40" autocomplete="off" autocapitalize="characters"></label><button class="btn ghost">Mở</button></form>'+
+  '<p class="hint" id="scan-status" aria-live="polite"></p></section>'+pendingList();
+}
+function pendingList(){
+  var p=all().filter(function(b){return b.status==="PENDING";}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});
+  if(!p.length)return "";
+  return '<section class="card"><h2>Tem chờ nhập kg thực tế</h2><div class="scroll"><table><thead><tr><th>Mã bao</th><th>Lot No</th><th>Loại</th><th class="n">Dự kiến</th><th>Tạo lúc</th></tr></thead><tbody>'+
+    p.map(function(b){return '<tr><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+esc(b.lotNo)+'</td><td>'+kindPill(b.kind)+'</td><td class="n">'+fmtKg(b.plannedKg)+'</td><td>'+fmtDate(b.createdAt)+'</td></tr>';}).join("")+'</tbody></table></div></section>';
+}
+function fact(k,v){return v==null||v===""?"":'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>';}
+function tree(b,depth,seen){
+  if(!b.sources||!b.sources.length)return "";
+  return '<ul class="tree">'+b.sources.map(function(s){
+    var sb=s.bagId?bags.get(s.bagId):null;
+    var h=kindPill(s.kind)+' <b>'+esc(s.lotNo)+'</b>'+(s.bagId?' <a href="#tem-'+esc(s.bagId)+'">'+esc(ID(s.bagId))+'</a>':' (nhập tay, không có tem)')+(s.kg!=null?' · '+fmtKg(s.kg):'')+(sb&&sb.kind==="ZIN"&&sb.supplier?' · '+esc(sb.supplier):'');
+    var sub=(sb&&depth<8&&!seen[sb.id])?tree(sb,depth+1,Object.assign({},seen,(function(){var o={};o[sb.id]=1;return o;})())):"";
+    return '<li>'+h+sub+'</li>';
+  }).join("")+'</ul>';
+}
+function who(id){return id?esc(id):"—";}
+function viewBag(){
+  var b=bags.get(curId);
+  if(!b)return '<section class="card"><h2>Không tìm thấy bao '+esc(ID(curId))+'</h2><p class="hint">'+(ready?"Mã này chưa có trong hệ thống. Kiểm tra lại 6 ký tự in dưới mã QR.":"Đang tải dữ liệu…")+'</p><div><a class="btn ghost" href="#quet">Quét mã khác</a></div></section>';
+  var h='<section class="card"><div class="baghead"><div><div class="lot">'+esc(b.lotNo)+'</div><div class="row">'+kindPill(b.kind)+statusPill(b.status)+'<span class="hint">Mã bao '+esc(ID(b.id))+'</span></div></div>'+
+    '<div class="remain"><span>Tồn hiện tại</span><b>'+fmtKg(b.status==="PENDING"?null:b.remainKg)+'</b></div></div>'+
+    '<dl class="facts">'+fact("Grade",b.grade)+fact("Màu",b.color)+fact("Lot gốc",b.baseLot)+fact("Kg dự kiến",b.plannedKg==null?"":fmtKg(b.plannedKg))+fact("Kg thực tế",b.actualKg==null?"":fmtKg(b.actualKg))+
+    (b.ratio?fact("Tỷ lệ trộn","Zin "+b.ratio.zinPct+"% : Xay "+b.ratio.xpPct+"%"):"")+fact("Mã hàng",b.partCode)+fact("Máy",b.machine)+fact("Nhà cung cấp",b.supplier)+fact("Tạo lúc",fmtDate(b.createdAt))+fact("Ghi chú",b.note)+
+    '<div><dt>Người tạo</dt><dd>'+who(b.createdBy)+'</dd></div></dl></section>';
+  h+='<section class="card"><h2>Thao tác</h2>';
+  if(!canWrite)h+='<p class="hint">Tài khoản này chỉ được xem.</p>';
+  else if(b.status==="PENDING"){
+    h+='<form id="f-weigh" class="row" novalidate><label class="f">Kg thực tế sau khi '+(b.kind==="TR"?"trộn":"xay")+'<input id="weigh-kg" name="kg" inputmode="decimal" placeholder="'+(b.plannedKg!=null?esc(String(b.plannedKg)):"")+'"></label><button class="btn">Lưu kg thực tế, nhập kho</button></form>';
+  }else if(b.status==="IN_STOCK"){
+    var old=olderThan(b);
+    if(old.length)h+='<p class="note"><b>FIFO:</b> còn '+old.length+' bao cùng loại nhập trước, nên dùng trước: '+old.slice(0,4).map(function(o){return '<a href="#tem-'+esc(o.id)+'">'+esc(ID(o.id))+'</a> ('+fmtDate(o.createdAt)+', còn '+fmtKg(o.remainKg)+')';}).join(", ")+(old.length>4?"…":"")+'</p>';
+    h+='<form id="f-out" class="form" novalidate><label class="f">Kg xuất<input id="out-kg" name="kg" inputmode="decimal" placeholder="Tối đa '+esc(String(b.remainKg))+'"></label><label class="f">Xuất cho (máy, mã hàng)<input id="out-dest" name="dest" autocomplete="off"></label><div class="full"><button class="btn">Ghi xuất kho</button></div></form>';
+  }else h+='<p class="hint">Bao này '+(b.status==="VOID"?"đã hủy.":"đã dùng hết.")+'</p>';
+  if(canWrite&&b.status!=="VOID"){
+    h+='<details><summary>Sửa sai: điều chỉnh tồn, hủy tem</summary><form id="f-adjust" class="form" novalidate style="margin-top:10px"><label class="f">Tồn đúng (kg)<input id="adj-kg" name="kg" inputmode="decimal"></label><label class="f">Lý do<input id="adj-note" name="note" autocomplete="off"></label><div class="full row"><button class="btn ghost">Lưu điều chỉnh</button><button type="button" class="btn danger" data-act="void">'+(voidArm?"Bấm lần nữa để hủy tem":"Hủy tem này")+'</button></div><p class="hint full">Hủy tem không trả lại kg cho các bao nguồn. Nếu cần, mở bao nguồn và điều chỉnh tồn.</p></form></details>';
+  }
+  h+='</section>';
+  var down=all().filter(function(x){return x.status!=="VOID"&&(x.sources||[]).some(function(s){return s.bagId===b.id;});});
+  h+='<section class="card"><h2>Truy xuất nguồn gốc</h2><h3>Làm từ</h3>'+(tree(b,0,{})||'<p class="hint">'+(b.kind==="ZIN"?"Nhựa zin nhập kho"+(b.supplier?" từ "+esc(b.supplier):"")+", lot nhà sản xuất "+esc(b.lotNo)+".":"Không ghi nguồn.")+'</p>')+
+    '<h3>Đã dùng cho</h3>'+(down.length?'<ul class="tree">'+down.map(function(x){var s=x.sources.filter(function(s){return s.bagId===b.id;})[0];return '<li>'+kindPill(x.kind)+' <b>'+esc(x.lotNo)+'</b> <a href="#tem-'+esc(x.id)+'">'+esc(ID(x.id))+'</a>'+(s.kg!=null?' · '+fmtKg(s.kg):'')+' · '+fmtDate(x.createdAt)+'</li>';}).join("")+'</ul>':'<p class="hint">Chưa có tem xay/trộn nào tạo từ bao này.</p>')+'</section>';
+  h+='<section class="card"><h2>Nhật ký bao</h2><div class="scroll"><table><thead><tr><th>Thời gian</th><th>Thao tác</th><th class="n">Kg</th><th>Ghi chú</th><th>Người làm</th></tr></thead><tbody>'+
+    (b.events||[]).slice().reverse().map(function(e){return '<tr><td>'+fmtDate(e.t)+'</td><td>'+esc(EV[e.type]||e.type)+'</td><td class="n">'+(e.kg==null?"—":(e.type==="OUT"?"−":"")+fmtKg(e.kg))+'</td>'+noteCell(e)+'<td>'+who(e.by)+'</td></tr>';}).join("")+'</tbody></table></div></section>';
+  h+='<section class="card"><h2>Tem</h2><div class="row"><button type="button" class="btn ghost" data-act="reprint">'+(bagLabel?"Vẽ lại tem":"Hiện tem để in lại")+'</button>'+
+    '<label class="f">Ngôn ngữ thứ hai<select id="lang"><option value="en"'+(lang==="en"?" selected":"")+'>English</option><option value="ko"'+(lang==="ko"?" selected":"")+'>한국어</option></select></label></div><div id="labels" class="labels"></div></section>';
+  return h;
+}
+function viewStock(){
+  var st=inStock(),sum={ZIN:0,XP:0,TR:0};st.forEach(function(b){sum[kindOf(b.kind)]+=b.remainKg;});
+  var pend=all().filter(function(b){return b.status==="PENDING";}).length;
+  var h='<div class="tiles">'+["ZIN","XP","TR"].map(function(k){return '<div class="tile k-'+k+'"><span>'+esc(KIND[k].vi)+' tồn</span><b>'+fmtKg(sum[k])+'</b></div>';}).join("")+'<div class="tile"><span>Tem chờ cân</span><b>'+pend+'</b></div></div>';
+  var rank={};
+  var rows=st.filter(function(b){return !stockKind||b.kind===stockKind;}).map(function(b){var k=fifoKey(b);rank[k]=(rank[k]||0)+1;return {b:b,r:rank[k]};});
+  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Tồn kho theo FIFO</h2><div class="row">'+
+    [["","Tất cả"],["ZIN","Zin"],["XP","Xay"],["TR","Trộn"]].map(function(o){return '<button type="button" class="btn small '+(stockKind===o[0]?"":"ghost")+'" data-act="skind" data-kind="'+o[0]+'" aria-pressed="'+(stockKind===o[0])+'">'+o[1]+'</button>';}).join("")+
+    '<button type="button" class="btn small ghost" data-act="csv-stock">Xuất CSV</button></div></div>'+
+    '<p class="hint">Thứ tự FIFO tính riêng cho từng loại nhựa, grade và màu. Số 1 là bao phải dùng trước.</p>';
+  if(!rows.length)h+='<p class="empty">'+(ready?'Chưa có bao nào trong kho. Vào <a href="#tao-tem">Tạo tem</a> để nhập nhựa zin đầu tiên.':'Đang tải…')+'</p>';
+  else h+='<div class="scroll"><table><thead><tr><th class="n">FIFO</th><th>Mã bao</th><th>Lot No</th><th>Loại</th><th>Grade · Màu</th><th class="n">Tồn</th><th>Nhập lúc</th><th class="n">Tuổi</th></tr></thead><tbody>'+
+    rows.map(function(o){var b=o.b;return '<tr class="'+(o.r===1?"first":"")+'"><td class="n">'+o.r+(o.r===1?' <span class="pill solid">Dùng trước</span>':'')+'</td><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+esc(b.lotNo)+'</td><td>'+kindPill(b.kind)+'</td><td>'+esc(b.grade+(b.color?" · "+b.color:""))+'</td><td class="n">'+fmtKg(b.remainKg)+'</td><td>'+fmtDate(b.createdAt)+'</td><td class="n">'+ageDays(b.createdAt)+' ngày</td></tr>';}).join("")+'</tbody></table></div>';
+  h+='</section>'+pendingList();
+  return h;
+}
+function allEvents(){
+  var out=[];all().forEach(function(b){(b.events||[]).forEach(function(e){out.push({b:b,e:e});});});
+  out.sort(function(a,c){return a.e.t<c.e.t?1:a.e.t>c.e.t?-1:0;});return out;
+}
+function viewHistory(){
+  var evs=allEvents(),h='<section class="card"><div class="row" style="justify-content:space-between"><h2>Lịch sử nhập, xuất</h2><button type="button" class="btn small ghost" data-act="csv-hist">Xuất CSV</button></div>';
+  if(!evs.length)h+='<p class="empty">'+(ready?"Chưa có thao tác nào.":"Đang tải…")+'</p>';
+  else h+='<div class="scroll"><table><thead><tr><th>Thời gian</th><th>Thao tác</th><th>Mã bao</th><th>Lot No</th><th>Loại</th><th class="n">Kg</th><th>Ghi chú</th><th>Người làm</th></tr></thead><tbody>'+
+    evs.slice(0,300).map(function(o){var b=o.b,e=o.e;return '<tr><td>'+fmtDate(e.t)+'</td><td>'+esc(EV[e.type]||e.type)+'</td><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+esc(b.lotNo)+'</td><td>'+kindPill(b.kind)+'</td><td class="n">'+(e.kg==null?"—":(e.type==="OUT"?"−":"")+fmtKg(e.kg))+'</td>'+noteCell(e)+'<td>'+who(e.by)+'</td></tr>';}).join("")+'</tbody></table></div>'+(evs.length>300?'<p class="hint">Đang hiện 300 dòng mới nhất trong '+evs.length+' dòng. File CSV có đủ.</p>':'');
+  return h+'</section>';
+}
+function csvCell(v){var s=String(v==null?"":v);if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
+async function exportCsv(kind){
+  var lines;
+  if(kind==="slip"){
+    var n=0;lines=[["STT","Ngày","Giờ","Tên vật tư","Mã hàng","Lot No","Phân loại","Nguồn gốc","ĐVT","Số lượng nhập","Số lượng xuất","Nơi giao/nhận","Ghi chú","Lot sản xuất","Số phiếu","Người lập"]];
+    Array.from(slips.values()).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;}).forEach(function(s){var dt=fmtDate(s.createdAt).split(" ");s.lines.forEach(function(l){n++;lines.push([n,dt[0],dt[1],l.name,s.partCode,l.lotNo,l.cls,l.source,"Kg","",l.kg,"Máy "+s.machine,s.note,s.prodLot,slipNo(s),s.createdBy||""]);});});
+  }else if(kind==="hist"){
+    lines=[["Thời gian","Thao tác","Mã bao","Lot No","Loại","Grade","Màu","Kg","Ghi chú","Người làm"]].concat(allEvents().map(function(o){var b=o.b,e=o.e;return [fmtDate(e.t),EV[e.type]||e.type,ID(b.id),b.lotNo,KIND[kindOf(b.kind)].vi,b.grade,b.color,e.kg==null?"":(e.type==="OUT"?-e.kg:e.kg),e.note,names[e.by]||e.by||""];}));
+  }else{
+    lines=[["Mã bao","Lot No","Lot gốc","Loại","Grade","Màu","Trạng thái","Kg dự kiến","Kg thực tế","Tồn kg","Nhập lúc","Nguồn"]].concat(all().sort(function(a,b){return a.createdAt<b.createdAt?-1:1;}).map(function(b){return [ID(b.id),b.lotNo,b.baseLot,KIND[kindOf(b.kind)].vi,b.grade,b.color,STATUS[b.status]||b.status,b.plannedKg==null?"":b.plannedKg,b.actualKg==null?"":b.actualKg,b.remainKg,fmtDate(b.createdAt),(b.sources||[]).map(function(s){return s.lotNo+(s.bagId?" ("+ID(s.bagId)+")":"");}).join(" + ")];}));
+  }
+  var csv="﻿"+lines.map(function(r){return r.map(csvCell).join(",");}).join("\r\n");
+  var d=new Date(),name=(kind==="slip"?"so-theo-doi-xuat-nhua-":kind==="hist"?"lich-su-nhua-":"ton-kho-nhua-")+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+".csv";
+  if(memMode){toast("Chưa kết nối máy chủ.");return;}
+  if(webMode){saveFile(name,new Blob([csv],{type:"text/csv"}));return;}
+  toast("Đang gửi file…");
+  try{await api("send",{target:"me",kind:"document",filename:name,mime:"text/csv",b64:btoa(unescape(encodeURIComponent(csv))),caption:name});toast("Đã gửi file CSV vào chat của bạn với bot.");}
+  catch(e){toast(errMsg(e,"Không gửi được file."));}
+}
+
+/* ---------- issue slip: resin lots -> machine / production lot ---------- */
+var CLS={NC:"NC · nguyên chất",T:"T · trộn",TC:"TC · xay",CK:"CK · cuống keo",NG:"NG · hàng lỗi"};
+var slips=new Map(),slipLines=[],slipQ="",lastSlip=null,curSlip=null,lotTouched=false;
+function today(){var d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
+var slipHead={machine:"",prefix:"AM",date:today(),lot:"",part:"",recv:"",note:""};
+try{var spx=localStorage.getItem("n2p-lot-prefix");if(spx)slipHead.prefix=spx.slice(0,8);}catch(e){}
+function autoLot(){var m=slipHead.machine.trim(),d=slipHead.date||today();return m?slipHead.prefix.trim()+m+"-"+d.slice(2,4)+d.slice(5,7)+d.slice(8,10):"";}
+function slipNo(s){return "PX-"+ID(s.id);}
+function genSlipId(){var a="23456789abcdefghjkmnpqrstuvwxyz",s;do{s="";for(var i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];}while(slips.has(s));return s;}
+function lineFromBag(b){
+  return {bagId:b.id,name:b.grade+(b.color?" "+b.color:""),lotNo:b.lotNo,cls:{ZIN:"NC",TR:"T",XP:"TC"}[kindOf(b.kind)],kg:String(b.remainKg),source:b.supplier||(b.sources||[]).map(function(s){return s.lotNo;}).join(" + ")};
+}
+function lineUsed(id){return slipLines.some(function(l){return l.bagId===id;});}
+function linesHtml(){
+  if(!slipLines.length)return '<p class="empty">Chưa có dòng nào. Chụp ảnh bao nhựa ở trên, hoặc thêm dòng nhập tay.</p>';
+  var st=inStock();
+  return slipLines.map(function(l,i){
+    var b=l.bagId?bags.get(l.bagId):null,old=b?olderThan(b).filter(function(o){return !lineUsed(o.id);}):[];
+    return '<div class="line" data-i="'+i+'"><div class="row" style="justify-content:space-between"><b>Dòng '+(i+1)+'</b><button type="button" class="btn small danger" data-act="line-del" data-i="'+i+'">Xóa dòng</button></div><div class="form">'+
+    '<label class="f full">Bao trong kho<select id="l'+i+'-bagId" data-l="bagId"><option value="">— Bao chưa có tem trong hệ thống —</option>'+st.map(function(o){return '<option value="'+esc(o.id)+'"'+(o.id===l.bagId?" selected":"")+'>'+esc(ID(o.id)+" · "+o.lotNo+" · "+o.grade+" · còn "+fmtKg(o.remainKg))+'</option>';}).join("")+'</select></label>'+
+    '<label class="f">Tên vật tư *<input id="l'+i+'-name" data-l="name" value="'+esc(l.name)+'" autocomplete="off"></label>'+
+    '<label class="f">Lot No nhựa *<input id="l'+i+'-lotNo" data-l="lotNo" value="'+esc(l.lotNo)+'" autocomplete="off"></label>'+
+    '<label class="f">Phân loại<select id="l'+i+'-cls" data-l="cls">'+Object.keys(CLS).map(function(k){return '<option value="'+k+'"'+(k===l.cls?" selected":"")+'>'+esc(CLS[k])+'</option>';}).join("")+'</select></label>'+
+    '<label class="f">Kg xuất *<input id="l'+i+'-kg" data-l="kg" inputmode="decimal" value="'+esc(l.kg)+'"></label>'+
+    '<label class="f full">Nguồn gốc (NCC / lô SX nguồn)<input id="l'+i+'-source" data-l="source" value="'+esc(l.source)+'" autocomplete="off"></label>'+
+    (old.length?'<p class="note full"><b>FIFO:</b> còn bao nhập trước chưa dùng: '+old.slice(0,3).map(function(o){return esc(ID(o.id))+" ("+fmtDate(o.createdAt)+")";}).join(", ")+'</p>':'')+
+    '</div></div>';
+  }).join("");
+}
+function renderLines(){var el=$("#slip-lines");if(el)el.innerHTML=linesHtml();}
+function lineInput(t){
+  var row=t.closest("[data-i]"),k=t.dataset.l;if(!row||!k)return;var i=+row.dataset.i,l=slipLines[i];if(!l)return;
+  if(k==="bagId"){var b=t.value?bags.get(t.value):null;if(b)slipLines[i]=lineFromBag(b);else l.bagId="";renderLines();}
+  else l[k]=t.value;
+}
+function headInput(t){
+  var k=t.dataset.h;slipHead[k]=t.value;
+  if(k==="lot"){lotTouched=t.value.trim()!=="";return;}
+  if(k==="prefix"){try{localStorage.setItem("n2p-lot-prefix",t.value.trim());}catch(e){}}
+  if((k==="machine"||k==="prefix"||k==="date")&&!lotTouched){slipHead.lot=autoLot();var el=$("#slip-lot");if(el)el.value=slipHead.lot;}
+}
+var OCR_BAGS='Ảnh chụp một hoặc nhiều bao nhựa nguyên liệu, trên bao có tem. Đọc từng tem và trả về DUY NHẤT một đối tượng JSON, không giải thích: {"bags":[{"grade":string|null,"color":string|null,"lotNo":string|null,"netKg":number|null,"supplier":string|null,"bagCode":string|null}]}. grade = tên thương mại và mã grade ghép lại, ví dụ "LUPOX GP2306F". lotNo = đúng từng ký tự của LOT NO, giữ cả đuôi -XP hoặc -TR nếu có. netKg = khối lượng tịnh bằng kg. bagCode = mã 6 ký tự in ngay dưới mã QR nếu tem có mã QR, không có thì null. Mỗi tem một phần tử. Không đọc được tem nào thì trả {"bags":[]}.';
+async function ocrBags(file){
+  if(memMode||!hasOcr)return null;
+  var o=await askOcr(OCR_BAGS,file,1800);
+  return Array.isArray(o.bags)?o.bags.slice(0,12):[];
+}
+async function slipPhotos(files){
+  files=files.filter(function(f){return /^image\//.test(f.type);}).slice(0,12);if(!files.length)return;
+  var st=$("#slip-status"),added=0,msgs=[];
+  var say=function(s){var el=$("#slip-status");if(el)el.textContent=s;};
+  var addBag=function(b){
+    if(lineUsed(b.id))return;
+    if(b.status!=="IN_STOCK"){msgs.push("Bao "+ID(b.id)+" "+(STATUS[b.status]||"").toLowerCase()+", không xuất được.");return;}
+    slipLines.push(lineFromBag(b));added++;
+  };
+  for(var i=0;i<files.length;i++){
+    say("Đang đọc ảnh "+(i+1)+"/"+files.length+"…");
+    var code=null;try{code=parseCode(await decodeQR(files[i]));}catch(e){}
+    if(code&&bags.get(code)){addBag(bags.get(code));continue;}
+    var arr=null;
+    try{arr=await ocrBags(files[i]);}catch(e){arr=e&&e.code==="rate_limited"?"busy":undefined;}
+    if(arr===null){msgs.push("Chưa bật đọc chữ từ ảnh. Quét mã QR của bao, hoặc thêm dòng và nhập tay.");break;}
+    if(arr==="busy"){msgs.push("Đang quá tải, thử lại sau ít phút.");break;}
+    if(!arr||!arr.length){msgs.push("Ảnh "+(i+1)+": không đọc được tem.");continue;}
+    arr.forEach(function(o){
+      var str=function(v){return v==null?"":String(v).trim().slice(0,80);};
+      var c=parseCode(str(o.bagCode)),b=c?bags.get(c):null;
+      if(!b&&str(o.lotNo)){var lot=str(o.lotNo).toUpperCase().replace(/\s+/g,"");b=inStock().filter(function(x){return String(x.lotNo).toUpperCase().replace(/\s+/g,"")===lot&&!lineUsed(x.id);})[0]||null;}
+      if(b){addBag(b);return;}
+      var lotNo=str(o.lotNo);
+      slipLines.push({bagId:"",name:[str(o.grade),str(o.color)].filter(Boolean).join(" "),lotNo:lotNo,cls:/-XP$/i.test(lotNo)?"TC":/-TR$/i.test(lotNo)?"T":"NC",kg:typeof o.netKg==="number"&&o.netKg>0?String(o.netKg):"",source:str(o.supplier)});added++;
+    });
+  }
+  renderLines();
+  say((added?"Đã thêm "+added+" dòng. Kiểm tra lại từng ô trước khi tạo phiếu. ":"")+msgs.join(" "));
+}
+async function createSlip(){
+  var h=slipHead,machine=h.machine.trim(),lot=(h.lot||"").trim();
+  if(!machine){toast("Nhập số máy nhận nhựa.");return;}
+  if(!lot){toast("Nhập lot sản xuất.");return;}
+  if(!slipLines.length){toast("Phiếu cần ít nhất một dòng nhựa.");return;}
+  var lines=[],need={};
+  for(var i=0;i<slipLines.length;i++){
+    var l=slipLines[i],kg=num(l.kg);
+    if(!l.name.trim()||!l.lotNo.trim()){toast("Dòng "+(i+1)+": cần Tên vật tư và Lot No.");return;}
+    if(!(kg>0)){toast("Dòng "+(i+1)+": nhập số kg xuất.");return;}
+    if(l.bagId){var b=bags.get(l.bagId);need[l.bagId]=(need[l.bagId]||0)+kg;
+      if(!b||b.status!=="IN_STOCK"){toast("Dòng "+(i+1)+": bao "+ID(l.bagId)+" không còn trong kho.");return;}
+      if(need[l.bagId]>b.remainKg+0.001){toast("Dòng "+(i+1)+": bao "+ID(b.id)+" chỉ còn "+fmtKg(b.remainKg)+".");return;}}
+    lines.push({bagId:l.bagId||null,name:l.name.trim(),lotNo:l.lotNo.trim(),cls:CLS[l.cls]?l.cls:"NC",kg:r2(kg),source:l.source.trim()});
+  }
+  var s={id:genSlipId(),createdAt:new Date().toISOString(),createdBy:myId||null,machine:machine,prodLot:lot,prodDate:h.date||today(),partCode:h.part.trim(),receiver:h.recv.trim(),note:h.note.trim(),lines:lines,totalKg:r2(lines.reduce(function(a,l){return a+l.kg;},0))};
+  slips.set(s.id,s);
+  if(!memMode){pending++;writeSeq++;try{await api("saveSlip",{slip:s});}catch(e){slips.delete(s.id);toast(errMsg(e,"Không lưu được phiếu. Kiểm tra mạng rồi thử lại."));throw e;}finally{pending--;}}
+  for(var j=0;j<lines.length;j++)if(lines[j].bagId)await issue(lines[j].bagId,lines[j].kg,"Máy "+machine+" · lot SX "+lot+" · "+slipNo(s),s.id);
+  lastSlip=s.id;slipLines=[];lotTouched=false;slipHead.machine="";slipHead.lot="";slipHead.part="";slipHead.recv="";slipHead.note="";
+  toast("Đã tạo phiếu "+slipNo(s)+".");render();var o=$("#slip-result");if(o&&o.scrollIntoView)o.scrollIntoView({block:"nearest"});
+}
+function slipUrl(s){return WEBQR?PAGE+"#px-"+s.id:BOT?"https://t.me/"+BOT+"?startapp=px-"+s.id:"px-"+s.id;}
+function slipText(s){
+  var t=["PHIẾU XUẤT NHỰA "+slipNo(s),"Lot SX: "+s.prodLot+" · Máy "+s.machine+(s.partCode?" · Mã hàng "+s.partCode:""),fmtDate(s.createdAt)+(s.receiver?" · Người nhận: "+s.receiver:"")];
+  s.lines.forEach(function(l,i){t.push((i+1)+") "+l.name+" · Lot "+l.lotNo+" · "+l.cls+" · "+fmtKg(l.kg)+(l.bagId?" · bao "+ID(l.bagId):""));});
+  t.push("Tổng: "+fmtKg(s.totalKg));if(s.note)t.push("Ghi chú: "+s.note);if(BOT||WEBQR)t.push(slipUrl(s));
+  return t.join("\n");
+}
+async function slipCanvas(s){
+  await loadFonts();
+  var W=1600,rowH=58,top=450,n=s.lines.length,H=top+54+n*rowH+rowH+250,c=document.createElement("canvas");c.width=W;c.height=H;
+  var x=c.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,W,H);x.strokeStyle="#000";x.lineWidth=4;x.strokeRect(3,3,W-6,H-6);
+  x.fillStyle="#000";x.textBaseline="alphabetic";x.textAlign="left";
+  var qs=270,qx=W-qs-44,qy=40;
+  drawQR(x,slipUrl(s),qx,qy,qs,s.id);
+  x.fillStyle="#000";x.font=F(700,30);x.textAlign="center";x.fillText(slipNo(s),qx+qs/2,qy+qs+36);x.textAlign="left";
+  x.font=F(700,34);x.fillText("CTY TNHH NAM LÂM",40,72);
+  x.font=F(400,27);x.fillText("Bộ phận: Kho Nguyên Vật Liệu",40,110);
+  x.font=F(800,52);x.fillText("PHIẾU XUẤT NHỰA CHO SẢN XUẤT",40,190);
+  x.font=F(400,29);x.fillText("Số phiếu: "+slipNo(s)+"     Ngày giờ xuất: "+fmtDate(s.createdAt),40,238);
+  x.font=F(400,25);x.fillText("LOT SẢN XUẤT",40,300);x.fillText("MÁY",720,300);x.fillText("MÃ HÀNG",930,300);
+  fitText(x,s.prodLot,800,84,640);x.fillText(s.prodLot,40,388);
+  fitText(x,s.machine,800,84,180);x.fillText(s.machine,720,388);
+  fitText(x,s.partCode||"—",700,50,qx-960);x.fillText(s.partCode||"—",930,380);
+  var cols=[["STT",40,70],["Tên vật tư",110,400],["Lot No nhựa",510,390],["Loại",900,100],["Mã bao",1000,170],["Nguồn gốc",1170,230],["Kg xuất",1400,160]];
+  var y=top;
+  x.fillStyle="#e4e4e4";x.fillRect(40,y,W-80,54);x.fillStyle="#000";x.lineWidth=2;
+  cols.forEach(function(cl){x.strokeRect(cl[1],y,cl[2],54);x.font=F(700,26);x.fillText(cl[0],cl[1]+10,y+36);});
+  y+=54;
+  s.lines.forEach(function(l,i){
+    var v=[String(i+1),l.name,l.lotNo,l.cls,l.bagId?ID(l.bagId):"—",l.source||"—",fmtKg(l.kg)];
+    cols.forEach(function(cl,j){x.strokeRect(cl[1],y,cl[2],rowH);fitText(x,v[j],j===2||j===6?700:400,28,cl[2]-20);x.fillText(v[j],cl[1]+10,y+38);});
+    y+=rowH;
+  });
+  x.strokeRect(40,y,1360,rowH);x.strokeRect(1400,y,160,rowH);
+  x.font=F(700,28);x.textAlign="right";x.fillText("TỔNG CỘNG",1385,y+38);x.textAlign="left";
+  fitText(x,fmtKg(s.totalKg),800,28,140);x.fillText(fmtKg(s.totalKg),1410,y+38);
+  y+=rowH+46;
+  if(s.note){fitText(x,"Ghi chú: "+s.note,400,27,W-80);x.fillText("Ghi chú: "+s.note,40,y);}
+  y+=50;
+  x.textAlign="center";x.font=F(700,27);x.fillText("NGƯỜI LẬP (THỦ KHO)",330,y);x.fillText("NGƯỜI NHẬN (MÁY "+s.machine+")",W-330,y);
+  x.font=F(400,27);x.fillText(s.createdBy||"",330,y+90);x.fillText(s.receiver||"",W-330,y+90);
+  x.font=F(400,23,true);x.fillText("Quét mã QR để mở phiếu và truy xuất lot nhựa của lot sản xuất này.",W/2,H-28);
+  return c;
+}
+async function renderSlipImg(box,s){
+  if(!box||!s)return;var c=await slipCanvas(s);box.textContent="";
+  var img=document.createElement("img");img.className="labelimg";img.style.maxWidth="760px";img.alt="Phiếu xuất nhựa "+slipNo(s)+" cho lot "+s.prodLot;img.src=c.toDataURL("image/png");box.appendChild(img);
+}
+async function downloadSlip(id,target){
+  var s=slips.get(id);if(!s)return;
+  if(memMode){toast("Chưa kết nối máy chủ. Nhấn giữ vào ảnh phiếu để lưu.");return;}
+  var c=await slipCanvas(s);
+  if(webMode&&target!=="group"){saveFile("phieu-xuat-"+String(s.prodLot).replace(/[^0-9A-Za-z-]+/g,"_")+"-"+ID(s.id)+".png",await canvasBlob(c));toast("Đã tải ảnh phiếu.");return;}
+  toast("Đang gửi phiếu…");
+  try{
+    await api("send",{target:target,kind:"photo",filename:"phieu-xuat-"+String(s.prodLot).replace(/[^0-9A-Za-z-]+/g,"_")+"-"+ID(s.id)+".png",mime:"image/png",b64:c.toDataURL("image/png").split(",")[1],caption:slipText(s).slice(0,1000)});
+    toast(target==="group"?"Đã gửi phiếu lên nhóm.":"Đã gửi phiếu vào chat của bạn với bot.");
+  }catch(e){toast(errMsg(e,"Không gửi được phiếu."));}
+}
+async function copySlip(id){
+  var s=slips.get(id);if(!s)return;
+  try{await navigator.clipboard.writeText(slipText(s));toast("Đã chép nội dung phiếu. Dán vào nhóm.");}catch(e){toast("Không chép được ở chế độ này.");}
+}
+function slipButtons(s){
+  return '<div class="row"><button type="button" class="btn small" data-act="slip-group" data-id="'+esc(s.id)+'">Gửi phiếu lên nhóm</button><button type="button" class="btn small ghost" data-act="slip-dl" data-id="'+esc(s.id)+'">'+(webMode?'Tải ảnh phiếu':'Gửi cho tôi')+'</button><button type="button" class="btn small ghost" data-act="slip-copy" data-id="'+esc(s.id)+'">Chép nội dung</button></div>';
+}
+function slipListHtml(){
+  var q=slipQ.trim().toUpperCase(),list=Array.from(slips.values()).sort(function(a,b){return a.createdAt<b.createdAt?1:-1;});
+  if(q)list=list.filter(function(s){return [slipNo(s),s.prodLot,"MÁY "+s.machine,s.partCode].concat(s.lines.map(function(l){return l.lotNo+" "+l.name+" "+ID(l.bagId||"");})).join(" ").toUpperCase().indexOf(q)>=0;});
+  if(!list.length)return '<p class="empty">'+(!ready?"Đang tải…":q?"Không có phiếu nào khớp.":"Chưa có phiếu xuất nào.")+'</p>';
+  return '<div class="scroll"><table><thead><tr><th>Thời gian</th><th>Số phiếu</th><th>Lot SX</th><th>Máy</th><th>Mã hàng</th><th>Lot nhựa</th><th class="n">Tổng</th></tr></thead><tbody>'+
+    list.slice(0,200).map(function(s){return '<tr><td>'+fmtDate(s.createdAt)+'</td><td><a href="#px-'+esc(s.id)+'">'+esc(slipNo(s))+'</a></td><td><b>'+esc(s.prodLot)+'</b></td><td>'+esc(s.machine)+'</td><td>'+esc(s.partCode)+'</td><td>'+s.lines.map(function(l){return esc(l.lotNo);}).join("<br>")+'</td><td class="n">'+fmtKg(s.totalKg)+'</td></tr>';}).join("")+'</tbody></table></div>';
+}
+function renderSlipList(){var el=$("#slip-list");if(el)el.innerHTML=slipListHtml();}
+function viewIssue(){
+  var h=slipHead,s=lastSlip?slips.get(lastSlip):null;
+  var html='<div class="cols"><section class="card"><h2>Xuất nhựa cho máy</h2>'+
+  '<form id="f-slip" class="form" novalidate>'+
+  '<div class="drop full" id="drop2" tabindex="0"><p class="hint"><b>Chụp hoặc dán ảnh các bao nhựa</b> (tem QR của app hoặc tem nhà cung cấp). App đọc tem và thêm mỗi bao thành một dòng bên dưới.</p>'+
+  '<div class="row">'+(canScan()?'<button type="button" class="btn small" data-act="scan-line">Quét QR các bao</button>':'')+'<label class="btn small ghost" for="slip-photos">Chụp hoặc chọn ảnh</label></div><input type="file" id="slip-photos" accept="image/*" multiple hidden><p class="hint" id="slip-status" aria-live="polite"></p></div>'+
+  '<label class="f">Máy số *<input id="slip-machine" data-h="machine" value="'+esc(h.machine)+'" placeholder="8" autocomplete="off"></label>'+
+  '<label class="f">Tiền tố lot SX<input id="slip-prefix" data-h="prefix" value="'+esc(h.prefix)+'" autocomplete="off"></label>'+
+  '<label class="f">Ngày sản xuất<input type="date" id="slip-date" data-h="date" value="'+esc(h.date)+'"></label>'+
+  '<label class="f">Lot sản xuất *<input id="slip-lot" data-h="lot" value="'+esc(h.lot)+'" placeholder="AM8-261117" autocomplete="off"></label>'+
+  '<label class="f">Mã hàng<input id="slip-part" data-h="part" value="'+esc(h.part)+'" placeholder="C60-795288" autocomplete="off"></label>'+
+  '<label class="f">Người nhận<input id="slip-recv" data-h="recv" value="'+esc(h.recv)+'" autocomplete="off"></label>'+
+  '<div class="full lines" id="slip-lines">'+linesHtml()+'</div>'+
+  '<div class="full"><button type="button" class="btn small ghost" data-act="line-add">Thêm dòng nhập tay</button></div>'+
+  '<label class="f full">Ghi chú<input id="slip-note" data-h="note" value="'+esc(h.note)+'" autocomplete="off"></label>'+
+  '<div class="full"><button class="btn"'+dis()+'>Tạo phiếu xuất</button></div></form></section>'+
+  '<section class="card" id="slip-result"><h2>Phiếu vừa tạo</h2>';
+  if(s)html+='<p class="hint">Lot SX <b>'+esc(s.prodLot)+'</b> · Máy '+esc(s.machine)+' · '+fmtKg(s.totalKg)+' · <a href="#px-'+esc(s.id)+'">Mở phiếu '+esc(slipNo(s))+'</a></p>'+slipButtons(s)+'<div id="slip-img"></div>';
+  else html+='<ol class="steps"><li>Chụp ảnh các bao nhựa sắp xuất. Bao có tem QR được nhận ngay; bao chỉ có tem nhà cung cấp thì app đọc chữ trên tem.</li><li>Nhập số máy. Lot sản xuất tự ghép theo dạng AM8-261117, sửa được.</li><li>Kiểm tra kg từng dòng rồi tạo phiếu. Bao có tem được trừ tồn ngay.</li><li>Bấm "Gửi phiếu lên nhóm": bot đăng ảnh phiếu có mã QR vào nhóm Telegram.</li></ol>';
+  html+='</section></div><section class="card"><div class="row" style="justify-content:space-between"><h2>Phiếu đã xuất</h2><button type="button" class="btn small ghost" data-act="csv-slip">Xuất CSV theo mẫu sổ theo dõi</button></div>'+
+  '<label class="f">Tìm theo lot SX, máy, lot nhựa, mã bao, mã hàng<input id="slip-q" value="'+esc(slipQ)+'" placeholder="AM8-261117" autocomplete="off"></label><div id="slip-list">'+slipListHtml()+'</div></section>';
+  return html;
+}
+function viewSlip(){
+  var s=slips.get(curSlip);
+  if(!s)return '<section class="card"><h2>Không tìm thấy phiếu PX-'+esc(ID(curSlip))+'</h2><p class="hint">'+(ready?"Phiếu này chưa có trong hệ thống.":"Đang tải dữ liệu…")+'</p><div><a class="btn ghost" href="#xuat-may">Về danh sách phiếu</a></div></section>';
+  return '<section class="card"><div class="baghead"><div><div class="hint">Lot sản xuất</div><div class="lot">'+esc(s.prodLot)+'</div><div class="row"><span class="pill">'+esc(slipNo(s))+'</span><span class="hint">Máy '+esc(s.machine)+'</span></div></div><div class="remain"><span>Tổng xuất</span><b>'+fmtKg(s.totalKg)+'</b></div></div>'+
+  '<dl class="facts">'+fact("Mã hàng",s.partCode)+fact("Ngày sản xuất",s.prodDate?s.prodDate.split("-").reverse().join("/"):"")+fact("Xuất lúc",fmtDate(s.createdAt))+fact("Người nhận",s.receiver)+fact("Ghi chú",s.note)+'<div><dt>Người lập</dt><dd>'+who(s.createdBy)+'</dd></div></dl></section>'+
+  '<section class="card"><h2>Lot nhựa dùng cho lot sản xuất này</h2><div class="scroll"><table><thead><tr><th>STT</th><th>Tên vật tư</th><th>Lot No nhựa</th><th>Loại</th><th>Mã bao</th><th>Nguồn gốc</th><th class="n">Kg xuất</th></tr></thead><tbody>'+
+  s.lines.map(function(l,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(l.name)+'</td><td><b>'+esc(l.lotNo)+'</b></td><td>'+esc(l.cls)+'</td><td>'+(l.bagId?'<a href="#tem-'+esc(l.bagId)+'">'+esc(ID(l.bagId))+'</a>':"—")+'</td><td>'+esc(l.source)+'</td><td class="n">'+fmtKg(l.kg)+'</td></tr>';}).join("")+'</tbody></table></div><p class="hint">Bấm mã bao để xem bao đó làm từ nhựa zin, nhựa xay nào.</p></section>'+
+  '<section class="card"><h2>Gửi phiếu</h2>'+slipButtons(s)+'<div id="slip-img"></div></section>';
+}
+function noteCell(e){return '<td>'+esc(e.note)+(e.slip?' <a href="#px-'+esc(e.slip)+'">Xem phiếu</a>':'')+'</td>';}
+
+function renderBanner(){
+  var bn="";
+  if(notConfigured)bn='<p class="note crit">Chưa dán link Google Apps Script vào file index.html (dòng API_URL). Xem file hướng dẫn, bước 3.</p>';
+  else if(needLogin)bn="";
+  else if(authError)bn='<p class="note crit">'+esc(authError)+'</p>';
+  else if(slow)bn='<p class="note">Chưa tải được dữ liệu mới nhất, số liệu có thể cũ. App tự thử lại khi có mạng.</p>';
+  if(webMode&&!needLogin&&!notConfigured)bn+='<p class="hint row">Đang dùng với tên <b>'+esc(cred.name)+'</b><button type="button" class="btn small ghost" data-act="logout">Đổi người dùng</button></p>';
+  $("#banner").innerHTML=bn;
+}
+function viewLogin(){
+  return '<section class="card" style="max-width:420px"><h2>Đăng nhập kho nhựa</h2><p class="hint">Nhập tên của bạn và mã PIN do quản lý kho cấp. Máy này sẽ nhớ cho lần sau.</p>'+
+  (loginError?'<p class="note crit">'+esc(loginError)+'</p>':'')+
+  '<form id="f-login" class="form" novalidate><label class="f full">Họ tên<input id="login-name" name="name" value="'+esc(cred.name)+'" autocomplete="name"></label>'+
+  '<label class="f full">Mã PIN<input id="login-pin" name="pin" type="password" inputmode="numeric" autocomplete="off"></label>'+
+  '<div class="full"><button class="btn">Vào app</button></div></form></section>';
+}
+function render(){
+  if(needLogin){renderBanner();$("#view").innerHTML=viewLogin();return;}
+  $$("nav a").forEach(function(a){if(a.dataset.nav===view||(view==="tem"&&a.dataset.nav==="quet")||(view==="px"&&a.dataset.nav==="xuat-may"))a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
+  renderBanner();
+  var v=$("#view");
+  v.innerHTML=view==="tao-tem"?viewCreate():view==="quet"?viewScan():view==="kho"?viewStock():view==="lich-su"?viewHistory():view==="xuat-may"?viewIssue():view==="px"?viewSlip():viewBag();
+  updHints();
+  if(view==="tao-tem"&&labelIds.length)renderLabels($("#labels"),labelIds);
+  if(view==="tem"&&bagLabel&&bags.get(curId))renderLabels($("#labels"),[curId]);
+  if(view==="xuat-may"&&lastSlip&&slips.get(lastSlip))renderSlipImg($("#slip-img"),slips.get(lastSlip));
+  if(view==="px"&&slips.get(curSlip))renderSlipImg($("#slip-img"),slips.get(curSlip));
+  resolveNames();
+}
+function resolveNames(){}
+function route(){
+  var h=(location.hash||"").replace(/^#/,""),m=/^tem-([0-9a-z]{6})$/i.exec(h);
+  voidArm=false;
+  if(m){var id=m[1].toLowerCase();if(curId!==id)bagLabel=false;view="tem";curId=id;}
+  else if(/^px-([0-9a-z]{6})$/i.test(h)){view="px";curSlip=h.slice(3).toLowerCase();}
+  else if(["tao-tem","quet","xuat-may","kho","lich-su"].indexOf(h)>=0)view=h;
+  else view="tao-tem";
+  render();window.scrollTo(0,0);
+}
+function onData(first){
+  if(first){render();return;}
+  if(view==="xuat-may"){renderSlipList();return;}
+  var a=document.activeElement,typing=a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName);
+  if(view==="kho"||view==="lich-su"||((view==="tem"||view==="quet"||view==="px")&&!typing))render();
+}
+
+/* ---------- events ---------- */
+var busy=false;
+async function guard(fn){if(busy)return;busy=true;try{await fn();}catch(e){}finally{busy=false;}}
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-act]");if(!t)return;var act=t.dataset.act;
+  if(act==="mode"){mode=t.dataset.mode;labelIds=[];render();}
+  else if(act==="dl")guard(function(){return downloadLabels([t.dataset.id]);});
+  else if(act==="dl-all")guard(function(){return downloadLabels(labelIds.slice());});
+  else if(act==="reprint"){bagLabel=true;render();}
+  else if(act==="skind"){stockKind=t.dataset.kind;render();}
+  else if(act==="csv-stock")guard(function(){return exportCsv("stock");});
+  else if(act==="csv-slip")guard(function(){return exportCsv("slip");});
+  else if(act==="line-add"){slipLines.push({bagId:"",name:"",lotNo:"",cls:"NC",kg:"",source:""});renderLines();}
+  else if(act==="line-del"){slipLines.splice(+t.dataset.i,1);renderLines();}
+  else if(act==="slip-dl")guard(function(){return downloadSlip(t.dataset.id,"me");});
+  else if(act==="slip-group")guard(function(){return downloadSlip(t.dataset.id,"group");});
+  else if(act==="scan-open")scanQR("Quét mã QR trên tem bao nhựa hoặc phiếu xuất",function(x){var m=/px-([0-9a-z]{6})(?![0-9a-z])/i.exec(x);if(m){location.hash="px-"+m[1].toLowerCase();return true;}var c=parseCode(x);if(c){location.hash="tem-"+c;return true;}});
+  else if(act==="scan-src")scanQR("Quét mã QR trên bao nguồn",function(x){var c=parseCode(x),sel=$("#xp-src");if(!c||!sel)return;if($('option[value="'+c+'"]',sel)){sel.value=c;updHints();return true;}});
+  else if(act==="scan-line")scanQR("Quét lần lượt từng bao, xong thì đóng",function(x){var c=parseCode(x),b=c?bags.get(c):null;if(b&&b.status==="IN_STOCK"&&!lineUsed(b.id)){slipLines.push(lineFromBag(b));renderLines();toast("Đã thêm bao "+ID(b.id)+".");try{tg.HapticFeedback.notificationOccurred("success");}catch(e){}}});
+  else if(act==="slip-copy")guard(function(){return copySlip(t.dataset.id);});
+  else if(act==="logout"){try{localStorage.removeItem("n2p-web-auth");}catch(e){}cred.pin="";needLogin=true;loginError="";render();}
+  else if(act==="csv-hist")guard(function(){return exportCsv("hist");});
+  else if(act==="void"){
+    if(!voidArm){voidArm=true;t.textContent="Bấm lần nữa để hủy tem";return;}
+    guard(async function(){await voidBag(curId);voidArm=false;toast("Đã hủy tem.");render();});
+  }
+});
+document.addEventListener("submit",function(e){
+  var f=e.target;e.preventDefault();
+  if(f.id==="f-login"){var nm=f.name.value.trim(),pn=f.pin.value.trim();if(!nm||!pn){loginError="Nhập đủ họ tên và mã PIN.";render();return;}cred={name:nm,pin:pn};myId=nm;needLogin=false;loginError="";ready=false;render();refresh();return;}
+  if(f.id==="f-open"){var c=parseCode(f.code.value);if(!c){$("#scan-status").textContent="Mã bao gồm 6 ký tự chữ và số in dưới mã QR.";return;}location.hash="tem-"+c;return;}
+  if(!canWrite){toast("Tài khoản này chỉ được xem.");return;}
+  if(f.id==="f-slip")guard(createSlip);
+  else if(f.id==="f-zin")guard(function(){return createZin(f);});
+  else if(f.id==="f-xp")guard(function(){return createXP(f);});
+  else if(f.id==="f-tr")guard(function(){return createTR(f);});
+  else if(f.id==="f-weigh")guard(async function(){var kg=num(f.kg.value);if(!(kg>0)){toast("Nhập số kg cân được.");return;}await weigh(curId,kg);toast("Đã nhập kho "+fmtKg(kg)+".");render();});
+  else if(f.id==="f-out")guard(async function(){var b=bags.get(curId),kg=num(f.kg.value);if(!(kg>0)){toast("Nhập số kg xuất.");return;}if(kg>b.remainKg+0.001){toast("Bao chỉ còn "+fmtKg(b.remainKg)+".");return;}await issue(curId,kg,f.dest.value.trim()||"Xuất sản xuất");toast("Đã ghi xuất "+fmtKg(kg)+".");render();});
+  else if(f.id==="f-adjust")guard(async function(){var kg=num(f.kg.value);if(!(kg>=0)){toast("Nhập số kg tồn đúng (0 nếu đã hết).");return;}await adjust(curId,kg,f.note.value.trim());toast("Đã điều chỉnh tồn.");render();});
+});
+document.addEventListener("change",function(e){
+  var t=e.target;
+  if(t.id==="slip-photos"){var fl=Array.prototype.slice.call(t.files||[]);t.value="";guard(function(){return slipPhotos(fl);});}
+  else if(t.closest("#slip-lines")){if(t.tagName==="SELECT")lineInput(t);}
+  else if(t.dataset.h){}
+  else if(t.id==="zin-photo"){handlePhoto(t.files&&t.files[0]);}
+  else if(t.id==="scan-file"||t.id==="src-scan"){
+    var file=t.files&&t.files[0];if(!file)return;
+    var st=$("#scan-status");if(st)st.textContent="Đang đọc mã QR…";
+    decodeQR(file).then(function(txt){
+      var c=parseCode(txt);t.value="";
+      if(!c){var msg=txt?"Mã QR này không phải tem nhựa của trang này.":"Không đọc được mã QR trong ảnh. Chụp gần và thẳng hơn, hoặc gõ mã bao.";if(st)st.textContent=msg;else toast(msg);return;}
+      if(t.id==="scan-file"){location.hash="tem-"+c;}
+      else{var s=$("#xp-src");if(s&&$('option[value="'+c+'"]',s)){s.value=c;updHints();toast("Đã chọn bao "+ID(c)+".");}else toast("Bao "+ID(c)+" không dùng làm nguồn xay được (chỉ nhựa zin hoặc nhựa trộn).");}
+    }).catch(function(){toast("Không mở được ảnh.");});
+  }
+  else if(t.id==="zin-today"){var zd=$("#zin-date");if(zd){zd.disabled=t.checked;if(t.checked)zd.value=today();else zd.focus();}}
+  else if(t.id==="lang"){lang=t.value==="ko"?"ko":"en";try{localStorage.setItem("n2p-label-lang",lang);}catch(err){}render();}
+  else updHints();
+});
+document.addEventListener("input",function(e){
+  var t=e.target;
+  if(t.id==="slip-q"){slipQ=t.value;renderSlipList();}
+  else if(t.closest("#slip-lines")){if(t.tagName!=="SELECT")lineInput(t);}
+  else if(t.dataset.h)headInput(t);
+  else if(t.closest("#f-xp,#f-tr"))updHints();
+});
+document.addEventListener("paste",function(e){
+  var items=(e.clipboardData&&e.clipboardData.files)||[];
+  if(view==="xuat-may"){var imgs=Array.prototype.slice.call(items).filter(function(f){return /^image\//.test(f.type);});if(imgs.length){e.preventDefault();guard(function(){return slipPhotos(imgs);});}return;}
+  if(view!=="tao-tem"||mode!=="ZIN")return;
+  for(var i=0;i<items.length;i++)if(/^image\//.test(items[i].type)){e.preventDefault();handlePhoto(items[i]);return;}
+});
+document.addEventListener("dragover",function(e){var d=e.target.closest&&e.target.closest("#drop,#drop2");if(d){e.preventDefault();d.classList.add("over");}});
+document.addEventListener("dragleave",function(e){var d=e.target.closest&&e.target.closest("#drop,#drop2");if(d)d.classList.remove("over");});
+document.addEventListener("drop",function(e){var d=e.target.closest&&e.target.closest("#drop,#drop2");if(!d)return;e.preventDefault();d.classList.remove("over");var df=Array.prototype.slice.call((e.dataTransfer&&e.dataTransfer.files)||[]);if(d.id==="drop2")guard(function(){return slipPhotos(df);});else handlePhoto(df[0]);});
+window.addEventListener("hashchange",route);
+
+/* ---------- start ---------- */
+function applyTheme(){try{if(tg&&tg.colorScheme)document.documentElement.setAttribute("data-theme",tg.colorScheme==="dark"?"dark":"light");}catch(e){}}
+async function refresh(){
+  if(pending>0||needLogin)return;
+  var seq=writeSeq;
+  try{
+    var r=await api("list");
+    if(pending>0||seq!==writeSeq)return;
+    bags.clear();(r.bags||[]).forEach(function(v){if(v&&v.id)bags.set(v.id,v);});
+    slips.clear();(r.slips||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.lines))slips.set(v.id,v);});
+    BOT=r.bot||"";WEBQR=!!r.web;if(webMode){try{localStorage.setItem("n2p-web-auth",JSON.stringify(cred));}catch(e){}}hasOcr=!!r.hasOcr;hasGroup=!!r.hasGroup;authError="";canWrite=true;slow=false;
+    var first=!ready;ready=true;renderBanner();onData(first);
+  }catch(e){
+    if(webMode&&e&&(e.code==="bad_pin"||e.code==="no_web"||e.code==="locked")){needLogin=true;loginError=errMsg(e,"");cred.pin="";try{localStorage.removeItem("n2p-web-auth");}catch(x){}ready=true;render();return;}
+    if(e&&e.code&&e.code!=="server"){authError=errMsg(e,"Không dùng được app.");canWrite=false;}else slow=true;
+    var f2=!ready;ready=true;if(f2)render();else renderBanner();
+  }
+}
+async function start(){
+  tg=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
+  var sp="";
+  if(tg){
+    try{tg.ready();tg.expand();}catch(e){}
+    INIT=tg.initData||"";
+    var u=tg.initDataUnsafe&&tg.initDataUnsafe.user;
+    if(u)myId=[u.first_name,u.last_name].filter(Boolean).join(" ")||u.username||String(u.id);
+    sp=(tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||"";
+    applyTheme();try{tg.onEvent("themeChanged",applyTheme);}catch(e){}
+  }
+  if(!sp){try{sp=new URLSearchParams(location.search).get("tgWebAppStartParam")||"";}catch(e){}}
+  route();
+  if(!/^https?:\/\//.test(API_URL)){notConfigured=true;ready=true;memMode=true;render();return;}
+  if(!INIT){
+    webMode=true;
+    try{var sv2=JSON.parse(localStorage.getItem("n2p-web-auth")||"null");if(sv2&&sv2.name&&sv2.pin)cred={name:String(sv2.name),pin:String(sv2.pin)};}catch(e){}
+    if(!cred.pin){needLogin=true;render();}else myId=cred.name;
+  }
+  if(!needLogin)await refresh();
+  if(/^(tem|px)-[0-9a-z]{6}$/i.test(sp))location.hash=sp.toLowerCase();
+  setInterval(function(){if(!document.hidden)refresh();},30000);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)refresh();});
+}
+start();
+})();
+</script>
+</body>
+</html>
