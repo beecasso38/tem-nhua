@@ -84,6 +84,14 @@ input:disabled{opacity:.6}
 .pill.crit{background:var(--crit-bg);border-color:var(--crit);color:var(--crit)}
 .k-MAT{--k:var(--mat)} .k-ZIN{--k:var(--zin)} .k-XP{--k:var(--xp)} .k-TR{--k:var(--tr)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.shelf{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.zone{border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.zone h3{color:var(--ink)}
+.slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.slot{font:inherit;font-size:11px;line-height:1.2;padding:5px 2px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;text-align:center;min-width:0}
+.slot b{display:block;font-size:14px;color:var(--ink)}
+.slot.has{background:var(--ok-bg);border-color:var(--green)}
+.slot[aria-pressed="true"]{outline:3px solid var(--blue)}
 .thumb{width:76px;height:76px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 .iqcimg{width:240px;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .tile{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--k,var(--muted));border-radius:10px;padding:12px;min-width:0}
@@ -117,11 +125,14 @@ ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .scanbox{display:flex;flex-direction:column;gap:12px;align-items:center;max-width:520px;width:100%;color:#fff}
 .scanbox video{width:100%;max-height:65vh;border-radius:8px;background:#000}
 .scanbox p{margin:0;font-weight:600;text-align:center}
+#printbox{display:none}
+@media print{body>*:not(#printbox){display:none!important}#printbox{display:block}.plabel{display:block;width:100mm;height:50mm;break-after:page;page-break-after:always}@page{size:100mm 50mm;margin:0}}
 #toast{z-index:60;position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="config.js"></script>
 </head>
 <body>
 <header class="top">
@@ -145,9 +156,9 @@ ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 (function(){
 "use strict";
 /* ====== CẤU HÌNH: dán link "Web app" của Google Apps Script vào giữa hai dấu nháy ====== */
-var API_URL="https://script.google.com/macros/s/AKfycbwOYOfIwX6iR4umea9SZOlpOEN1qQdiMkLZDbCDA8hF5VPyVPMuPDzWvQPdqntmtGqu-A/exec";
+var API_URL=window.API_URL||"https://script.google.com/macros/s/AKfycbwOYOfIwX6iR4umea9SZOlpOEN1qQdiMkLZDbCDA8hF5VPyVPMuPDzWvQPdqntmtGqu-A/exec";
 /* ======================================================================================= */
-var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",pin:""};
+var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",srvError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",pin:""};
 var PAGE=location.origin+location.pathname;
 
 var $=function(s,r){return (r||document).querySelector(s);};
@@ -162,10 +173,25 @@ var KIND={
 };
 var MATCAT=["Lug","Plate","Primer","Adhesive (keo)","Packing","Khác"],UNITS=["kg","pcs","lít","can","cuộn","hộp"];
 var NEED_IQC={ZIN:1,MAT:1};
+/* Giá kệ: khu A-D, mỗi kệ 2 tầng, mỗi tầng 6 ô. Địa chỉ dạng A1-1 = khu A, tầng 1, ô 1. */
+var ZONES=["A","B","C","D"],TIERS=2,SLOTS=6,stockLoc="",recvMode="lot";
+try{var svm=localStorage.getItem("n2p-recv-mode");if(svm==="each"||svm==="lot")recvMode=svm;}catch(e){}
+function locText(b){return b&&b.loc?(b.locSide?"Cạnh kệ ":"")+b.loc:"";}
+function present(b){return b.status!=="USED_UP"&&b.status!=="VOID";}
+function locFields(b){
+  var m=/^([A-Z])(\d)-(\d)$/.exec((b&&b.loc)||"")||[],o=function(list,cur,suf){return list.map(function(v){return '<option value="'+v+'"'+(String(v)===String(cur)?" selected":"")+'>'+(suf||"")+v+'</option>';}).join("");};
+  var nums=function(n){var a=[];for(var i=1;i<=n;i++)a.push(i);return a;};
+  return '<label class="f">Khu kệ<select id="loc-z" name="lz"><option value="">— Chưa xếp —</option>'+o(ZONES,m[1],"Khu ")+'</select></label>'+
+    '<label class="f">Tầng<select id="loc-t" name="lt">'+o(nums(TIERS),m[2]||1,"Tầng ")+'</select></label>'+
+    '<label class="f">Ô<select id="loc-s" name="ls">'+o(nums(SLOTS),m[3]||1,"Ô ")+'</select></label>'+
+    '<label class="chk" for="loc-side"><input type="checkbox" id="loc-side" name="lside"'+(b&&b.locSide?" checked":"")+'> Hết chỗ, để cạnh kệ này</label>';
+}
+function readLoc(f){var z=f.lz.value;return z?{loc:z+f.lt.value+"-"+f.ls.value,side:!!f.lside.checked}:{loc:"",side:false};}
+function bagsText(b,kg){if(!b.perBag||!(b.perBag>0)||kg==null)return "";var n=kg/b.perBag;return " ≈ "+(Math.round(n*10)/10).toLocaleString("vi-VN")+" "+(b.kind==="MAT"?"kiện":"bao");}
 var iqcFiles=[],iqcPin="",iqcFree=false,myTgId=null;
 try{iqcPin=localStorage.getItem("n2p-iqc-pin")||"";}catch(e){}
 var STATUS={IQC_PENDING:"Chờ IQC",IQC_NG:"IQC NG",PENDING:"Chờ cân",IN_STOCK:"Trong kho",USED_UP:"Đã dùng hết",VOID:"Đã hủy"};
-var EV={IQC_OK:"IQC đạt, nhập kho",IQC_NG:"IQC không đạt",IN:"Nhập kho",CREATE:"Tạo tem",WEIGH:"Cân thực tế",OUT:"Xuất",ADJUST:"Điều chỉnh tồn",VOID:"Hủy tem"};
+var EV={MOVE:"Chuyển vị trí",IQC_OK:"IQC đạt, nhập kho",IQC_NG:"IQC không đạt",IN:"Nhập kho",CREATE:"Tạo tem",WEIGH:"Cân thực tế",OUT:"Xuất",ADJUST:"Điều chỉnh tồn",VOID:"Hủy tem"};
 var L2={
   en:{mat:"Material",cat:"Type",qty:"Quantity",lot:"Lot No",recv:"Received",grade:"Grade",color:"Color",base:"Original lot",wt:"Net weight",ratio:"Mix ratio",part:"Part - Machine",sup:"Supplier",src:"Source",date:"Date",bag:"Bag ID",
       w1:"FIFO: use the oldest lot first.",w2:"Scan the QR code for IQC, weighing and issues.",foot:"AN MY N2P VINA - Material and resin stock control"},
@@ -201,7 +227,7 @@ function toast(msg){var t=$("#toast");t.textContent=msg;t.classList.add("show");
 function genId(){var a="23456789abcdefghjkmnpqrstuvwxyz",s;do{s="";for(var i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];}while(bags.has(s));return s;}
 function ev(type,kg,note){return {t:new Date().toISOString(),type:type,kg:kg==null?null:r2(kg),by:myId||null,note:note||""};}
 function newBag(o){
-  var b={id:genId(),kind:"ZIN",lotNo:"",baseLot:"",grade:"",color:"",cat:"",unit:"kg",supplier:"",partCode:"",machine:"",plannedKg:null,actualKg:null,remainKg:0,
+  var b={id:genId(),kind:"ZIN",lotNo:"",baseLot:"",grade:"",color:"",cat:"",unit:"kg",loc:"",locSide:false,supplier:"",partCode:"",machine:"",plannedKg:null,actualKg:null,remainKg:0,
     status:"PENDING",createdAt:new Date().toISOString(),createdBy:myId||null,sources:[],ratio:null,note:"",events:[]};
   for(var k in o)b[k]=o[k];
   return b;
@@ -304,7 +330,8 @@ function drawQR(x,text,px,py,size,id){
 }
 function labelRows(b,T){
   var u=unitOf(b),inc=!!NEED_IQC[b.kind],rows;
-  var wt=b.actualKg!=null?fmtKg(b.actualKg,u):(b.plannedKg!=null?(inc?fmtKg(b.plannedKg,u):"Dự kiến "+fmtKg(b.plannedKg,u)+"   Thực tế: ________ "+u):"________ "+u);
+  var pk=b.bagCount>1&&b.perBag?"  ("+b.bagCount+" "+(b.kind==="MAT"?"kiện":"bao")+" × "+fmtKg(b.perBag,u)+")":"";
+  var wt=b.actualKg!=null?fmtKg(b.actualKg,u)+pk:b.plannedKg!=null&&inc?fmtKg(b.plannedKg,u)+pk:(b.plannedKg!=null?(inc?fmtKg(b.plannedKg,u):"Dự kiến "+fmtKg(b.plannedKg,u)+"   Thực tế: ________ "+u):"________ "+u);
   if(b.kind==="MAT"){
     rows=[["Tên vật tư",T.mat,b.grade||"—"],["Loại",T.cat,b.cat||"—"],["Lot No",T.lot,b.lotNo||"—"],["Số lượng",T.qty,wt]];
     if(b.partCode)rows.push(["Mã hàng",T.part.split(" ")[0],b.partCode]);
@@ -362,9 +389,18 @@ async function renderLabels(box,ids){
     var wrap=document.createElement("div");wrap.className="labels";
     var img=document.createElement("img");img.className="labelimg";img.alt="Tem "+b.lotNo+" mã bao "+ID(b.id);img.src=c.toDataURL("image/png");
     var row=document.createElement("div");row.className="row";
-    row.innerHTML='<button type="button" class="btn small" data-act="dl" data-id="'+esc(b.id)+'">'+(webMode?'Tải tem PNG':'Gửi tem vào Telegram của tôi')+'</button><a class="btn small ghost" href="#tem-'+esc(b.id)+'">Mở bao '+esc(ID(b.id))+'</a>';
+    row.innerHTML='<button type="button" class="btn small" data-act="dl" data-id="'+esc(b.id)+'">'+(webMode?'Tải tem PNG':'Gửi tem vào Telegram của tôi')+'</button>'+(webMode?'<button type="button" class="btn small ghost" data-act="print-one" data-id="'+esc(b.id)+'">In tem</button>'+(b.bagCount>1?'<button type="button" class="btn small ghost" data-act="print-copies" data-id="'+esc(b.id)+'" data-n="'+Math.min(100,b.bagCount)+'">In '+Math.min(100,b.bagCount)+' bản, dán từng '+(b.kind==="MAT"?"kiện":"bao")+'</button>':''):'')+'<a class="btn small ghost" href="#tem-'+esc(b.id)+'">Mở bao '+esc(ID(b.id))+'</a>';
     wrap.appendChild(img);wrap.appendChild(row);box.appendChild(wrap);
   }
+}
+async function printLabels(ids,copies){
+  if(copies>1){var one=ids[0];ids=[];for(var k=0;k<copies&&k<100;k++)ids.push(one);}
+  var box=$("#printbox");if(!box){box=document.createElement("div");box.id="printbox";document.body.appendChild(box);}
+  box.textContent="";toast("Đang chuẩn bị "+ids.length+" tem để in…");
+  var ims=[];
+  for(var i=0;i<ids.length;i++){if(!bags.get(ids[i]))continue;var c=await labelCanvas([ids[i]],0.75),im=document.createElement("img");im.className="plabel";im.alt="";im.src=c.toDataURL("image/png");box.appendChild(im);ims.push(im);}
+  await Promise.all(ims.map(function(im){return im.decode?im.decode().catch(function(){}):null;}));
+  try{window.print();}catch(e){toast("Trình duyệt này không mở được hộp thoại in. Hãy tải ảnh tem.");}
 }
 function canvasBlob(c){return new Promise(function(res){c.toBlob(function(b){res(b);},"image/png");});}
 async function downloadLabels(ids){
@@ -413,6 +449,7 @@ async function runOCR(file){
     var put=function(sel,v){var el=$(sel);if(el&&v!=null&&String(v).trim()!=="")el.value=String(v).trim().slice(0,80);};
     put("#zin-grade",o.grade);put("#zin-color",o.color);put("#zin-lot",o.lotNo);put("#zin-supplier",o.supplier);
     if(typeof o.netKg==="number"&&o.netKg>0)put("#zin-kg",o.netKg);
+    updSplit($("#f-zin"));
     st.textContent="Đã điền từ ảnh. Kiểm tra lại từng ô trước khi lưu.";
   }catch(e){st.textContent=errMsg(e,"Không đọc được tem. Nhập tay theo ảnh bên trên.");}
 }
@@ -423,26 +460,57 @@ function handlePhoto(file){
 }
 
 /* ---------- actions ---------- */
+var MAX_SPLIT=100;
+function splitPlan(f){
+  var total=num(f.total.value),per=num(f.kg.value);
+  if(!(total>0)||!(per>0))return null;
+  var n=Math.floor(total/per+1e-9),rem=r2(total-n*per);if(rem<0.005)rem=0;
+  var qs=[];for(var i=0;i<n&&i<=MAX_SPLIT;i++)qs.push(r2(per));if(rem)qs.push(rem);
+  return {n:n,per:r2(per),rem:rem,count:n+(rem?1:0),total:r2(total),qs:qs};
+}
+function updSplit(f){
+  if(!f||!f.total)return;
+  var p=splitPlan(f),h=$("[data-split]",f),u=f.unit?f.unit.value:"kg",w=f.id==="f-mat"?"kiện":"bao",lot=f.rmode.value==="lot";
+  if(!p){
+    f.qty.disabled=false;
+    var per=num(f.kg.value),q=Math.round(num(f.qty.value)||0),t="";
+    if(num(f.total.value)>0)t="Nhập thêm số lượng mỗi "+w+" để app tính số "+w+".";
+    else if(per>0&&q>0)t=q+" "+w+" × "+fmtKg(per,u)+" = "+fmtKg(per*q,u)+". "+(lot?"Một tem cho cả lô.":"Mỗi "+w+" một tem.");
+    else t="Bỏ trống tổng thì tự nhập số "+w+".";
+    if(h)h.textContent=t;return;
+  }
+  f.qty.value=p.count;f.qty.disabled=true;
+  if(h)h.textContent=(p.n?p.n+" "+w+" × "+fmtKg(p.per,u):"")+(p.rem?(p.n?" + ":"")+"1 "+w+" lẻ "+fmtKg(p.rem,u):"")+" = "+fmtKg(p.total,u)+". "+(lot?"Một tem cho cả lô.":p.count>MAX_SPLIT?"Quá "+MAX_SPLIT+" "+w+" một lần: chọn Một tem cho cả lô, hoặc chia làm nhiều lần nhập.":"Mỗi "+w+" một tem, tổng "+p.count+" tem.");
+}
 async function createIncoming(f,kind){
-  var mat=kind==="MAT",name=f.grade.value.trim(),lot=f.lot.value.trim(),kg=num(f.kg.value),qty=Math.round(num(f.qty.value)||1),unit=mat?f.unit.value:"kg";
+  var mat=kind==="MAT",name=f.grade.value.trim(),lot=f.lot.value.trim(),kg=num(f.kg.value),unit=mat?f.unit.value:"kg",w=mat?"kiện":"bao";
   if(!name||!lot){toast(mat?"Cần nhập Tên vật tư và Lot No.":"Cần nhập Grade và Lot No.");return;}
-  if(!(kg>0)){toast("Số lượng mỗi kiện phải lớn hơn 0.");return;}
-  if(qty<1||qty>10){toast("Mỗi lần tạo từ 1 đến 10 tem.");return;}
+  if(!(kg>0)){toast("Số lượng mỗi "+w+" phải lớn hơn 0.");return;}
+  var plan=splitPlan(f),qs,lotMode=f.rmode.value==="lot",count,L=readLoc(f);
+  var q=Math.round(num(f.qty.value)||1);
+  if(!plan&&q<1){toast("Số "+w+" phải từ 1 trở lên.");return;}
+  count=plan?plan.count:q;
+  if(lotMode)qs=[plan?plan.total:r2(kg*q)];
+  else if(plan)qs=plan.qs;
+  else{qs=[];for(var k=0;k<q&&k<=MAX_SPLIT;k++)qs.push(r2(kg));}
+  if(qs.length>MAX_SPLIT){toast("Mỗi lần tạo tối đa "+MAX_SPLIT+" tem. Hãy chia làm nhiều lần nhập.");return;}
   var rd=f.istoday.checked?"":f.rdate.value,back=null;
   if(!f.istoday.checked){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(rd)){toast("Chọn ngày nhận hàng, hoặc tích Nhận hôm nay.");return;}
     if(rd>today()){toast("Ngày nhận không được sau hôm nay.");return;}
     if(rd<today()){var nw=new Date();back=new Date(+rd.slice(0,4),+rd.slice(5,7)-1,+rd.slice(8,10),nw.getHours(),nw.getMinutes(),nw.getSeconds());}
   }
-  var ids=[];
-  for(var i=0;i<qty;i++){
-    var b=newBag({kind:kind,lotNo:lot,baseLot:lot,grade:name,color:mat?"":f.color.value.trim(),cat:mat?f.cat.value:"",partCode:mat?f.part.value.trim():"",unit:unit,
-      supplier:f.supplier.value.trim(),plannedKg:r2(kg),actualKg:null,remainKg:0,status:"IQC_PENDING",note:f.note.value.trim()});
-    if(back)b.createdAt=new Date(back.getTime()+i*1000).toISOString();
-    b.events.push(ev("CREATE",kg,"Nhận hàng, chờ IQC"+(qty>1?" (kiện "+(i+1)+"/"+qty+")":"")+(back?" · ngày nhận "+rd.split("-").reverse().join("/")+", ghi sổ sau":"")));
-    await save(b);ids.push(b.id);
+  var ids=[],N=qs.length,batch="r"+Date.now().toString(36),t0=Date.now(),vals={color:mat?"":f.color.value.trim(),cat:mat?f.cat.value:"",part:mat?f.part.value.trim():"",sup:f.supplier.value.trim(),note:f.note.value.trim()};
+  for(var i=0;i<N;i++){
+    if(N>1)toast("Đang tạo tem "+(i+1)+"/"+N+"…");
+    var b=newBag({kind:kind,lotNo:lot,baseLot:lot,grade:name,color:vals.color,cat:vals.cat,partCode:vals.part,unit:unit,batch:N>1?batch:"",loc:L.loc,locSide:L.side,bagCount:lotMode?count:1,perBag:lotMode?r2(kg):null,
+      supplier:vals.sup,plannedKg:qs[i],actualKg:null,remainKg:0,status:"IQC_PENDING",note:vals.note});
+    b.createdAt=new Date((back?back.getTime():t0)+i*1000).toISOString();
+    b.events.push(ev("CREATE",qs[i],"Nhận hàng, chờ IQC"+(N>1?" ("+w+" "+(i+1)+"/"+N+")":"")+(lotMode&&count>1?" · "+count+" "+w+" × "+fmtKg(kg,unit):"")+(L.loc?" · vị trí "+(L.side?"cạnh kệ ":"")+L.loc:"")+(back?" · ngày nhận "+rd.split("-").reverse().join("/")+", ghi sổ sau":"")));
+    try{await save(b);}catch(e){bags.delete(b.id);if(ids.length)done(ids,"Mới tạo được "+ids.length+"/"+N+" tem thì lỗi mạng. Kiểm tra rồi nhập tiếp phần còn lại.");return;}
+    ids.push(b.id);
   }
-  done(ids,"Đã tạo "+qty+" tem. Hàng chờ IQC kiểm trước khi vào kho.");
+  done(ids,"Đã tạo "+N+" tem. Hàng chờ IQC kiểm trước khi vào kho.");
 }
 async function createXP(f){
   var sid=f.src.value,src=sid?bags.get(sid):null,base,grade,color,sources=[];
@@ -503,11 +571,15 @@ function viewCreate(){
     '<label class="f">Grade *<input id="zin-grade" name="grade" placeholder="LUPOX GP2306F" autocomplete="off"></label>'+
     '<label class="f">Màu<input id="zin-color" name="color" placeholder="KA34" autocomplete="off"></label>'+
     '<label class="f">Lot No *<input id="zin-lot" name="lot" placeholder="I2690805-15" autocomplete="off"></label>'+
-    '<label class="f">Kg mỗi bao *<input id="zin-kg" name="kg" inputmode="decimal" placeholder="1000"></label>'+
-    '<label class="f">Số bao (1–10)<input id="zin-qty" name="qty" inputmode="numeric" value="1"></label>'+
+    '<div class="full row" role="radiogroup" aria-label="Cách dán tem"><label class="chk" for="rm-lot"><input type="radio" id="rm-lot" name="rmode" value="lot"'+(recvMode==="lot"?" checked":"")+'> Một tem cho cả lô</label><label class="chk" for="rm-each"><input type="radio" id="rm-each" name="rmode" value="each"'+(recvMode==="each"?" checked":"")+'> Mỗi bao một tem</label></div>'+
+    '<label class="f">Tổng nhận về (kg)<input id="zin-total" name="total" inputmode="decimal" placeholder="600"></label>'+
+    '<label class="f">Kg mỗi bao *<input id="zin-kg" name="kg" inputmode="decimal" placeholder="20"></label>'+
+    '<label class="f">Số bao<input id="zin-qty" name="qty" inputmode="numeric" value="1"></label>'+
+    '<p class="hint full" data-split>Nhập tổng nhận về và kg mỗi bao, app tự tính số bao. Bỏ trống tổng thì tự nhập số bao.</p>'+
     '<label class="f">Nhà cung cấp<input id="zin-supplier" name="supplier" autocomplete="off"></label>'+
     '<label class="f">Ngày nhận nhựa<input type="date" id="zin-date" name="rdate" value="'+today()+'" max="'+today()+'" disabled></label>'+
     '<label class="chk" for="zin-today"><input type="checkbox" id="zin-today" name="istoday" checked> Nhận hôm nay</label>'+
+    locFields(null)+
     '<label class="f full">Ghi chú<input id="zin-note" name="note" autocomplete="off"></label>'+
     '<div class="full"><button class="btn"'+dis()+'>Tạo tem, chờ IQC</button></div></form>';
   }else if(mode==="MAT"){
@@ -517,12 +589,16 @@ function viewCreate(){
     '<label class="f">Tên vật tư *<input id="mat-name" name="grade" placeholder="LUG A" autocomplete="off"></label>'+
     '<label class="f">Lot No *<input id="mat-lot" name="lot" autocomplete="off"></label>'+
     '<label class="f">Dùng cho mã hàng<input id="mat-part" name="part" placeholder="CG8-795273" autocomplete="off"></label>'+
-    '<label class="f">Số lượng mỗi kiện *<input id="mat-kg" name="kg" inputmode="decimal" placeholder="500"></label>'+
+    '<div class="full row" role="radiogroup" aria-label="Cách dán tem"><label class="chk" for="rm-lot"><input type="radio" id="rm-lot" name="rmode" value="lot"'+(recvMode==="lot"?" checked":"")+'> Một tem cho cả lô</label><label class="chk" for="rm-each"><input type="radio" id="rm-each" name="rmode" value="each"'+(recvMode==="each"?" checked":"")+'> Mỗi kiện một tem</label></div>'+
     '<label class="f">Đơn vị<select id="mat-unit" name="unit">'+UNITS.map(function(u){return '<option'+(u==="pcs"?" selected":"")+'>'+esc(u)+'</option>';}).join("")+'</select></label>'+
-    '<label class="f">Số kiện (1–10)<input id="mat-qty" name="qty" inputmode="numeric" value="1"></label>'+
+    '<label class="f">Tổng nhận về<input id="mat-total" name="total" inputmode="decimal" placeholder="5000"></label>'+
+    '<label class="f">Số lượng mỗi kiện *<input id="mat-kg" name="kg" inputmode="decimal" placeholder="500"></label>'+
+    '<label class="f">Số kiện<input id="mat-qty" name="qty" inputmode="numeric" value="1"></label>'+
+    '<p class="hint full" data-split>Nhập tổng nhận về và số lượng mỗi kiện, app tự chia số kiện. Bỏ trống tổng thì tự nhập số kiện.</p>'+
     '<label class="f">Nhà cung cấp<input id="mat-supplier" name="supplier" autocomplete="off"></label>'+
     '<label class="f">Ngày nhận<input type="date" id="zin-date" name="rdate" value="'+today()+'" max="'+today()+'" disabled></label>'+
     '<label class="chk" for="zin-today"><input type="checkbox" id="zin-today" name="istoday" checked> Nhận hôm nay</label>'+
+    locFields(null)+
     '<label class="f full">Ghi chú<input id="mat-note" name="note" autocomplete="off"></label>'+
     '<div class="full"><button class="btn"'+dis()+'>Tạo tem, chờ IQC</button></div></form>';
   }else if(mode==="XP"){
@@ -557,8 +633,9 @@ function viewCreate(){
   h+='</section><section class="card" id="result"><h2>Tem để in</h2>';
   if(labelIds.length){
     h+='<div class="row"><label class="f">Ngôn ngữ thứ hai trên tem<select id="lang"><option value="en"'+(lang==="en"?" selected":"")+'>English</option><option value="ko"'+(lang==="ko"?" selected":"")+'>한국어</option></select></label>'+
-       (labelIds.length>1?'<button type="button" class="btn small" data-act="dl-all">'+(webMode?'Tải':'Gửi')+' cả '+labelIds.length+' tem (1 ảnh)</button>':'')+'</div>'+
-       '<div id="labels" class="labels"></div><p class="hint">'+(webMode?'':'Bot gửi file tem vào chat riêng của bạn. ')+'Tem tỷ lệ 2:1, in ở khổ 100 × 50 mm rồi dán lên bao.</p>';
+       (webMode?'<button type="button" class="btn small" data-act="print-all">In '+(labelIds.length>1?'tất cả '+labelIds.length+' tem':'tem')+'</button>':'')+
+       (labelIds.length>1&&labelIds.length<=10?'<button type="button" class="btn small ghost" data-act="dl-all">'+(webMode?'Tải':'Gửi')+' cả '+labelIds.length+' tem (1 ảnh)</button>':'')+'</div>'+
+       '<div id="labels" class="labels"></div><p class="hint">'+(webMode?'Nút In mở hộp thoại in, mỗi tem một trang khổ 100 × 50 mm. ':'Bot gửi file tem vào chat riêng của bạn. ')+'Tem tỷ lệ 2:1, dán lên từng bao.</p>';
   }else{
     h+='<ol class="steps"><li>Nhận hàng (nhựa zin, lug, plate, primer, keo): tạo tem QR. Hàng ở trạng thái Chờ IQC.</li><li>IQC quét tem, chụp ảnh, chọn OK hoặc NG. OK thì hàng vào tồn kho.</li><li>Xay: tạo tem XP từ bao nguồn. Xay xong quét mã, nhập kg thực tế.</li><li>Trộn: chọn bao zin và bao xay theo FIFO, tạo tem TR. Trộn xong quét mã, nhập kg thực tế.</li><li>Mỗi lần lấy nhựa đi sản xuất: quét mã bao, nhập kg xuất.</li></ol>';
   }
@@ -618,10 +695,11 @@ function viewBag(){
   var b=bags.get(curId);
   if(!b)return '<section class="card"><h2>Không tìm thấy bao '+esc(ID(curId))+'</h2><p class="hint">'+(ready?"Mã này chưa có trong hệ thống. Kiểm tra lại 6 ký tự in dưới mã QR.":"Đang tải dữ liệu…")+'</p><div><a class="btn ghost" href="#quet">Quét mã khác</a></div></section>';
   var h='<section class="card"><div class="baghead"><div><div class="lot">'+esc(b.lotNo)+'</div><div class="row">'+kindPill(b.kind)+statusPill(b.status)+'<span class="hint">Mã bao '+esc(ID(b.id))+'</span></div></div>'+
-    '<div class="remain"><span>Tồn hiện tại</span><b>'+fmtKg(b.status==="PENDING"||isIqc(b)?null:b.remainKg,b.unit)+'</b></div></div>'+
-    '<dl class="facts">'+fact(b.kind==="MAT"?"Tên vật tư":"Grade",b.grade)+fact("Loại vật tư",b.cat)+fact("Màu",b.color)+fact("Lot gốc",b.baseLot)+fact(NEED_IQC[b.kind]?"SL khai báo":"SL dự kiến",b.plannedKg==null?"":fmtKg(b.plannedKg,b.unit))+fact("SL thực tế",b.actualKg==null?"":fmtKg(b.actualKg,b.unit))+
+    '<div class="remain"><span>Tồn hiện tại</span><b>'+fmtKg(b.status==="PENDING"||isIqc(b)?null:b.remainKg,b.unit)+'</b>'+(b.status==="IN_STOCK"&&b.perBag?'<span>'+esc(bagsText(b,b.remainKg).replace(" ≈ ","≈ "))+'</span>':'')+'</div></div>'+
+    '<dl class="facts">'+fact(b.kind==="MAT"?"Tên vật tư":"Grade",b.grade)+fact("Loại vật tư",b.cat)+fact("Màu",b.color)+fact("Lot gốc",b.baseLot)+fact("Vị trí",locText(b)||"Chưa xếp")+(b.bagCount>1?fact("Quy cách",b.bagCount+" "+(b.kind==="MAT"?"kiện":"bao")+" × "+fmtKg(b.perBag,b.unit)):"")+fact(NEED_IQC[b.kind]?"SL khai báo":"SL dự kiến",b.plannedKg==null?"":fmtKg(b.plannedKg,b.unit))+fact("SL thực tế",b.actualKg==null?"":fmtKg(b.actualKg,b.unit))+
     (b.ratio?fact("Tỷ lệ trộn","Zin "+b.ratio.zinPct+"% : Xay "+b.ratio.xpPct+"%"):"")+fact("Mã hàng",b.partCode)+fact("Máy",b.machine)+fact("Nhà cung cấp",b.supplier)+fact("Tạo lúc",fmtDate(b.createdAt))+fact("Ghi chú",b.note)+
-    '<div><dt>Người tạo</dt><dd>'+who(b.createdBy)+'</dd></div></dl></section>'+iqcInfoHtml(b);
+    '<div><dt>Người tạo</dt><dd>'+who(b.createdBy)+'</dd></div></dl></section>'+iqcInfoHtml(b)+
+    (canWrite&&present(b)?'<section class="card"><h2>Vị trí trong kho</h2><p class="hint">Hiện tại: <b>'+esc(locText(b)||"chưa xếp")+'</b>. Địa chỉ dạng A1-1 là khu A, tầng 1, ô 1.</p><form id="f-loc" class="form" novalidate>'+locFields(b)+'<div class="full"><button class="btn ghost">Lưu vị trí</button></div></form></section>':'');
   h+='<section class="card"><h2>Thao tác</h2>';
   if(!canWrite)h+='<p class="hint">Tài khoản này chỉ được xem.</p>';
   else if(isIqc(b)){h+=iqcFormHtml(b);}
@@ -630,7 +708,7 @@ function viewBag(){
   }else if(b.status==="IN_STOCK"){
     var old=olderThan(b);
     if(old.length)h+='<p class="note"><b>FIFO:</b> còn '+old.length+' bao cùng loại nhập trước, nên dùng trước: '+old.slice(0,4).map(function(o){return '<a href="#tem-'+esc(o.id)+'">'+esc(ID(o.id))+'</a> ('+fmtDate(o.createdAt)+', còn '+fmtKg(o.remainKg,o.unit)+')';}).join(", ")+(old.length>4?"…":"")+'</p>';
-    h+='<form id="f-out" class="form" novalidate><label class="f">Số lượng xuất ('+esc(unitOf(b))+')<input id="out-kg" name="kg" inputmode="decimal" placeholder="Tối đa '+esc(String(b.remainKg))+'"></label><label class="f">Xuất cho (máy, mã hàng)<input id="out-dest" name="dest" autocomplete="off"></label><div class="full"><button class="btn">Ghi xuất kho</button></div></form>';
+    h+='<form id="f-out" class="form" novalidate><label class="f">Số lượng xuất ('+esc(unitOf(b))+')<input id="out-kg" name="kg" inputmode="decimal" placeholder="Tối đa '+esc(String(b.remainKg))+'"></label>'+(b.perBag?'<label class="f">Hoặc số '+(b.kind==="MAT"?"kiện":"bao")+' ('+esc(fmtKg(b.perBag,b.unit))+'/'+(b.kind==="MAT"?"kiện":"bao")+')<input id="out-bags" inputmode="decimal" data-per="'+esc(String(b.perBag))+'"></label>':'')+'<label class="f">Xuất cho (máy, mã hàng)<input id="out-dest" name="dest" autocomplete="off"></label><div class="full"><button class="btn">Ghi xuất kho</button></div></form>';
   }else h+='<p class="hint">Bao này '+(b.status==="VOID"?"đã hủy.":"đã dùng hết.")+'</p>';
   if(canWrite&&isIqc(b)){h+='<details><summary>Nhập sai: hủy tem</summary><div class="row" style="margin-top:10px"><button type="button" class="btn danger" data-act="void">'+(voidArm?"Bấm lần nữa để hủy tem":"Hủy tem này")+'</button></div></details>';}
   else if(canWrite&&b.status!=="VOID"){
@@ -652,18 +730,23 @@ function viewStock(){
   var h='<div class="tiles">'+["ZIN","XP","TR"].map(function(k){return '<div class="tile k-'+k+'"><span>'+esc(KIND[k].vi)+' tồn</span><b>'+fmtKg(sum[k])+'</b></div>';}).join("")+
     '<div class="tile k-MAT"><span>Vật tư tồn</span><b>'+nMat+' kiện</b></div><div class="tile"><span>Chờ IQC</span><b>'+wait+'</b></div><div class="tile"><span>Tem chờ cân</span><b>'+pend+'</b></div></div>';
   var rank={};
-  var rows=st.filter(function(b){return !stockKind||b.kind===stockKind;}).map(function(b){var k=fifoKey(b);rank[k]=(rank[k]||0)+1;return {b:b,r:rank[k]};});
-  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Tồn kho theo FIFO</h2><div class="row">'+
+  var rows=st.map(function(b){var k=fifoKey(b);rank[k]=(rank[k]||0)+1;return {b:b,r:rank[k]};}).filter(function(o){return (!stockKind||o.b.kind===stockKind)&&(!stockLoc||o.b.loc===stockLoc);});
+  if(stockLoc)all().filter(function(b){return present(b)&&b.status!=="IN_STOCK"&&b.loc===stockLoc&&(!stockKind||b.kind===stockKind);}).forEach(function(b){rows.push({b:b,r:0});});
+  var cnt={},side={};all().forEach(function(b){if(present(b)&&b.loc){cnt[b.loc]=(cnt[b.loc]||0)+1;if(b.locSide)side[b.loc]=(side[b.loc]||0)+1;}});
+  h+='<section class="card"><h2>Sơ đồ giá kệ</h2><p class="hint">Số trong ô là số tem đang nằm trên kệ đó (kể cả hàng chờ IQC); số sau dấu + là số tem để cạnh kệ. Bấm một ô để lọc danh sách bên dưới.</p><div class="shelf">'+
+    ZONES.map(function(z){var hz='<div class="zone"><h3>Khu '+z+'</h3>';for(var t=TIERS;t>=1;t--){hz+='<div class="slots">';for(var c=1;c<=SLOTS;c++){var L=z+t+"-"+c,n=cnt[L]||0,sd=side[L]||0;hz+='<button type="button" class="slot'+(n?" has":"")+'" data-act="sloc" data-loc="'+L+'" aria-pressed="'+(stockLoc===L)+'">'+L+'<b>'+(n?(n-sd)+(sd?"+"+sd:""):"·")+'</b></button>';}hz+='</div>';}return hz+'</div>';}).join("")+'</div></section>';
+  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>'+(stockLoc?'Hàng tại ô '+esc(stockLoc):'Tồn kho theo FIFO')+'</h2><div class="row">'+
     [["","Tất cả"],["ZIN","Zin"],["XP","Xay"],["TR","Trộn"],["MAT","Vật tư"]].map(function(o){return '<button type="button" class="btn small '+(stockKind===o[0]?"":"ghost")+'" data-act="skind" data-kind="'+o[0]+'" aria-pressed="'+(stockKind===o[0])+'">'+o[1]+'</button>';}).join("")+
     '<button type="button" class="btn small ghost" data-act="csv-stock">Xuất CSV</button></div></div>'+
-    '<p class="hint">Chỉ gồm hàng IQC đã xác nhận OK. Thứ tự FIFO tính riêng theo từng loại và tên vật tư. Số 1 là kiện phải dùng trước.</p>';
+    '<p class="hint">'+(stockLoc?'Mọi kiện đang nằm ở ô này, gồm cả hàng chờ IQC. Bấm lại ô đó trên sơ đồ để bỏ lọc.':'Chỉ gồm hàng IQC đã xác nhận OK. Thứ tự FIFO tính riêng theo từng loại và tên vật tư. Số 1 là kiện phải dùng trước.')+'</p>';
   if(!rows.length)h+='<p class="empty">'+(ready?'Chưa có hàng nào trong kho. Vào <a href="#tao-tem">Tạo tem</a> để nhận hàng, sau đó IQC xác nhận.':'Đang tải…')+'</p>';
-  else h+='<div class="scroll"><table><thead><tr><th class="n">FIFO</th><th>Mã</th><th>Lot No</th><th>Loại</th><th>Tên / Grade · Màu</th><th class="n">Tồn</th><th>Nhận lúc</th><th class="n">Tuổi</th></tr></thead><tbody>'+
-    rows.map(function(o){var b=o.b;return '<tr class="'+(o.r===1?"first":"")+'"><td class="n">'+o.r+(o.r===1?' <span class="pill solid">Dùng trước</span>':'')+'</td><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+esc(b.lotNo)+'</td><td>'+kindPill(b.kind)+'</td><td>'+esc(b.grade+(b.color?" · "+b.color:""))+'</td><td class="n">'+fmtKg(b.remainKg,b.unit)+'</td><td>'+fmtDate(b.createdAt)+'</td><td class="n">'+ageDays(b.createdAt)+' ngày</td></tr>';}).join("")+'</tbody></table></div>';
+  else h+='<div class="scroll"><table><thead><tr><th class="n">FIFO</th><th>Mã</th><th>Lot No</th><th>Loại</th><th>Tên / Grade · Màu</th><th>Vị trí</th><th class="n">Tồn</th><th>Nhận lúc</th><th class="n">Tuổi</th></tr></thead><tbody>'+
+    rows.map(function(o){var b=o.b;return '<tr class="'+(o.r===1?"first":"")+'"><td class="n">'+(o.r||"—")+(o.r===1?' <span class="pill solid">Dùng trước</span>':'')+'</td><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+esc(b.lotNo)+'</td><td>'+kindPill(b.kind)+(b.status!=="IN_STOCK"?" "+statusPill(b.status):"")+'</td><td>'+esc(b.grade+(b.color?" · "+b.color:""))+'</td><td>'+esc(locText(b)||"—")+'</td><td class="n">'+(b.status==="IN_STOCK"?fmtKg(b.remainKg,b.unit)+esc(bagsText(b,b.remainKg)):fmtKg(b.plannedKg,b.unit))+'</td><td>'+fmtDate(b.createdAt)+'</td><td class="n">'+ageDays(b.createdAt)+' ngày</td></tr>';}).join("")+'</tbody></table></div>';
   h+='</section>'+pendingList();
   return h;
 }
 /* ---------- IQC ---------- */
+function iqcMates(b){return b.batch?all().filter(function(x){return x.batch===b.batch&&isIqc(x);}):[b];}
 function iqcFormHtml(b){
   var u=unitOf(b);
   return '<form id="f-iqc" class="form" novalidate>'+
@@ -671,6 +754,7 @@ function iqcFormHtml(b){
   (b.status==="IQC_NG"?'<p class="note crit full">Lần kiểm trước: NG. Có thể kiểm lại và lưu kết quả mới.</p>':'')+
   '<div class="full row" role="radiogroup" aria-label="Kết quả IQC"><label class="chk" for="iqc-ok"><input type="radio" id="iqc-ok" name="result" value="OK"> OK, đạt</label><label class="chk" for="iqc-ng"><input type="radio" id="iqc-ng" name="result" value="NG"> NG, không đạt</label></div>'+
   '<label class="f">Số lượng thực nhận ('+esc(u)+')<input id="iqc-qty" name="qty" inputmode="decimal" value="'+esc(b.plannedKg==null?"":String(b.plannedKg))+'"></label>'+
+  (iqcMates(b).length>1?'<label class="chk full" for="iqc-all"><input type="checkbox" id="iqc-all" name="applyAll" checked> Áp dụng cho cả '+iqcMates(b).length+' '+(b.kind==="MAT"?"kiện":"bao")+' cùng đợt nhận (mỗi '+(b.kind==="MAT"?"kiện":"bao")+' lấy số lượng khai báo của nó)</label>':'')+
   (iqcFree?'':'<label class="f">Mã PIN IQC<input id="iqc-pin" name="pin" type="password" inputmode="numeric" autocomplete="off" value="'+esc(iqcPin)+'"></label>')+
   '<div class="drop full"><p class="hint">Ảnh kiểm hàng, tối đa 4 ảnh. Kết quả NG bắt buộc có ảnh lỗi.</p><div class="row"><label class="btn small ghost" for="iqc-photos">Chụp hoặc chọn ảnh</label><button type="button" class="btn small ghost" data-act="iqc-clear">Xóa ảnh đã chọn</button></div><input type="file" id="iqc-photos" accept="image/*" multiple hidden><div class="row" id="iqc-thumbs"></div></div>'+
   '<label class="f full">Ghi chú / lỗi phát hiện<input id="iqc-note" name="note" autocomplete="off"></label>'+
@@ -700,35 +784,47 @@ async function showIqcPhotos(){
 async function submitIqc(f){
   var b=bags.get(curId);if(!b)return;
   var res=f.result.value,qty=num(f.qty.value),note=f.note.value.trim(),pin=f.pin?f.pin.value.trim():"";
+  var rest=f.applyAll&&f.applyAll.checked?iqcMates(b).filter(function(x){return x.id!==b.id;}):[];
   if(res!=="OK"&&res!=="NG"){toast("Chọn kết quả OK hoặc NG.");return;}
   if(res==="OK"&&!(qty>0)){toast("Nhập số lượng thực nhận.");return;}
   if(res==="NG"&&(!note||!iqcFiles.length)){toast("Kết quả NG cần ghi chú lỗi và ít nhất 1 ảnh.");return;}
   if(memMode){
-    var c=clone(b);c.iqc={result:res,by:myId||"",at:new Date().toISOString(),note:note,photos:[]};
-    if(res==="OK"){c.status="IN_STOCK";c.actualKg=r2(qty);c.remainKg=r2(qty);c.events.push(ev("IQC_OK",qty,note));}else{c.status="IQC_NG";c.events.push(ev("IQC_NG",null,note));}
-    bags.set(c.id,c);iqcFiles=[];render();return;
+    [b].concat(rest).forEach(function(x,i){
+      var c=clone(x),q=i?x.plannedKg:qty;c.iqc={result:res,by:myId||"",at:new Date().toISOString(),note:note,photos:[]};
+      if(res==="OK"){c.status="IN_STOCK";c.actualKg=r2(q);c.remainKg=r2(q);c.events.push(ev("IQC_OK",q,note));}else{c.status="IQC_NG";c.events.push(ev("IQC_NG",null,note));}
+      bags.set(c.id,c);
+    });
+    iqcFiles=[];render();return;
   }
   if(!iqcFree&&!pin){toast("Nhập mã PIN IQC.");return;}
   toast("Đang lưu kết quả IQC…");
   pending++;writeSeq++;
+  var doneN=0,total=rest.length+1;
   try{
     var photos=[];for(var i=0;i<iqcFiles.length;i++)photos.push(await blobB64(await shrink(iqcFiles[i],1280)));
     var r=await api("iqc",{id:b.id,result:res,qty:isFinite(qty)?qty:null,note:note,photos:photos,iqcPin:pin});
-    bags.set(r.bag.id,r.bag);iqcPin=pin;try{localStorage.setItem("n2p-iqc-pin",pin);}catch(e){}
-    iqcFiles=[];toast(res==="OK"?"IQC đạt. Hàng đã vào tồn kho.":"Đã ghi IQC NG. Hàng không vào kho.");render();
+    bags.set(r.bag.id,r.bag);doneN=1;iqcPin=pin;try{localStorage.setItem("n2p-iqc-pin",pin);}catch(e){}
+    var small=res==="NG"&&rest.length?[await blobB64(await shrink(iqcFiles[0],800))]:[];
+    for(var j=0;j<rest.length;j++){
+      toast("Đang lưu IQC "+(j+2)+"/"+total+"…");
+      var r2x=await api("iqc",{id:rest[j].id,result:res,qty:rest[j].plannedKg,note:(note?note+" · ":"")+"theo kết quả kiểm "+ID(b.id),photos:small,iqcPin:pin});
+      bags.set(r2x.bag.id,r2x.bag);doneN++;
+    }
+    iqcFiles=[];toast((res==="OK"?"IQC đạt. ":"Đã ghi IQC NG. ")+(total>1?total+" "+(b.kind==="MAT"?"kiện":"bao")+" ":"Hàng ")+(res==="OK"?"đã vào tồn kho.":"không vào kho."));render();
   }catch(e){
     if(e&&e.code==="bad_iqc"){iqcPin="";try{localStorage.removeItem("n2p-iqc-pin");}catch(x){}}
-    toast(errMsg(e,"Không lưu được kết quả IQC. Kiểm tra mạng rồi thử lại."));
+    toast(doneN?"Mới lưu được "+doneN+"/"+total+" thì lỗi. Mở mục IQC để kiểm phần còn lại.":errMsg(e,"Không lưu được kết quả IQC. Kiểm tra mạng rồi thử lại."));
+    if(doneN){iqcFiles=[];render();}
   }finally{pending--;}
 }
 function viewIqc(){
   var wait=all().filter(function(b){return b.status==="IQC_PENDING";}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});
   var ng=all().filter(function(b){return b.status==="IQC_NG";}).sort(function(a,b){return a.createdAt<b.createdAt?1:-1;});
-  var row=function(b,extra){return '<tr><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+kindPill(b.kind)+'</td><td>'+esc(b.grade)+'</td><td>'+esc(b.lotNo)+'</td><td class="n">'+fmtKg(b.plannedKg,b.unit)+'</td><td>'+esc(b.supplier)+'</td><td>'+extra+'</td></tr>';};
+  var row=function(b,extra){return '<tr><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+kindPill(b.kind)+'</td><td>'+esc(b.grade)+'</td><td>'+esc(b.lotNo)+'</td><td class="n">'+fmtKg(b.plannedKg,b.unit)+'</td><td>'+esc(locText(b)||"—")+'</td><td>'+extra+'</td></tr>';};
   var h='<section class="card"><h2>Hàng chờ IQC</h2><p class="hint">'+(iqcFree?"Tài khoản của bạn được cấp quyền IQC, không cần PIN.":"Khi lưu kết quả cần mã PIN IQC.")+(myTgId?" ID Telegram của bạn: "+esc(myTgId)+".":"")+' Bấm mã để mở, hoặc quét QR trên tem.</p>';
-  h+=wait.length?'<div class="scroll"><table><thead><tr><th>Mã</th><th>Loại</th><th>Tên / Grade</th><th>Lot No</th><th class="n">SL khai báo</th><th>NCC</th><th>Nhận lúc</th></tr></thead><tbody>'+wait.map(function(b){return row(b,fmtDate(b.createdAt));}).join("")+'</tbody></table></div>':'<p class="empty">'+(ready?"Không có hàng nào chờ IQC.":"Đang tải…")+'</p>';
+  h+=wait.length?'<div class="scroll"><table><thead><tr><th>Mã</th><th>Loại</th><th>Tên / Grade</th><th>Lot No</th><th class="n">SL khai báo</th><th>Vị trí</th><th>Nhận lúc</th></tr></thead><tbody>'+wait.map(function(b){return row(b,fmtDate(b.createdAt));}).join("")+'</tbody></table></div>':'<p class="empty">'+(ready?"Không có hàng nào chờ IQC.":"Đang tải…")+'</p>';
   h+='</section><section class="card"><h2>Hàng IQC NG</h2>';
-  h+=ng.length?'<div class="scroll"><table><thead><tr><th>Mã</th><th>Loại</th><th>Tên / Grade</th><th>Lot No</th><th class="n">SL khai báo</th><th>NCC</th><th>Lỗi</th></tr></thead><tbody>'+ng.map(function(b){return row(b,esc(b.iqc&&b.iqc.note||""));}).join("")+'</tbody></table></div>':'<p class="empty">Không có hàng NG.</p>';
+  h+=ng.length?'<div class="scroll"><table><thead><tr><th>Mã</th><th>Loại</th><th>Tên / Grade</th><th>Lot No</th><th class="n">SL khai báo</th><th>Vị trí</th><th>Lỗi</th></tr></thead><tbody>'+ng.map(function(b){return row(b,esc(b.iqc&&b.iqc.note||""));}).join("")+'</tbody></table></div>':'<p class="empty">Không có hàng NG.</p>';
   return h+'</section>';
 }
 function allEvents(){
@@ -751,7 +847,7 @@ async function exportCsv(kind){
   }else if(kind==="hist"){
     lines=[["Thời gian","Thao tác","Mã bao","Lot No","Loại","Grade","Màu","Kg","Ghi chú","Người làm"]].concat(allEvents().map(function(o){var b=o.b,e=o.e;return [fmtDate(e.t),EV[e.type]||e.type,ID(b.id),b.lotNo,KIND[kindOf(b.kind)].vi,b.grade,b.color,e.kg==null?"":(e.type==="OUT"?-e.kg:e.kg),e.note,names[e.by]||e.by||""];}));
   }else{
-    lines=[["Mã","Lot No","Lot gốc","Loại","Tên / Grade","Màu","Trạng thái","SL khai báo","SL thực tế","Tồn","ĐVT","Nhận lúc","IQC","Nguồn"]].concat(all().sort(function(a,b){return a.createdAt<b.createdAt?-1:1;}).map(function(b){return [ID(b.id),b.lotNo,b.baseLot,KIND[kindOf(b.kind)].vi,b.grade,b.color,STATUS[b.status]||b.status,b.plannedKg==null?"":b.plannedKg,b.actualKg==null?"":b.actualKg,b.remainKg,unitOf(b),fmtDate(b.createdAt),b.iqc?b.iqc.result:"",(b.sources||[]).map(function(s){return s.lotNo+(s.bagId?" ("+ID(s.bagId)+")":"");}).join(" + ")];}));
+    lines=[["Mã","Lot No","Lot gốc","Loại","Tên / Grade","Màu","Trạng thái","SL khai báo","SL thực tế","Tồn","ĐVT","Vị trí","Số bao khai báo","Nhận lúc","IQC","Nguồn"]].concat(all().sort(function(a,b){return a.createdAt<b.createdAt?-1:1;}).map(function(b){return [ID(b.id),b.lotNo,b.baseLot,KIND[kindOf(b.kind)].vi,b.grade,b.color,STATUS[b.status]||b.status,b.plannedKg==null?"":b.plannedKg,b.actualKg==null?"":b.actualKg,b.remainKg,unitOf(b),locText(b),b.bagCount||1,fmtDate(b.createdAt),b.iqc?b.iqc.result:"",(b.sources||[]).map(function(s){return s.lotNo+(s.bagId?" ("+ID(s.bagId)+")":"");}).join(" + ")];}));
   }
   var csv="﻿"+lines.map(function(r){return r.map(csvCell).join(",");}).join("\r\n");
   var d=new Date(),name=(kind==="slip"?"so-theo-doi-xuat-nhua-":kind==="hist"?"lich-su-nhua-":"ton-kho-nhua-")+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+".csv";
@@ -788,6 +884,7 @@ function linesHtml(){
     '<label class="f">Số lượng xuất *<input id="l'+i+'-kg" data-l="kg" inputmode="decimal" value="'+esc(l.kg)+'"></label>'+
     '<label class="f">Đơn vị<select id="l'+i+'-unit" data-l="unit"'+(b?" disabled":"")+'>'+UNITS.map(function(u){return '<option'+(u===(l.unit||"kg")?" selected":"")+'>'+esc(u)+'</option>';}).join("")+'</select></label>'+
     '<label class="f full">Nguồn gốc (NCC / lô SX nguồn)<input id="l'+i+'-source" data-l="source" value="'+esc(l.source)+'" autocomplete="off"></label>'+
+    (b&&(locText(b)||b.perBag)?'<p class="hint full">'+(locText(b)?'Vị trí: <b>'+esc(locText(b))+'</b>. ':'')+(b.perBag?'Quy cách '+esc(fmtKg(b.perBag,b.unit))+'/'+(b.kind==="MAT"?"kiện":"bao")+'.':'')+'</p>':'')+
     (old.length?'<p class="note full"><b>FIFO:</b> còn bao nhập trước chưa dùng: '+old.slice(0,3).map(function(o){return esc(ID(o.id))+" ("+fmtDate(o.createdAt)+")";}).join(", ")+'</p>':'')+
     '</div></div>';
   }).join("");
@@ -973,9 +1070,10 @@ function noteCell(e){return '<td>'+esc(e.note)+(e.slip?' <a href="#px-'+esc(e.sl
 
 function renderBanner(){
   var bn="";
-  if(notConfigured)bn='<p class="note crit">Chưa dán link Google Apps Script vào file index.html (dòng API_URL). Xem file hướng dẫn, bước 3.</p>';
+  if(notConfigured)bn='<p class="note crit">App chưa biết link máy chủ. Tạo file config.js trên GitHub (xem hướng dẫn), hoặc dán link Google Apps Script vào dòng API_URL trong index.html.</p>';
   else if(needLogin)bn="";
   else if(authError)bn='<p class="note crit">'+esc(authError)+'</p>';
+  else if(slow&&srvError)bn='<p class="note crit">Máy chủ báo lỗi nên chưa tải được dữ liệu: '+esc(srvError)+'. Gửi dòng này cho người quản lý app.</p>';
   else if(slow)bn='<p class="note">Chưa tải được dữ liệu mới nhất, số liệu có thể cũ. App tự thử lại khi có mạng.</p>';
   if(webMode&&!needLogin&&!notConfigured)bn+='<p class="hint row">Đang dùng với tên <b>'+esc(cred.name)+'</b><button type="button" class="btn small ghost" data-act="logout">Đổi người dùng</button></p>';
   $("#banner").innerHTML=bn;
@@ -1026,6 +1124,10 @@ document.addEventListener("click",function(e){
   if(act==="mode"){mode=t.dataset.mode;labelIds=[];render();}
   else if(act==="dl")guard(function(){return downloadLabels([t.dataset.id]);});
   else if(act==="dl-all")guard(function(){return downloadLabels(labelIds.slice());});
+  else if(act==="print-all")guard(function(){return printLabels(labelIds.slice());});
+  else if(act==="print-one")guard(function(){return printLabels([t.dataset.id]);});
+  else if(act==="print-copies")guard(function(){return printLabels([t.dataset.id],+t.dataset.n||1);});
+  else if(act==="sloc"){stockLoc=stockLoc===t.dataset.loc?"":t.dataset.loc;render();}
   else if(act==="reprint"){bagLabel=true;render();}
   else if(act==="skind"){stockKind=t.dataset.kind;render();}
   else if(act==="csv-stock")guard(function(){return exportCsv("stock");});
@@ -1060,6 +1162,7 @@ document.addEventListener("submit",function(e){
   else if(f.id==="f-tr")guard(function(){return createTR(f);});
   else if(f.id==="f-weigh")guard(async function(){var kg=num(f.kg.value);if(!(kg>0)){toast("Nhập số kg cân được.");return;}await weigh(curId,kg);toast("Đã nhập kho "+fmtKg(kg)+".");render();});
   else if(f.id==="f-out")guard(async function(){var b=bags.get(curId),kg=num(f.kg.value);if(!(kg>0)){toast("Nhập số lượng xuất.");return;}if(kg>b.remainKg+0.001){toast("Bao chỉ còn "+fmtKg(b.remainKg,b.unit)+".");return;}await issue(curId,kg,f.dest.value.trim()||"Xuất sản xuất");toast("Đã ghi xuất "+fmtKg(kg,b.unit)+".");render();});
+  else if(f.id==="f-loc")guard(async function(){var b=clone(bags.get(curId)),L=readLoc(f),old=locText(b)||"chưa xếp";b.loc=L.loc;b.locSide=L.side;var nw=locText(b)||"chưa xếp";if(nw===old){toast("Vị trí không đổi.");return;}b.events.push(ev("MOVE",null,old+" → "+nw));await save(b);toast("Đã lưu vị trí "+nw+".");render();});
   else if(f.id==="f-adjust")guard(async function(){var kg=num(f.kg.value);if(!(kg>=0)){toast("Nhập số kg tồn đúng (0 nếu đã hết).");return;}await adjust(curId,kg,f.note.value.trim());toast("Đã điều chỉnh tồn.");render();});
 });
 document.addEventListener("change",function(e){
@@ -1081,13 +1184,15 @@ document.addEventListener("change",function(e){
   }
   else if(t.id==="zin-today"){var zd=$("#zin-date");if(zd){zd.disabled=t.checked;if(t.checked)zd.value=today();else zd.focus();}}
   else if(t.id==="lang"){lang=t.value==="ko"?"ko":"en";try{localStorage.setItem("n2p-label-lang",lang);}catch(err){}render();}
-  else updHints();
+  else{if(t.name==="rmode"){recvMode=t.value==="each"?"each":"lot";try{localStorage.setItem("n2p-recv-mode",recvMode);}catch(err){}}if(t.form&&(t.form.id==="f-zin"||t.form.id==="f-mat"))updSplit(t.form);updHints();}
 });
 document.addEventListener("input",function(e){
   var t=e.target;
   if(t.id==="slip-q"){slipQ=t.value;renderSlipList();}
   else if(t.closest("#slip-lines")){if(t.tagName!=="SELECT")lineInput(t);}
   else if(t.dataset.h)headInput(t);
+  else if(t.id==="out-bags"){var nb=num(t.value),ok=$("#out-kg");if(ok)ok.value=nb>0?String(r2(nb*num(t.dataset.per))):"";}
+  else if(t.closest("#f-zin,#f-mat"))updSplit(t.form);
   else if(t.closest("#f-xp,#f-tr"))updHints();
 });
 document.addEventListener("paste",function(e){
@@ -1111,11 +1216,11 @@ async function refresh(){
     if(pending>0||seq!==writeSeq)return;
     bags.clear();(r.bags||[]).forEach(function(v){if(v&&v.id)bags.set(v.id,v);});
     slips.clear();(r.slips||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.lines))slips.set(v.id,v);});
-    BOT=r.bot||"";WEBQR=!!r.web;iqcFree=!!r.iqc;myTgId=r.me&&r.me.id?String(r.me.id):null;if(webMode){try{localStorage.setItem("n2p-web-auth",JSON.stringify(cred));}catch(e){}}hasOcr=!!r.hasOcr;hasGroup=!!r.hasGroup;authError="";canWrite=true;slow=false;
+    BOT=r.bot||"";WEBQR=!!r.web;iqcFree=!!r.iqc;myTgId=r.me&&r.me.id?String(r.me.id):null;if(webMode){try{localStorage.setItem("n2p-web-auth",JSON.stringify(cred));}catch(e){}}hasOcr=!!r.hasOcr;hasGroup=!!r.hasGroup;authError="";srvError="";canWrite=true;slow=false;
     var first=!ready;ready=true;renderBanner();onData(first);
   }catch(e){
     if(webMode&&e&&(e.code==="bad_pin"||e.code==="no_web"||e.code==="locked")){needLogin=true;loginError=errMsg(e,"");cred.pin="";try{localStorage.removeItem("n2p-web-auth");}catch(x){}ready=true;render();return;}
-    if(e&&e.code&&e.code!=="server"){authError=errMsg(e,"Không dùng được app.");canWrite=false;}else slow=true;
+    if(e&&e.code&&e.code!=="server"){authError=errMsg(e,"Không dùng được app.");canWrite=false;}else{slow=true;srvError=e&&e.code==="server"?String(e.message||""):"";}
     var f2=!ready;ready=true;if(f2)render();else renderBanner();
   }
 }
