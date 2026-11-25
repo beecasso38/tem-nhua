@@ -277,6 +277,7 @@ function errMsg(e,def){
     c==="bad_pin"?"Sai mã PIN. Hỏi lại quản lý kho.":
     c==="locked"?"Nhập sai PIN quá nhiều lần. Thử lại sau 10 phút.":
     c==="no_web"?"Máy chủ chưa có mã PIN. Quản lý cần điền dòng MA_PIN_WEB trong Code.gs rồi triển khai phiên bản mới.":
+    c==="server"&&/^Không rõ yêu cầu/.test(e.message||"")?"Máy chủ đang chạy bản cũ, chưa có chức năng này. Quản lý cần dán Code.gs mới và triển khai phiên bản mới.":
     c==="server"&&e.message?e.message:def;
 }
 async function api(action,data){
@@ -767,10 +768,8 @@ function lockHtml(b){
 async function unlockIqc(f){
   var b=bags.get(curId),pin=f.pin.value.trim();if(!b)return;
   if(!pin){toast("Nhập mã PIN IQC.");return;}
-  try{await api("iqc",{id:b.id,result:"CHECK",iqcPin:pin});}
-  catch(e){
-    if(!e||e.code!=="server"){toast(e&&e.code?errMsg(e,"Không mở được."):"Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.");return;}
-  }
+  try{await api("iqcCheck",{iqcPin:pin});}
+  catch(e){toast(e&&e.code?errMsg(e,"Không mở được."):"Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.");return;}
   iqcPin=pin;try{localStorage.setItem("n2p-iqc-pin",pin);}catch(x){}
   render();
 }
