@@ -137,7 +137,7 @@ ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 </head>
 <body>
 <header class="top">
-  <div class="brand">ANMY WAREHOUSE MANAGEMENT<small>Kho nhựa · QA/QC</small></div>
+  <div class="brand"><span id="app-name">Tem nhựa xay trộn</span><small id="app-sub">Kho nhựa · QA/QC</small></div>
   <nav aria-label="Chức năng">
     <a href="#tao-tem" data-nav="tao-tem">Tạo tem</a>
     <a href="#iqc" data-nav="iqc">IQC</a>
@@ -149,7 +149,7 @@ ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 </header>
 <div class="banner" id="banner"></div>
 <main id="view"><p class="empty">Đang tải…</p></main>
-<div id="toast" role="status" aria-live="polite"></div>
+<div id="toast" role="status" aria-live="polite"></div
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';document.head.appendChild(s)"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';document.head.appendChild(s)"></script>
@@ -159,7 +159,10 @@ ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 /* ====== CẤU HÌNH: dán link "Web app" của Google Apps Script vào giữa hai dấu nháy ====== */
 var API_URL=window.API_URL||"https://script.google.com/macros/s/AKfycbwOYOfIwX6iR4umea9SZOlpOEN1qQdiMkLZDbCDA8hF5VPyVPMuPDzWvQPdqntmtGqu-A/exec";
 /* ======================================================================================= */
-var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",srvError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",pin:""};
+var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",srvError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",pin:"",role:"KHO"},myRole="KHO";
+var ROLES={KHO:"Kho",IQC:"IQC",SX:"Sản xuất",QL:"Quản lý"};
+function isMgr(){return myRole==="QL";}
+function iqcNoPin(){return iqcFree||myRole==="IQC"||myRole==="QL";}
 var PAGE=location.origin+location.pathname;
 
 var $=function(s,r){return (r||document).querySelector(s);};
@@ -175,25 +178,31 @@ var KIND={
 var MATCAT=["Lug","Plate","Primer","Adhesive (keo)","Packing","Khác"],UNITS=["kg","pcs","lít","can","cuộn","hộp"];
 var NEED_IQC={ZIN:1,MAT:1};
 /* Giá kệ: khu A-D, mỗi kệ 2 tầng, mỗi tầng 6 ô. Địa chỉ dạng A1-1 = khu A, tầng 1, ô 1. */
-var ZONES=["A","B","C","D"],TIERS=2,SLOTS=6,stockLoc="",recvMode="lot";
+/* Kho nhựa: khu A-D, 2 tầng, 6 ô, địa chỉ A1-1. Kho vật tư: dãy A-G, mỗi dãy A1-A8, A1-A4 là tầng 1, A5-A8 là tầng 2. */
+var WH={
+  R:{name:"Kho nhựa",zones:["A","B","C","D"],cols:6,zname:"Khu ",help:"Địa chỉ dạng A1-1 là khu A, tầng 1, ô 1.",rows:function(z){var o=[];for(var t=2;t>=1;t--){var r=[];for(var k=1;k<=6;k++)r.push(z+t+"-"+k);o.push(r);}return o;}},
+  M:{name:"Kho vật tư",zones:["A","B","C","D","E","F","G"],cols:4,zname:"Dãy ",help:"Địa chỉ dạng A3 là dãy A, ô 3. Ô 1–4 là tầng 1, ô 5–8 là tầng 2.",rows:function(z){return [[z+5,z+6,z+7,z+8],[z+1,z+2,z+3,z+4]];}}
+};
+function whOf(b){return b&&b.kind==="MAT"?"M":"R";}
+var stockLoc="",recvMode="lot";
 try{var svm=localStorage.getItem("n2p-recv-mode");if(svm==="each"||svm==="lot"||svm==="pallet")recvMode=svm;}catch(e){}
 function locText(b){return b&&b.loc?(b.locSide?"Cạnh kệ ":"")+b.loc:"";}
 function present(b){return b.status!=="USED_UP"&&b.status!=="VOID";}
 var locSel=[],locSelFor="";
 function locList(b){return b&&b.loc?String(b.loc).split(/\s*,\s*/).filter(Boolean):[];}
 function locCounts(){var cnt={},side={};all().forEach(function(b){if(present(b))locList(b).forEach(function(L){cnt[L]=(cnt[L]||0)+1;if(b.locSide)side[L]=(side[L]||0)+1;});});return {cnt:cnt,side:side};}
-function shelfHtml(act,pressed){
-  var c=locCounts();
-  return '<div class="shelf">'+ZONES.map(function(z){
-    var hz='<div class="zone"><h3>Khu '+z+'</h3>';
-    for(var t=TIERS;t>=1;t--){hz+='<div class="slots">';for(var k=1;k<=SLOTS;k++){var L=z+t+"-"+k,n=c.cnt[L]||0,sd=c.side[L]||0;hz+='<button type="button" class="slot'+(n?" has":"")+'" data-act="'+act+'" data-loc="'+L+'" aria-pressed="'+pressed(L)+'">'+L+'<b>'+(n?(n-sd)+(sd?"+"+sd:""):"·")+'</b></button>';}hz+='</div>';}
+function shelfHtml(act,pressed,wh){
+  var c=locCounts(),W=WH[wh]||WH.R;
+  return '<div class="shelf">'+W.zones.map(function(z){
+    var hz='<div class="zone"><h3>'+W.zname+z+'</h3>';
+    W.rows(z).forEach(function(row){hz+='<div class="slots" style="grid-template-columns:repeat('+W.cols+',minmax(0,1fr))">';row.forEach(function(L){var n=c.cnt[L]||0,sd=c.side[L]||0;hz+='<button type="button" class="slot'+(n?" has":"")+'" data-act="'+act+'" data-loc="'+L+'" aria-pressed="'+pressed(L)+'">'+L+'<b>'+(n?(n-sd)+(sd?"+"+sd:""):"·")+'</b></button>';});hz+='</div>';});
     return hz+'</div>';
   }).join("")+'</div>';
 }
 /* Chọn ô kệ bằng cách bấm; bấm nhiều ô được. */
-function locFields(b){
-  return '<div class="full" style="display:flex;flex-direction:column;gap:8px"><span class="hint"><b>Vị trí giá kệ</b>: bấm vào các ô để chọn, bấm lại để bỏ. Số trong ô là số tem đang nằm ở đó.</span>'+
-    shelfHtml("lpick",function(L){return locSel.indexOf(L)>=0;})+
+function locFields(b,wh){
+  return '<div class="full" style="display:flex;flex-direction:column;gap:8px"><span class="hint"><b>Vị trí trong '+esc((WH[wh]||WH.R).name.toLowerCase())+'</b>: bấm vào các ô để chọn, bấm lại để bỏ. Số trong ô là số tem đang nằm ở đó. '+esc((WH[wh]||WH.R).help)+'</span>'+
+    shelfHtml("lpick",function(L){return locSel.indexOf(L)>=0;},wh)+
     '<div class="row"><label class="chk" for="loc-side" style="align-self:center"><input type="checkbox" id="loc-side" name="lside"'+(b&&b.locSide?" checked":"")+'> Hết chỗ, để cạnh các kệ này</label><button type="button" class="btn small ghost" data-act="lclear">Bỏ chọn hết</button></div>'+
     '<p class="hint" id="loc-sum" style="margin:0" aria-live="polite"></p></div>';
 }
@@ -274,14 +283,16 @@ function errMsg(e,def){
     c==="bad_iqc"?"Sai mã PIN IQC.":
     c==="no_iqc"?"Chưa cài mã PIN IQC trong Code.gs. Báo quản lý.":
     c==="need_iqc"?"Hàng nhập phải được IQC xác nhận OK mới vào kho.":
-    c==="bad_pin"?"Sai mã PIN. Hỏi lại quản lý kho.":
+    c==="bad_pin"?"Sai mã PIN của bộ phận đã chọn. Hỏi lại quản lý.":
+    c==="no_role"?"Máy chủ chưa đặt mã PIN cho bộ phận này. Quản lý cần điền trong Code.gs rồi triển khai phiên bản mới.":
+    c==="need_ql"?"Chỉ tài khoản Quản lý mới làm được việc này.":
     c==="locked"?"Nhập sai PIN quá nhiều lần. Thử lại sau 10 phút.":
     c==="no_web"?"Máy chủ chưa có mã PIN. Quản lý cần điền dòng MA_PIN_WEB trong Code.gs rồi triển khai phiên bản mới.":
     c==="server"&&/^Không rõ yêu cầu/.test(e.message||"")?"Máy chủ đang chạy bản cũ, chưa có chức năng này. Quản lý cần dán Code.gs mới và triển khai phiên bản mới.":
     c==="server"&&e.message?e.message:def;
 }
 async function api(action,data){
-  var body={action:action};if(INIT)body.initData=INIT;else{body.pin=cred.pin;body.name=cred.name;}for(var k in (data||{}))body[k]=data[k];
+  var body={action:action};if(INIT)body.initData=INIT;else{body.pin=cred.pin;body.name=cred.name;body.role=cred.role;}for(var k in (data||{}))body[k]=data[k];
   var r=await fetch(API_URL,{method:"POST",body:JSON.stringify(body),redirect:"follow"});
   var j=await r.json();
   if(!j||!j.ok){var e=new Error((j&&j.error)||"Lỗi máy chủ");e.code=(j&&j.code)||"server";throw e;}
@@ -640,7 +651,7 @@ function viewCreate(){
     '<label class="f">Nhà cung cấp<input id="zin-supplier" name="supplier" autocomplete="off"></label>'+
     '<label class="f">Ngày nhận nhựa<input type="date" id="zin-date" name="rdate" value="'+today()+'" max="'+today()+'" disabled></label>'+
     '<label class="chk" for="zin-today"><input type="checkbox" id="zin-today" name="istoday" checked> Nhận hôm nay</label>'+
-    locFields(null)+
+    locFields(null,"R")+
     '<label class="f full">Ghi chú<input id="zin-note" name="note" autocomplete="off"></label>'+
     '<div class="full"><button class="btn"'+dis()+'>Tạo tem, chờ IQC</button></div></form>';
   }else if(mode==="MAT"){
@@ -663,7 +674,7 @@ function viewCreate(){
     '<label class="f">Nhà cung cấp<input id="mat-supplier" name="supplier" autocomplete="off"></label>'+
     '<label class="f">Ngày nhận<input type="date" id="zin-date" name="rdate" value="'+today()+'" max="'+today()+'" disabled></label>'+
     '<label class="chk" for="zin-today"><input type="checkbox" id="zin-today" name="istoday" checked> Nhận hôm nay</label>'+
-    locFields(null)+
+    locFields(null,"M")+
     '<label class="f full">Ghi chú<input id="mat-note" name="note" autocomplete="off"></label>'+
     '<div class="full"><button class="btn"'+dis()+'>Tạo tem, chờ IQC</button></div></form>';
   }else if(mode==="XP"){
@@ -756,12 +767,12 @@ function tree(b,depth,seen){
   }).join("")+'</ul>';
 }
 function who(id){return id?esc(id):"—";}
-function iqcAuthed(){return memMode||iqcFree||!!iqcPin;}
+function iqcAuthed(){return memMode||iqcNoPin()||!!iqcPin;}
 function lockHtml(b){
   return '<section class="card" style="max-width:460px"><h2>Hàng đang chờ IQC</h2>'+
     '<div class="row">'+kindPill(b.kind)+statusPill(b.status)+'<span class="hint">Mã '+esc(ID(b.id))+'</span></div>'+
     '<p style="margin:0"><b>'+esc(b.grade)+'</b> · Lot '+esc(b.lotNo)+'</p>'+
-    '<p class="hint">Ở bước chờ IQC, chỉ nhân viên IQC mở được mã này. Nhập mã PIN IQC để xem và ghi kết quả kiểm.</p>'+
+    '<p class="hint">Ở bước chờ IQC, chỉ nhân viên IQC mở được mã này. Nhập mã PIN IQC để xem và ghi kết quả kiểm. Nếu nhập sai thông tin, báo Quản lý để xóa tem này.</p>'+
     '<form id="f-unlock" class="form" novalidate><label class="f full">Mã PIN IQC<input id="unlock-pin" name="pin" type="password" inputmode="numeric" autocomplete="off"></label>'+
     '<div class="full"><button class="btn">Mở</button></div></form></section>';
 }
@@ -783,7 +794,7 @@ function viewBag(){
     '<dl class="facts">'+fact(b.kind==="MAT"?"Tên vật tư":"Grade",b.grade)+fact("Loại vật tư",b.cat)+fact("Màu",b.color)+fact("Lot gốc",b.baseLot)+fact("Vị trí",locText(b)||"Chưa xếp")+fact("Pallet",b.pal)+(b.bagCount>1?fact("Quy cách",b.bagCount+" "+(b.kind==="MAT"?"kiện":"bao")+" × "+fmtKg(b.perBag,b.unit)):"")+fact(NEED_IQC[b.kind]?"SL khai báo":"SL dự kiến",b.plannedKg==null?"":fmtKg(b.plannedKg,b.unit))+fact("SL thực tế",b.actualKg==null?"":fmtKg(b.actualKg,b.unit))+
     (b.ratio?fact("Tỷ lệ trộn","Zin "+b.ratio.zinPct+"% : Xay "+b.ratio.xpPct+"%"):"")+fact("Mã hàng",b.partCode)+fact("Máy",b.machine)+fact("Nhà cung cấp",b.supplier)+fact("Tạo lúc",fmtDate(b.createdAt))+fact("Ghi chú",b.note)+
     '<div><dt>Người tạo</dt><dd>'+who(b.createdBy)+'</dd></div></dl></section>'+iqcInfoHtml(b)+
-    (canWrite&&present(b)?'<section class="card"><h2>Vị trí trong kho</h2><p class="hint">Hiện tại: <b>'+esc(locText(b)||"chưa xếp")+'</b>. Địa chỉ dạng A1-1 là khu A, tầng 1, ô 1.</p><form id="f-loc" class="form" novalidate>'+locFields(b)+'<div class="full"><button class="btn ghost">Lưu vị trí</button></div></form></section>':'');
+    (canWrite&&present(b)?'<section class="card"><h2>Vị trí trong kho</h2><p class="hint">Hiện tại: <b>'+esc(locText(b)||"chưa xếp")+'</b>.</p><form id="f-loc" class="form" novalidate>'+locFields(b,whOf(b))+'<div class="full"><button class="btn ghost">Lưu vị trí</button></div></form></section>':'');
   h+='<section class="card"><h2>Thao tác</h2>';
   if(!canWrite)h+='<p class="hint">Tài khoản này chỉ được xem.</p>';
   else if(isIqc(b)){h+=iqcFormHtml(b);}
@@ -794,7 +805,10 @@ function viewBag(){
     if(old.length)h+='<p class="note"><b>FIFO:</b> còn '+old.length+' bao cùng loại nhập trước, nên dùng trước: '+old.slice(0,4).map(function(o){return '<a href="#tem-'+esc(o.id)+'">'+esc(ID(o.id))+'</a> ('+fmtDate(o.createdAt)+', còn '+fmtKg(o.remainKg,o.unit)+')';}).join(", ")+(old.length>4?"…":"")+'</p>';
     h+='<form id="f-out" class="form" novalidate><label class="f">Số lượng xuất ('+esc(unitOf(b))+')<input id="out-kg" name="kg" inputmode="decimal" placeholder="Tối đa '+esc(String(b.remainKg))+'"></label>'+(b.perBag?'<label class="f">Hoặc số '+(b.kind==="MAT"?"kiện":"bao")+' ('+esc(fmtKg(b.perBag,b.unit))+'/'+(b.kind==="MAT"?"kiện":"bao")+')<input id="out-bags" inputmode="decimal" data-per="'+esc(String(b.perBag))+'"></label>':'')+'<label class="f">Xuất cho (máy, mã hàng)<input id="out-dest" name="dest" autocomplete="off"></label><div class="full"><button class="btn">Ghi xuất kho</button></div></form>';
   }else h+='<p class="hint">Bao này '+(b.status==="VOID"?"đã hủy.":"đã dùng hết.")+'</p>';
-  if(canWrite&&isIqc(b)){h+='<details><summary>Nhập sai: hủy tem</summary><div class="row" style="margin-top:10px"><button type="button" class="btn danger" data-act="void">'+(voidArm?"Bấm lần nữa để hủy tem":"Hủy tem này")+'</button></div></details>';}
+  if(canWrite&&isIqc(b)){
+    var dm=b.batch?all().filter(function(x){return x.batch===b.batch&&isIqc(x);}):[b];
+    h+=isMgr()?'<details open><summary>Quản lý: xóa tem nhập sai</summary><div class="row" style="margin-top:10px">'+(dm.length>1?'<label class="chk" for="del-all" style="align-self:center"><input type="checkbox" id="del-all"> Xóa cả '+dm.length+' tem cùng đợt nhận</label>':'')+'<button type="button" class="btn danger" data-act="del-iqc">'+(voidArm?"Bấm lần nữa để xóa hẳn":"Xóa tem này")+'</button></div><p class="hint">Xóa hẳn khỏi hệ thống, không khôi phục được. Sheet IQC vẫn ghi lại ai xóa và lúc nào.</p></details>':'<p class="hint">Nhập sai thông tin? Chỉ tài khoản Quản lý xóa được tem đang chờ IQC.</p>';
+  }
   else if(canWrite&&b.status!=="VOID"){
     h+='<details><summary>Sửa sai: điều chỉnh tồn, hủy tem</summary><form id="f-adjust" class="form" novalidate style="margin-top:10px"><label class="f">Tồn đúng (kg)<input id="adj-kg" name="kg" inputmode="decimal"></label><label class="f">Lý do<input id="adj-note" name="note" autocomplete="off"></label><div class="full row"><button class="btn ghost">Lưu điều chỉnh</button><button type="button" class="btn danger" data-act="void">'+(voidArm?"Bấm lần nữa để hủy tem":"Hủy tem này")+'</button></div><p class="hint full">Hủy tem không trả lại kg cho các bao nguồn. Nếu cần, mở bao nguồn và điều chỉnh tồn.</p></form></details>';
   }
@@ -816,7 +830,7 @@ function viewStock(){
   var rank={};
   var rows=st.map(function(b){var k=fifoKey(b);rank[k]=(rank[k]||0)+1;return {b:b,r:rank[k]};}).filter(function(o){return (!stockKind||o.b.kind===stockKind)&&(!stockLoc||locList(o.b).indexOf(stockLoc)>=0);});
   if(stockLoc)all().filter(function(b){return present(b)&&b.status!=="IN_STOCK"&&locList(b).indexOf(stockLoc)>=0&&(!stockKind||b.kind===stockKind);}).forEach(function(b){rows.push({b:b,r:0});});
-  h+='<section class="card"><h2>Sơ đồ giá kệ</h2><p class="hint">Số trong ô là số tem đang nằm trên kệ đó (kể cả hàng chờ IQC); số sau dấu + là số tem để cạnh kệ. Bấm một ô để lọc danh sách bên dưới.</p>'+shelfHtml("sloc",function(L){return stockLoc===L;})+'</section>';
+  h+='<section class="card"><h2>Sơ đồ giá kệ</h2><p class="hint">Số trong ô là số tem đang nằm trên kệ đó (kể cả hàng chờ IQC); số sau dấu + là số tem để cạnh kệ. Bấm một ô để lọc danh sách bên dưới.</p><h3>Kho nhựa</h3>'+shelfHtml("sloc",function(L){return stockLoc===L;},"R")+'<h3>Kho vật tư</h3>'+shelfHtml("sloc",function(L){return stockLoc===L;},"M")+'</section>';
   h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>'+(stockLoc?'Hàng tại ô '+esc(stockLoc):'Tồn kho theo FIFO')+'</h2><div class="row">'+
     [["","Tất cả"],["ZIN","Zin"],["XP","Xay"],["TR","Trộn"],["MAT","Vật tư"]].map(function(o){return '<button type="button" class="btn small '+(stockKind===o[0]?"":"ghost")+'" data-act="skind" data-kind="'+o[0]+'" aria-pressed="'+(stockKind===o[0])+'">'+o[1]+'</button>';}).join("")+
     '<button type="button" class="btn small ghost" data-act="csv-stock">Xuất CSV</button></div></div>'+
@@ -837,7 +851,7 @@ function iqcFormHtml(b){
   '<div class="full row" role="radiogroup" aria-label="Kết quả IQC"><label class="chk" for="iqc-ok"><input type="radio" id="iqc-ok" name="result" value="OK"> OK, đạt</label><label class="chk" for="iqc-ng"><input type="radio" id="iqc-ng" name="result" value="NG"> NG, không đạt</label></div>'+
   '<label class="f">Số lượng thực nhận ('+esc(u)+')<input id="iqc-qty" name="qty" inputmode="decimal" value="'+esc(b.plannedKg==null?"":String(b.plannedKg))+'"></label>'+
   (iqcMates(b).length>1?'<label class="chk full" for="iqc-all"><input type="checkbox" id="iqc-all" name="applyAll" checked> Áp dụng cho cả '+iqcMates(b).length+' '+uw(b)+' cùng đợt nhận (mỗi '+uw(b)+' lấy số lượng khai báo của nó)</label>':'')+
-  (iqcFree?'':'<label class="f">Mã PIN IQC<input id="iqc-pin" name="pin" type="password" inputmode="numeric" autocomplete="off" value="'+esc(iqcPin)+'"></label>')+
+  (iqcNoPin()?'':'<label class="f">Mã PIN IQC<input id="iqc-pin" name="pin" type="password" inputmode="numeric" autocomplete="off" value="'+esc(iqcPin)+'"></label>')+
   '<div class="drop full"><p class="hint">Ảnh kiểm hàng, tối đa 4 ảnh. Kết quả NG bắt buộc có ảnh lỗi.</p><div class="row"><label class="btn small ghost" for="iqc-photos">Chụp hoặc chọn ảnh</label><button type="button" class="btn small ghost" data-act="iqc-clear">Xóa ảnh đã chọn</button></div><input type="file" id="iqc-photos" accept="image/*" multiple hidden><div class="row" id="iqc-thumbs"></div></div>'+
   '<label class="f full">Ghi chú / lỗi phát hiện<input id="iqc-note" name="note" autocomplete="off"></label>'+
   '<div class="full"><button class="btn">Lưu kết quả IQC</button></div></form>';
@@ -878,7 +892,7 @@ async function submitIqc(f){
     });
     iqcFiles=[];render();return;
   }
-  if(!iqcFree&&!pin){toast("Nhập mã PIN IQC.");return;}
+  if(!iqcNoPin()&&!pin){toast("Nhập mã PIN IQC.");return;}
   toast("Đang lưu kết quả IQC…");
   pending++;writeSeq++;
   var doneN=0,total=rest.length+1;
@@ -903,7 +917,7 @@ function viewIqc(){
   var wait=all().filter(function(b){return b.status==="IQC_PENDING";}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});
   var ng=all().filter(function(b){return b.status==="IQC_NG";}).sort(function(a,b){return a.createdAt<b.createdAt?1:-1;});
   var row=function(b,extra){return '<tr><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+kindPill(b.kind)+'</td><td>'+esc(b.grade)+'</td><td>'+esc(b.lotNo)+'</td><td class="n">'+fmtKg(b.plannedKg,b.unit)+'</td><td>'+esc(locText(b)||"—")+'</td><td>'+extra+'</td></tr>';};
-  var h='<section class="card"><h2>Hàng chờ IQC</h2><p class="hint">'+(iqcFree?"Tài khoản của bạn được cấp quyền IQC, không cần PIN.":iqcPin?'Máy này đang mở quyền IQC. <button type="button" class="btn small ghost" data-act="iqc-lock">Khóa lại</button>':"Hàng chờ IQC chỉ mở được bằng mã PIN IQC.")+(myTgId?" ID Telegram của bạn: "+esc(myTgId)+".":"")+' Bấm mã để mở, hoặc quét QR trên tem.</p>';
+  var h='<section class="card"><h2>Hàng chờ IQC</h2><p class="hint">'+(iqcNoPin()?"Tài khoản của bạn có quyền IQC.":iqcPin?'Máy này đang mở quyền IQC. <button type="button" class="btn small ghost" data-act="iqc-lock">Khóa lại</button>':"Hàng chờ IQC chỉ mở được bằng mã PIN IQC.")+(myTgId?" ID Telegram của bạn: "+esc(myTgId)+".":"")+' Bấm mã để mở, hoặc quét QR trên tem.</p>';
   h+=wait.length?'<div class="scroll"><table><thead><tr><th>Mã</th><th>Loại</th><th>Tên / Grade</th><th>Lot No</th><th class="n">SL khai báo</th><th>Vị trí</th><th>Nhận lúc</th></tr></thead><tbody>'+wait.map(function(b){return row(b,fmtDate(b.createdAt));}).join("")+'</tbody></table></div>':'<p class="empty">'+(ready?"Không có hàng nào chờ IQC.":"Đang tải…")+'</p>';
   h+='</section><section class="card"><h2>Hàng IQC NG</h2>';
   h+=ng.length?'<div class="scroll"><table><thead><tr><th>Mã</th><th>Loại</th><th>Tên / Grade</th><th>Lot No</th><th class="n">SL khai báo</th><th>Vị trí</th><th>Lỗi</th></tr></thead><tbody>'+ng.map(function(b){return row(b,esc(b.iqc&&b.iqc.note||""));}).join("")+'</tbody></table></div>':'<p class="empty">Không có hàng NG.</p>';
@@ -1165,14 +1179,15 @@ function renderBanner(){
   else if(authError)bn='<p class="note crit">'+esc(authError)+'</p>';
   else if(slow&&srvError)bn='<p class="note crit">Máy chủ báo lỗi nên chưa tải được dữ liệu: '+esc(srvError)+'. Gửi dòng này cho người quản lý app.</p>';
   else if(slow)bn='<p class="note">Chưa tải được dữ liệu mới nhất, số liệu có thể cũ. App tự thử lại khi có mạng.</p>';
-  if(webMode&&!needLogin&&!notConfigured)bn+='<p class="hint row">Đang dùng với tên <b>'+esc(cred.name)+'</b><button type="button" class="btn small ghost" data-act="logout">Đổi người dùng</button></p>';
+  if(webMode&&!needLogin&&!notConfigured)bn+='<p class="hint row">Đang dùng với tên <b>'+esc(cred.name)+'</b> · '+esc(ROLES[myRole]||"")+'<button type="button" class="btn small ghost" data-act="logout">Đổi người dùng</button></p>';
   $("#banner").innerHTML=bn;
 }
 function viewLogin(){
-  return '<section class="card" style="max-width:420px"><h2>Đăng nhập kho nhựa</h2><p class="hint">Nhập tên của bạn và mã PIN do quản lý kho cấp. Máy này sẽ nhớ cho lần sau.</p>'+
+  return '<section class="card" style="max-width:420px"><h2>Đăng nhập</h2><p class="hint">Nhập tên, chọn bộ phận và mã PIN của bộ phận đó. Kho và Sản xuất dùng chung một mã; IQC và Quản lý có mã riêng. Máy này sẽ nhớ cho lần sau.</p>'+
   (loginError?'<p class="note crit">'+esc(loginError)+'</p>':'')+
   '<form id="f-login" class="form" novalidate><label class="f full">Họ tên<input id="login-name" name="name" value="'+esc(cred.name)+'" autocomplete="name"></label>'+
-  '<label class="f full">Mã PIN<input id="login-pin" name="pin" type="password" inputmode="numeric" autocomplete="off"></label>'+
+  '<label class="f full">Bộ phận<select id="login-role" name="role">'+Object.keys(ROLES).map(function(k){return '<option value="'+k+'"'+(cred.role===k?" selected":"")+'>'+esc(ROLES[k])+'</option>';}).join("")+'</select></label>'+
+  '<label class="f full">Mã PIN của bộ phận<input id="login-pin" name="pin" type="password" inputmode="numeric" autocomplete="off"></label>'+
   '<div class="full"><button class="btn">Vào app</button></div></form></section>';
 }
 function render(){
@@ -1211,7 +1226,7 @@ var busy=false;
 async function guard(fn){if(busy)return;busy=true;try{await fn();}catch(e){}finally{busy=false;}}
 document.addEventListener("click",function(e){
   var t=e.target.closest("[data-act]");if(!t)return;var act=t.dataset.act;
-  if(act==="mode"){mode=t.dataset.mode;labelIds=[];render();}
+  if(act==="mode"){mode=t.dataset.mode;labelIds=[];locSel=[];render();}
   else if(act==="dl")guard(function(){return downloadLabels([t.dataset.id]);});
   else if(act==="dl-all")guard(function(){return downloadLabels(labelIds.slice());});
   else if(act==="print-all")guard(function(){return printLabels(labelIds.slice());});
@@ -1234,6 +1249,15 @@ document.addEventListener("click",function(e){
   else if(act==="slip-copy")guard(function(){return copySlip(t.dataset.id);});
   else if(act==="logout"){try{localStorage.removeItem("n2p-web-auth");}catch(e){}cred.pin="";needLogin=true;loginError="";render();}
   else if(act==="iqc-view")guard(showIqcPhotos);
+  else if(act==="del-iqc"){
+    if(!voidArm){voidArm=true;t.textContent="Bấm lần nữa để xóa hẳn";return;}
+    guard(async function(){
+      var b=bags.get(curId);if(!b)return;
+      var ids=$("#del-all")&&$("#del-all").checked&&b.batch?all().filter(function(x){return x.batch===b.batch&&isIqc(x);}).map(function(x){return x.id;}):[b.id];
+      if(!memMode){pending++;writeSeq++;try{await api("deleteBags",{ids:ids});}catch(e){toast(errMsg(e,"Không xóa được. Kiểm tra mạng rồi thử lại."));voidArm=false;render();return;}finally{pending--;}}
+      ids.forEach(function(i){bags.delete(i);});voidArm=false;toast("Đã xóa "+ids.length+" tem.");location.hash="iqc";
+    });
+  }
   else if(act==="iqc-lock"){iqcPin="";try{localStorage.removeItem("n2p-iqc-pin");}catch(e){}toast("Đã khóa quyền IQC trên máy này.");render();}
   else if(act==="iqc-clear"){iqcFiles=[];renderIqcThumbs();}
   else if(act==="csv-hist")guard(function(){return exportCsv("hist");});
@@ -1245,7 +1269,7 @@ document.addEventListener("click",function(e){
 document.addEventListener("submit",function(e){
   var f=e.target;e.preventDefault();
   if(f.id==="f-unlock"){guard(function(){return unlockIqc(f);});return;}
-  if(f.id==="f-login"){var nm=f.name.value.trim(),pn=f.pin.value.trim();if(!nm||!pn){loginError="Nhập đủ họ tên và mã PIN.";render();return;}cred={name:nm,pin:pn};myId=nm;needLogin=false;loginError="";ready=false;render();refresh();return;}
+  if(f.id==="f-login"){var nm=f.name.value.trim(),pn=f.pin.value.trim();if(!nm||!pn){loginError="Nhập đủ họ tên và mã PIN.";render();return;}cred={name:nm,pin:pn,role:ROLES[f.role.value]?f.role.value:"KHO"};myRole=cred.role;myId=nm;needLogin=false;loginError="";ready=false;render();refresh();return;}
   if(f.id==="f-open"){var c=parseCode(f.code.value);if(!c){$("#scan-status").textContent="Mã bao gồm 6 ký tự chữ và số in dưới mã QR.";return;}location.hash="tem-"+c;return;}
   if(!canWrite){toast("Tài khoản này chỉ được xem.");return;}
   if(f.id==="f-slip")guard(createSlip);
@@ -1310,15 +1334,22 @@ async function refresh(){
     if(pending>0||seq!==writeSeq)return;
     bags.clear();(r.bags||[]).forEach(function(v){if(v&&v.id)bags.set(v.id,v);});
     slips.clear();(r.slips||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.lines))slips.set(v.id,v);});
-    BOT=r.bot||"";WEBQR=!!r.web;iqcFree=!!r.iqc;myTgId=r.me&&r.me.id?String(r.me.id):null;if(webMode){try{localStorage.setItem("n2p-web-auth",JSON.stringify(cred));}catch(e){}}hasOcr=!!r.hasOcr;hasGroup=!!r.hasGroup;authError="";srvError="";canWrite=true;slow=false;
+    BOT=r.bot||"";WEBQR=!!r.web;myRole=ROLES[r.role]?r.role:(webMode?cred.role:"KHO");iqcFree=!!r.iqc;myTgId=r.me&&r.me.id?String(r.me.id):null;if(webMode){try{localStorage.setItem("n2p-web-auth",JSON.stringify(cred));}catch(e){}}hasOcr=!!r.hasOcr;hasGroup=!!r.hasGroup;authError="";srvError="";canWrite=true;slow=false;
     var first=!ready;ready=true;renderBanner();onData(first);
   }catch(e){
-    if(webMode&&e&&(e.code==="bad_pin"||e.code==="no_web"||e.code==="locked")){needLogin=true;loginError=errMsg(e,"");cred.pin="";try{localStorage.removeItem("n2p-web-auth");}catch(x){}ready=true;render();return;}
+    if(webMode&&e&&(e.code==="bad_pin"||e.code==="no_web"||e.code==="no_role"||e.code==="locked")){needLogin=true;loginError=errMsg(e,"");cred.pin="";try{localStorage.removeItem("n2p-web-auth");}catch(x){}ready=true;render();return;}
     if(e&&e.code&&e.code!=="server"){authError=errMsg(e,"Không dùng được app.");canWrite=false;}else{slow=true;srvError=e&&e.code==="server"?String(e.message||""):"";}
     var f2=!ready;ready=true;if(f2)render();else renderBanner();
   }
 }
+function applyBrand(){
+  try{
+    if(window.APP_NAME){$("#app-name").textContent=String(window.APP_NAME).slice(0,60);document.title=String(window.APP_NAME).slice(0,60);}
+    if(window.APP_SUB!=null)$("#app-sub").textContent=String(window.APP_SUB).slice(0,80);
+  }catch(e){}
+}
 async function start(){
+  applyBrand();
   tg=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
   var sp="";
   if(tg){
@@ -1334,7 +1365,7 @@ async function start(){
   if(!/^https?:\/\//.test(API_URL)){notConfigured=true;ready=true;memMode=true;render();return;}
   if(!INIT){
     webMode=true;
-    try{var sv2=JSON.parse(localStorage.getItem("n2p-web-auth")||"null");if(sv2&&sv2.name&&sv2.pin)cred={name:String(sv2.name),pin:String(sv2.pin)};}catch(e){}
+    try{var sv2=JSON.parse(localStorage.getItem("n2p-web-auth")||"null");if(sv2&&sv2.name&&sv2.pin)cred={name:String(sv2.name),pin:String(sv2.pin),role:ROLES[sv2.role]?sv2.role:"KHO"};myRole=cred.role;}catch(e){}
     if(!cred.pin){needLogin=true;render();}else myId=cred.name;
   }
   if(!needLogin)await refresh();
