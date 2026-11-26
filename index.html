@@ -248,7 +248,7 @@ if(location.protocol==="http:"&&!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(locat
 (function(){
 "use strict";
 /* ====== CẤU HÌNH: dán link "Web app" của Google Apps Script vào giữa hai dấu nháy ====== */
-var API_URL=window.API_URL||"DAN_LINK_APPS_SCRIPT_VAO_DAY";
+var API_URL=window.API_URL||"https://script.google.com/macros/s/AKfycbwOYOfIwX6iR4umea9SZOlpOEN1qQdiMkLZDbCDA8hF5VPyVPMuPDzWvQPdqntmtGqu-A/exec";
 /* ======================================================================================= */
 var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",srvError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",token:"",exp:0,role:"KHO"},myRole="KHO";
 var ROLES={KHO:"Kho",IQC:"IQC / QA",SX:"Sản xuất",KH:"Kế hoạch",QLSX:"Quản lý sản xuất",QL:"Quản lý",KT:"Kỹ thuật",CN:"Công nhân đứng máy"};
