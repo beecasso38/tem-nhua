@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-hTtJJuBN+oQFLROVjW46zsgJdt1/Bf5k2CmJi2AsfvU='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-8fPVf1QHcWvvANVTN1AsynRMkHpFLvQBsFOL6nP0Dec='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANMY N2P Warehouse Management System</title>
@@ -1976,7 +1976,7 @@ function fmtKg(n,u){return n==null?"—":r2(n).toLocaleString("vi-VN",{maximumFr
 function unitOf(b){return (b&&b.unit)||"kg";}
 function isIqc(b){return b.status==="IQC_PENDING"||b.status==="IQC_NG";}
 function totalText(lines){var t={},o=[];lines.forEach(function(l){var u=l.unit||"kg";if(!(u in t)){t[u]=0;o.push(u);}t[u]+=l.kg;});return o.map(function(u){return fmtKg(t[u],u);}).join(" + ");}
-function slipTotal(s){return plain(s.totalText).slice(0,80)||fmtKg(s.totalKg);}
+function slipTotal(s){return plain(s.totalText).slice(0,80)||((s.lines&&s.lines.length)?totalText(s.lines):fmtKg(s.totalKg));}
 function p2(n){return (n<10?"0":"")+n;}
 function fmtDate(iso){var d=new Date(iso);if(isNaN(d))return "—";return p2(d.getDate())+"/"+p2(d.getMonth()+1)+"/"+d.getFullYear()+" "+p2(d.getHours())+":"+p2(d.getMinutes());}
 function ageDays(iso){return Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/86400000));}
@@ -2796,6 +2796,9 @@ function today(){var d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1)+
 var slipHead={machine:"",prefix:"AM",date:today(),lot:"",part:"",recv:"",note:""};
 try{var spx=localStorage.getItem("n2p-lot-prefix");if(spx)slipHead.prefix=spx.slice(0,8);}catch(e){}
 function autoLot(){var m=slipHead.machine.trim(),d=slipHead.date||today();return m?slipHead.prefix.trim()+m+"-"+d.slice(2,4)+d.slice(5,7)+d.slice(8,10):"";}
+var PX_CO={NL:{co:"CTY TNHH NAM LÂM",dept:"Bộ phận: Kho Nguyên Vật Liệu"},AM:{co:"CTY TNHH SX TM & DV AN MY N2P VINA",dept:"Địa chỉ kho: Nam Lâm"}};
+try{if(window.PX_CO_NL)PX_CO.NL.co=window.PX_CO_NL;if(window.PX_DEPT_NL)PX_CO.NL.dept=window.PX_DEPT_NL;if(window.PX_CO_AM)PX_CO.AM.co=window.PX_CO_AM;if(window.PX_DEPT_AM)PX_CO.AM.dept=window.PX_DEPT_AM;}catch(e){}
+function slipCo(s){return /^AM/i.test(String((s&&s.prodLot)||""))?PX_CO.AM:PX_CO.NL;}
 function slipNo(s){return (s&&s.temp?"PXT-":"PX-")+ID(s.id);}
 function genSlipId(){var a="23456789abcdefghjkmnpqrstuvwxyz",s;do{s="";for(var i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];}while(slips.has(s));return s;}
 function lineFromBag(b){
@@ -2901,7 +2904,7 @@ async function createSlip(){
 }
 function slipUrl(s){return WEBQR?PAGE+"#"+lotHash(s.prodLot):BOT?"https://t.me/"+BOT+"?startapp=px-"+s.id:"px-"+s.id;}
 function slipText(s){
-  var t=["PHIẾU XUẤT NHỰA "+slipNo(s),"Lot SX: "+s.prodLot+" · Máy "+s.machine+(s.partCode?" · Mã hàng "+s.partCode:""),fmtDate(s.createdAt)+(s.receiver?" · Người nhận: "+s.receiver:"")];
+  var t=[slipCo(s).co+" — "+slipCo(s).dept,"PHIẾU XUẤT NHỰA "+slipNo(s),"Lot SX: "+s.prodLot+" · Máy "+s.machine+(s.partCode?" · Mã hàng "+s.partCode:""),fmtDate(s.createdAt)+(s.receiver?" · Người nhận: "+s.receiver:"")];
   s.lines.forEach(function(l,i){t.push((i+1)+") "+l.name+" · Lot "+l.lotNo+" · "+l.cls+" · "+lineQty(l)+(l.bagId?" · bao "+ID(l.bagId):""));});
   t.push("Tổng: "+slipTotal(s));if(s.note)t.push("Ghi chú: "+s.note);if(BOT||WEBQR)t.push(slipUrl(s));
   return t.join("\n");
@@ -2915,8 +2918,9 @@ async function slipCanvas(s){
   var qs=270,qx=W-qs-44,qy=40;
   drawQR(x,slipUrl(s),qx,qy,qs,s.id);
   x.fillStyle="#000";x.font=F(700,30);x.textAlign="center";x.fillText(slipNo(s),qx+qs/2,qy+qs+36);x.textAlign="left";
-  x.font=F(700,34);x.fillText("CTY TNHH NAM LÂM",40,72);
-  x.font=F(400,27);x.fillText("Bộ phận: Kho Nguyên Vật Liệu",40,110);
+  var co_=slipCo(s);
+  x.font=F(700,34);fitText(x,co_.co,700,34,qx-80);x.fillText(co_.co,40,72);
+  x.font=F(400,27);fitText(x,co_.dept,400,27,qx-80);x.fillText(co_.dept,40,110);
   x.font=F(800,52);x.fillText("PHIẾU XUẤT NHỰA CHO SẢN XUẤT",40,190);
   x.font=F(400,29);x.fillText("Số phiếu: "+slipNo(s)+"     Ngày giờ xuất: "+fmtDate(s.createdAt),40,238);
   x.font=F(400,25);x.fillText("LOT SẢN XUẤT",40,300);x.fillText("MÁY",720,300);x.fillText("MÃ HÀNG",930,300);
@@ -3004,7 +3008,7 @@ try{var sh0=parseFloat(localStorage.getItem("n2p-shift")||window.SHIFT_HOURS||8)
 function lotKey(v){return String(v||"").trim().toUpperCase().replace(/\s+/g,"");}
 function lotHash(p){return "lsx-"+encodeURIComponent(lotKey(p));}
 function lotSlips(k){var jl={};jobs.forEach(function(j){if(j.status!=="CANCEL"&&lotKey(j.prodLot)===k)jl[j.id]=1;});return Array.from(slips.values()).filter(function(s){return lotKey(s.prodLot)===k||(s.job&&jl[s.job]);}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});}
-var CLIENT_VER="2026-11-28.5",srvVer=null;
+var CLIENT_VER="2026-11-28.6",srvVer=null;
 function verWarn(){
   if(memMode||srvVer===null||["QL","KT","QLSX","KH"].indexOf(myRole)<0)return "";
   if(srvVer===CLIENT_VER)return "";
