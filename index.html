@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-Z6hkqm7X7i0pTw5LJMXp/GwQg3tm5+B5un6Q401f5wc='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-nZHpW0+e8kso7zuwaZ3yFa0H4tGq6yxfpcRyfjLHKlA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANMY N2P Warehouse Management System</title>
@@ -1044,7 +1044,7 @@ function timesHtml(){
   return '<section class="card"><h2>Giờ máy ca này</h2><div class="row">'+TKIND.map(function(k){
       return '<div style="min-width:120px"><div class="hint">'+k[1]+'</div><b>'+esc(t[k[0]]?t[k[0]].t:"--:--")+'</b></div>';}).join("")+'</div>'+
     '<div class="row" style="margin-top:8px">'+TKIND.map(function(k){return '<button type="button" class="btn small'+(t[k[0]]?" ghost":"")+'" data-act="out-now" data-k="'+k[0]+'">Ghi giờ '+k[1].toLowerCase()+'</button>';}).join("")+'</div>'+
-    '<div class="grid" style="margin-top:8px">'+TKIND.map(function(k){return '<label class="f">'+k[1]+' (sửa tay)<input data-tm="'+k[0]+'" value="'+esc(t[k[0]]?t[k[0]].t:"")+'" placeholder="07:30" style="max-width:110px"></label>';}).join("")+'</div>'+
+    '<div class="grid" style="margin-top:8px">'+TKIND.map(function(k){return '<label class="f">'+k[1]+' (sửa tay)<input data-tm="'+k[0]+'" type="time" step="60" value="'+esc(t[k[0]]?t[k[0]].t:"")+'" style="max-width:160px"></label>';}).join("")+'</div>'+
     '<div class="row"><button type="button" class="btn small ghost" data-act="out-time-save">Lưu giờ đã sửa</button></div>'+
     '<p class="hint">Bấm "Ghi giờ" là app lấy giờ hiện tại. Giờ ghi cho máy '+esc(curMachine)+', ngày '+esc(((outForm||{}).date||"").split("-").reverse().join("/"))+'.'+(t.by?"":"")+'</p></section>';
 }
@@ -1175,9 +1175,9 @@ function fixHtml(o){
     '<label class="f">Số thùng<input data-fx="boxes" type="number" min="0" step="1" value="'+esc(f.boxes)+'"></label>'+
     '<label class="f">Pcs / thùng<input data-fx="per" type="number" min="0" step="1" value="'+esc(f.per)+'"></label>'+
     '<label class="f">Số lẻ (pcs)<input data-fx="odd" type="number" min="0" step="1" value="'+esc(f.odd)+'"></label>'+
-    '<label class="f">Giờ bật máy<input data-fx="on" value="'+esc(f.on)+'" placeholder="07:30" style="max-width:120px"></label>'+
-    '<label class="f">Giờ dừng máy<input data-fx="stop" value="'+esc(f.stop)+'" placeholder="11:30" style="max-width:120px"></label>'+
-    '<label class="f">Giờ tắt máy<input data-fx="off" value="'+esc(f.off)+'" placeholder="16:30" style="max-width:120px"></label>'+
+    '<label class="f">Giờ bật máy<input data-fx="on" type="time" step="60" value="'+esc(f.on)+'" style="max-width:160px"></label>'+
+    '<label class="f">Giờ dừng máy<input data-fx="stop" type="time" step="60" value="'+esc(f.stop)+'" style="max-width:160px"></label>'+
+    '<label class="f">Giờ tắt máy<input data-fx="off" type="time" step="60" value="'+esc(f.off)+'" style="max-width:160px"></label>'+
     '<fieldset class="full" style="border:1px solid var(--line,#d5dae3);border-radius:8px;padding:10px"><legend class="hint">Hàng NG theo lý do (pcs)</legend><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+
       NG.map(function(r){return '<label class="f" style="margin:0">'+esc(r[1])+'<input data-fng="'+r[0]+'" type="number" min="0" step="1" value="'+esc(f.ngBy[r[0]]||"")+'"></label>';}).join("")+'</div></fieldset>'+
     '<label class="f full">Ghi chú của dòng<input data-fx="note" value="'+esc(f.note)+'" maxlength="300"></label>'+
@@ -1509,6 +1509,7 @@ document.addEventListener("input",function(e){
   if(d.fng&&outFix){outFix.ngBy[d.fng]=t.value;return;}
   if(d.tf&&tramForm){tramForm[d.tf]=t.value;return;}
   if(d.mn&&manForm){manForm[d.mn]=t.value;return;}
+  if(d.cv&&moldForm&&moldForm.cavs){var cvr=moldForm.cavs[+d.i];if(cvr)cvr[d.cv]=d.cv==="part"?t.value.toUpperCase():t.value;return;}
   if(d.tl){tramLogin[d.tl]=t.value;return;}
   if(d.td&&tramForm&&tramForm.del){tramForm.del[d.td]=t.value;return;}
   if(d.dl&&tramForm&&tramForm.del){var dline=tramForm.del.lines[+d.i];if(dline)dline[d.dl]=t.value;return;}
@@ -1602,6 +1603,10 @@ document.addEventListener("click",function(e){
   else if(a==="man-pick"){if(!manForm)return;manForm.st=manForm.st===t.dataset.k?"":t.dataset.k;manArm="";render();}
   else if(a==="man-save")guard(function(){return manSave("set");});
   else if(a==="man-clear"){if(manArm!==String(curMt)){manArm=String(curMt);render();return;}guard(function(){return manSave("clear");});}
+  else if(a==="mk-kind"&&moldForm){moldForm.kind=t.dataset.k;if(moldForm.kind!=="SINGLE"&&!(moldForm.cavs||[]).length&&moldForm.partNo)moldForm.cavs=[{no:"1",part:moldForm.partNo,name:moldForm.name||"",per:1,grp:"",note:""}];render();}
+  else if(a==="cv-add"&&moldForm){moldForm.cavs=moldForm.cavs||[];if(moldForm.cavs.length>=40){toast("Tối đa 40 mã mỗi khuôn.");return;}moldForm.cavs.push({no:String(moldForm.cavs.length+1),part:"",name:"",per:1,grp:"",note:""});render();}
+  else if(a==="cv-del"&&moldForm){moldForm.cavs.splice(+t.dataset.i,1);render();}
+  else if(a==="cv-seed"&&moldForm){moldForm.cavs=[{no:"1",part:moldForm.partNo,name:moldForm.name||"",per:cavNum(moldForm.cavity),grp:"",note:""}];render();}
   else if(a==="mold-sync")guard(moldSync);
   else if(a==="ml-save")guard(mlSave);
   else if(a==="ml-cancel"){mlScan=null;render();}
@@ -3384,7 +3389,7 @@ try{var sh0=parseFloat(localStorage.getItem("n2p-shift")||window.SHIFT_HOURS||8)
 function lotKey(v){return String(v||"").trim().toUpperCase().replace(/\s+/g,"");}
 function lotHash(p){return "lsx-"+encodeURIComponent(lotKey(p));}
 function lotSlips(k){var jl={};jobs.forEach(function(j){if(j.status!=="CANCEL"&&lotKey(j.prodLot)===k)jl[j.id]=1;});return Array.from(slips.values()).filter(function(s){return lotKey(s.prodLot)===k||(s.job&&jl[s.job]);}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});}
-var CLIENT_VER="2026-11-28.11",srvVer=null;
+var CLIENT_VER="2026-11-28.13",srvVer=null;
 function verWarn(){
   if(memMode||srvVer===null||["QL","KT","QLSX","KH"].indexOf(myRole)<0)return "";
   if(srvVer===CLIENT_VER)return "";
@@ -3549,7 +3554,7 @@ function tramKt(i){
     '<label class="f full">Phát sinh, ghi chú<input data-tf="tnote" value="'+esc(f.tnote||"")+'" maxlength="300"></label></div>'+
     '<div class="row"><button type="button" class="btn" data-act="tram-tech">Lưu purging</button></div>';
   h+='<h3>Giờ máy</h3><div class="row">'+TKIND.map(function(k){return '<div style="min-width:110px"><div class="hint">'+k[1]+'</div><b>'+esc(t[k[0]]?t[k[0]].t:"--:--")+'</b></div>';}).join("")+'</div>'+
-    '<div class="grid" style="margin-top:6px">'+TKIND.map(function(k){return '<label class="f">'+k[1]+'<input data-tf="t_'+k[0]+'" value="'+esc(f["t_"+k[0]]!=null?f["t_"+k[0]]:(t[k[0]]?t[k[0]].t:""))+'" placeholder="07:30" style="max-width:120px"></label>';}).join("")+'</div>'+
+    '<div class="grid" style="margin-top:6px">'+TKIND.map(function(k){return '<label class="f">'+k[1]+'<input data-tf="t_'+k[0]+'" type="time" step="60" value="'+esc(f["t_"+k[0]]!=null?f["t_"+k[0]]:(t[k[0]]?t[k[0]].t:""))+'" style="max-width:160px"></label>';}).join("")+'</div>'+
     '<div class="row">'+TKIND.map(function(k){return '<button type="button" class="btn small ghost" data-act="tram-now" data-k="'+k[0]+'">Ghi giờ '+k[1].toLowerCase()+' lúc này</button>';}).join("")+
     '<button type="button" class="btn small" data-act="tram-time">Lưu giờ đã gõ</button></div>';
   h+='<h3>Báo khuôn cần sửa</h3><div class="grid">'+
@@ -3963,8 +3968,8 @@ function viewMachine(){
   '<fieldset class="f full" style="border:0;padding:0;margin:0"><legend class="hint" style="padding:0">Hàng của công ty nào</legend><div class="row">'+["NL","AM"].map(function(p){return '<label class="btn small'+(f.prefix===p?"":" ghost")+'" style="cursor:pointer"><input type="radio" name="prefix" value="'+p+'"'+(f.prefix===p?" checked":"")+' style="width:auto;margin-right:6px">Hàng '+p+'</label>';}).join("")+'</div></fieldset>'+
   '<label class="f">Ca làm việc<select name="shift" data-o="shift">'+Object.keys(SHIFTS).map(function(k){return '<option value="'+k+'"'+(f.shift===k?" selected":"")+'>'+esc(SHIFTS[k])+'</option>';}).join("")+'</select></label>'+
   '<label class="f">Ngày sản xuất<input name="date" data-o="date" type="date" value="'+esc(f.date)+'"></label>'+
-  (f.shift==="G"?'<label class="f">Giờ bắt đầu đứng máy *<input name="gfrom" data-o="gfrom" value="'+esc(f.gfrom||"")+'" placeholder="13:00" inputmode="numeric" style="max-width:130px"></label>'+
-    '<label class="f">Giờ kết thúc (nếu biết)<input name="gto" data-o="gto" value="'+esc(f.gto||"")+'" placeholder="21:00" inputmode="numeric" style="max-width:130px"></label>'+
+  (f.shift==="G"?'<label class="f">Giờ bắt đầu đứng máy *<input name="gfrom" data-o="gfrom" type="time" step="60" value="'+esc(f.gfrom||"")+'" style="max-width:160px"></label>'+
+    '<label class="f">Giờ kết thúc (nếu biết)<input name="gto" data-o="gto" type="time" step="60" value="'+esc(f.gto||"")+'" style="max-width:160px"></label>'+
     '<p class="full hint">Ca gãy: ghi đúng giờ bắt đầu đứng máy. App xếp vào ca ngày hay ca đêm theo giờ này.</p>':'')+
   '<label class="f full">Mã hàng<input name="part" data-o="part" list="out-parts" value="'+esc(f.part)+'" placeholder="CG8-795273" autocomplete="off" autocapitalize="characters"><datalist id="out-parts">'+partList().map(function(k){return '<option value="'+esc(k)+'">';}).join("")+'</datalist></label>'+
   '<label class="f">Số thùng<input name="boxes" data-o="boxes" type="number" min="0" step="1" inputmode="numeric" value="'+esc(f.boxes)+'"></label>'+
@@ -4439,7 +4444,7 @@ var molds=new Map(),curMold="",moldQ="",moldArm=false,bomSeed=null;
 var OCR_MOLD="mold";
 var MPLACES=["ESTec VINA","Nam Lâm","An My N2P","Sinyoung","Jin Yang (JY)","Xưởng sửa khuôn","Nhà làm khuôn"],MWHY={IN:["Khuôn mới","Chuyển từ vendor khác","Về sau sửa chữa","Chạy thử (Event)","Sản xuất hàng loạt (MP)"],OUT:["Trả khách hàng","Đi sửa chữa","Chuyển sang vendor khác","Hết đơn hàng","Cho mượn"]};
 var moldForm=null;
-function newMoldForm(m){return {id:m?m.id:"",toolId:m?m.toolId:"",partNo:m?m.partNo:"",name:m?m.name:"",model:m?m.model||"":"",resin:m?m.resin||"":"",resinName:m?m.resinName||"":"",resinSup:m?m.resinSup||"":"",cavity:m?m.cavity:"",dim:m?m.dim||"":"",weight:m?m.weight||"":"",machine:m?m.machine||"":"",owner:m?m.owner:"",completion:m?m.completion:"",note:m?m.note||"":"",img:m?m.img||"":"",type:"IN",place:"",reason:"",date:today(),shots:"",mnote:"",status:""};}
+function newMoldForm(m){return {id:m?m.id:"",toolId:m?m.toolId:"",partNo:m?m.partNo:"",name:m?m.name:"",model:m?m.model||"":"",resin:m?m.resin||"":"",resinName:m?m.resinName||"":"",resinSup:m?m.resinSup||"":"",kind:m?moldKind(m):"SINGLE",cavs:m&&Array.isArray(m.cavs)?JSON.parse(JSON.stringify(m.cavs)):[],cavity:m?m.cavity:"",dim:m?m.dim||"":"",weight:m?m.weight||"":"",machine:m?m.machine||"":"",owner:m?m.owner:"",completion:m?m.completion:"",note:m?m.note||"":"",img:m?m.img||"":"",type:"IN",place:"",reason:"",date:today(),shots:"",mnote:"",status:""};}
 var MOLD_ST={MAY:"Đang trên máy",SUA:"Đang mang đi sửa",BAOTRI:"Đang bảo trì khuôn",KHO:"Trong kho khuôn",DI:"Đã chuyển đi",NHAMAY:"Đang ở nhà máy"};
 function cavNum(v){var ns=String(v==null?"":v).match(/\d+(?:[.,]\d+)?/g);if(!ns)return 1;var k=1;ns.forEach(function(x){var z=Number(String(x).replace(",","."));if(isFinite(z)&&z>0)k*=z;});k=Math.round(k);return k>0&&k<1000?k:1;}
 function ymNow(){var d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1);}
@@ -4455,7 +4460,25 @@ function moldSt(m){
 function canMold(){return ["KT","QLSX","QL","IQC"].indexOf(myRole)>=0;}
 function liveMolds(){return Array.from(molds.values()).filter(function(m){return !m.void;});}
 function moldLast(m){return m.moves&&m.moves.length?m.moves[m.moves.length-1]:null;}
-function moldBom(m){var p=normC(m.partNo);if(!p)return null;var hit=null;boms.forEach(function(b){if(normC(b.code)===p||normC(b.btp)===p)hit=b;});return hit;}
+function bomOfPart(code){var p=normC(code);if(!p)return null;var hit=null;boms.forEach(function(b){if(normC(b.code)===p||normC(b.btp)===p)hit=b;});return hit;}
+function moldBom(m){return bomOfPart(m.partNo);}
+var MOLD_KIND={SINGLE:"Một mã",FAMILY:"Khuôn bộ (ép cùng lúc)",INSERT:"Khuôn chung, thay insert"};
+var MOLD_KIND_S={SINGLE:"Một mã",FAMILY:"Khuôn bộ",INSERT:"Thay insert"};
+/* Một khuôn ép ra nhiều mã: bảng lòng khuôn. Khuôn cũ chỉ có P/N thì coi như một dòng. */
+function moldCavs(m){
+  var out=[],seen={};
+  (Array.isArray(m&&m.cavs)?m.cavs:[]).forEach(function(c,i){
+    var part=String((c&&c.part)||"").trim().toUpperCase();
+    if(!part||seen[part])return;seen[part]=1;
+    out.push({no:String(c.no||i+1),part:part,name:c.name||"",per:Math.max(1,Math.round(num(c.per)||1)),grp:String(c.grp||"").toUpperCase(),note:c.note||""});
+  });
+  if(!out.length&&m&&m.partNo)out.push({no:"1",part:String(m.partNo).toUpperCase(),name:m.name||"",per:cavNum(m.cavity),grp:"",note:""});
+  return out;
+}
+function moldKind(m){return MOLD_KIND[m&&m.kind]?m.kind:"SINGLE";}
+function moldParts(m){return moldCavs(m).map(function(c){return c.part;});}
+function moldNoBom(m){return moldCavs(m).filter(function(c){return !bomOfPart(c.part);});}
+function moldShotPcs(m){var cv=moldCavs(m),k=moldKind(m);return k==="SINGLE"?cv.reduce(function(a,c){return a+c.per;},0):cv.reduce(function(a,c){return a+c.per;},0);}
 function moldPill(m){var s=moldSt(m),cls=s.code==="MAY"?"ok":s.code==="SUA"||s.code==="BAOTRI"?"ng":s.code==="DI"?"warn":"solid";return '<span class="pill '+cls+'">'+esc(s.text)+(s.code==="MAY"&&s.place?" "+esc(s.place.replace(/^Máy\s*/,"máy ")):"")+'</span>';}
 function moldFields(f,withMove){
   var i=function(k,label,ph,extra){return '<label class="f">'+label+'<input data-mf="'+k+'" value="'+esc(f[k])+'" placeholder="'+(ph||"")+'" autocomplete="off"'+(extra||"")+'></label>';};
@@ -4463,7 +4486,35 @@ function moldFields(f,withMove){
   h+='<datalist id="mold-rescode">'+Array.from(resins.values()).slice(0,200).map(function(r){return '<option value="'+esc(r.cust||r.int||"")+'">'+esc(r.name||"")+'</option>';}).join("")+'</datalist>'+
     '<datalist id="mold-resname">'+Array.from(new Set(Array.from(resins.values()).map(function(r){return r.name;}).filter(String))).slice(0,200).map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist>'+
     '<datalist id="mold-ressup">'+Array.from(new Set(Array.from(bags.values()).map(function(b){return b.supplier;}).filter(String))).slice(0,80).map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist>';
+  h+=cavFields(f);
   if(withMove)h+=moveFields(f);
+  return h;
+}
+function cavFields(f){
+  if(!Array.isArray(f.cavs))f.cavs=[];
+  var k=f.kind||"SINGLE";
+  var h='<fieldset class="full" style="border:1px solid var(--line,#d5dae3);border-radius:8px;padding:10px">'+
+    '<legend class="hint">Khuôn này ép ra những mã nào</legend>'+
+    '<div class="row" style="flex-wrap:wrap;gap:6px">'+Object.keys(MOLD_KIND).map(function(x){
+      return '<button type="button" class="btn small'+(k===x?"":" ghost")+'" data-act="mk-kind" data-k="'+x+'">'+esc(MOLD_KIND[x])+'</button>';}).join("")+'</div>'+
+    '<p class="hint" style="margin:6px 0">'+(k==="FAMILY"?"Khuôn bộ: mỗi lần ép ra đủ các mã cùng lúc, nên 1.000 shot = 1.000 pcs mỗi mã. App tính shot theo mã nhiều nhất, không cộng dồn."
+      :k==="INSERT"?"Khuôn chung thay insert: mỗi lần chỉ chạy một nhóm mã. Ghi tên nhóm (TOP, FRONT, CENTER…) cho từng mã; app cộng shot theo từng nhóm."
+      :"Một mã. Nếu khuôn có nhiều lòng cùng một mã thì ghi số pcs mỗi shot.")+'</p>';
+  if(f.cavs.length)h+='<div class="scroll"><table><thead><tr><th>CAV</th><th>Mã hàng</th><th>Tên</th><th class="n">pcs / shot</th>'+(k==="INSERT"?'<th>Nhóm</th>':'')+'<th>Ghi chú</th><th>BOM</th><th></th></tr></thead><tbody>'+
+    f.cavs.map(function(c,i){var b=bomOfPart(c.part);
+      return '<tr><td><input data-cv="no" data-i="'+i+'" value="'+esc(c.no||String(i+1))+'" style="width:46px"></td>'+
+      '<td><input data-cv="part" data-i="'+i+'" value="'+esc(c.part||"")+'" list="out-parts" style="width:130px" autocapitalize="characters"></td>'+
+      '<td><input data-cv="name" data-i="'+i+'" value="'+esc(c.name||"")+'"></td>'+
+      '<td><input data-cv="per" data-i="'+i+'" type="number" min="1" step="1" value="'+esc(c.per||1)+'" style="width:72px"></td>'+
+      (k==="INSERT"?'<td><input data-cv="grp" data-i="'+i+'" value="'+esc(c.grp||"")+'" style="width:84px" autocapitalize="characters" placeholder="TOP"></td>':'')+
+      '<td><input data-cv="note" data-i="'+i+'" value="'+esc(c.note||"")+'" style="width:120px" placeholder="LH / RH"></td>'+
+      '<td>'+(c.part?(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>'):'')+'</td>'+
+      '<td><button type="button" class="btn small ghost" data-act="cv-del" data-i="'+i+'">Xóa</button></td></tr>';}).join("")+
+    '</tbody></table></div>';
+  else h+='<p class="hint">Chưa khai mã nào. Khuôn một mã thì để trống, app lấy P/N ở trên.</p>';
+  h+='<div class="row" style="margin-top:6px"><button type="button" class="btn small ghost" data-act="cv-add">Thêm mã hàng</button>'+
+    (f.partNo&&!f.cavs.length?'<button type="button" class="btn small ghost" data-act="cv-seed">Lấy P/N ở trên làm dòng đầu</button>':'')+
+    '</div></fieldset>';
   return h;
 }
 function moveFields(f){
@@ -4477,20 +4528,20 @@ function moveFields(f){
 }
 function viewMolds(){
   if(!moldForm||moldForm.id)moldForm=newMoldForm();
-  var f=moldForm,q=moldQ.trim().toUpperCase(),list=liveMolds().filter(function(m){return !q||(m.toolId+" "+m.partNo+" "+m.name+" "+m.owner+" "+(m.model||"")+" "+(m.resin||"")+" "+(m.resinName||"")+" "+(m.resinSup||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return a.at<b.at?1:-1;});
-  var wait=liveMolds().filter(function(m){return m.partNo&&!moldBom(m);}),h="";
+  var f=moldForm,q=moldQ.trim().toUpperCase(),list=liveMolds().filter(function(m){return !q||(m.toolId+" "+moldParts(m).join(" ")+" "+m.name+" "+m.owner+" "+(m.model||"")+" "+(m.resin||"")+" "+(m.resinName||"")+" "+(m.resinSup||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return a.at<b.at?1:-1;});
+  var wait=[];liveMolds().forEach(function(m){moldNoBom(m).forEach(function(c){wait.push({m:m,c:c});});});var h="";
   if(canMold())h+='<section class="card"><h2>Nhập khuôn</h2><p class="hint">Chụp bảng tên khuôn để app tự điền, hoặc nhập tay. Kiểm tra lại từng ô trước khi lưu.</p>'+
     '<div class="row"><label class="btn'+(hasOcr?"":" ghost")+'">Chụp / chọn ảnh bảng tên khuôn<input type="file" id="mold-photo" accept="image/*" hidden></label><span class="hint" id="mold-status">'+esc(f.status||(hasOcr?"":"Chưa bật đọc chữ từ ảnh, nhập tay."))+'</span></div>'+
     '<form id="f-mold" class="grid" style="margin-top:10px" novalidate>'+moldFields(f,true)+'<div class="full"><button class="btn"'+dis()+'>Lưu khuôn vào danh sách</button></div></form></section>';
-  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Khuôn chờ BOM</h2><span class="pill '+(wait.length?"warn":"solid")+'">'+wait.length+' khuôn</span></div>'+
-    (wait.length?'<div class="scroll"><table><thead><tr><th>P/N</th><th>Mã khuôn</th><th>Cavity</th><th>Nhập lúc</th><th></th></tr></thead><tbody>'+wait.map(function(m){return '<tr><td><b>'+esc(m.partNo)+'</b></td><td><a href="#khuon-'+esc(m.id)+'">'+esc(m.toolId||ID(m.id))+'</a></td><td>'+esc(m.cavity)+'</td><td>'+fmtDate(m.createdAt||m.at)+'</td><td>'+(canBom()?'<button type="button" class="btn small" data-act="mold-bom" data-id="'+esc(m.id)+'">Tạo BOM</button>':'')+'</td></tr>';}).join("")+'</tbody></table></div><p class="hint">Khuôn rời hàng chờ khi có BOM mà Mã TP hoặc Mã BTP trùng với P/N của khuôn.</p>':'<p class="hint">Không có khuôn nào đang chờ BOM.</p>')+'</section>';
+  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Mã hàng của khuôn chờ BOM</h2><span class="pill '+(wait.length?"warn":"solid")+'">'+wait.length+' mã</span></div>'+
+    (wait.length?'<div class="scroll"><table><thead><tr><th>Mã hàng</th><th>Tên</th><th>Mã khuôn</th><th>Loại khuôn</th><th class="n">pcs / shot</th><th></th></tr></thead><tbody>'+wait.slice(0,200).map(function(w){return '<tr><td><b>'+esc(w.c.part)+'</b></td><td>'+esc(w.c.name||"")+'</td><td><a href="#khuon-'+esc(w.m.id)+'">'+esc(w.m.toolId||ID(w.m.id))+'</a></td><td>'+esc(MOLD_KIND_S[moldKind(w.m)])+'</td><td class="n">'+fmtN(w.c.per)+'</td><td>'+(canBom()?'<button type="button" class="btn small" data-act="mold-bom-part" data-id="'+esc(w.m.id)+'" data-p="'+esc(w.c.part)+'">Tạo BOM</button>':'')+'</td></tr>';}).join("")+'</tbody></table></div><p class="hint">Mỗi mã của khuôn cần một BOM riêng. Mã rời hàng chờ khi có BOM mà Mã TP hoặc Mã BTP trùng mã đó.</p>':'<p class="hint">Mọi mã của mọi khuôn đều đã có BOM.</p>')+'</section>';
   var sm=0,sa=0;list.forEach(function(m){sm+=moldShotMonth(m);sa+=moldShotAll(m);});
   h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Danh sách khuôn</h2><span class="row">'+
     (canMold()?'<button type="button" class="btn small" data-act="mold-sync">Cập nhật trạng thái và shot</button>':'')+
     '<a class="btn small ghost" href="#kho-khuon">Sơ đồ kệ</a><button type="button" class="btn small ghost" data-act="csv-mold">Xuất CSV</button></span></div>'+
     '<p class="hint">Trạng thái chạy theo bản ghi mới nhất về thời gian: phiên máy (lên / xuống khuôn), lần khuôn đến – khuôn đi, yêu cầu sửa khuôn. Shot quy từ sản lượng công nhân nhập: (đạt + NG) ÷ số cavity. Tháng này cả xưởng <b>'+fmtN(sm)+'</b> shot, lũy kế <b>'+fmtN(sa)+'</b> shot.</p>'+
     '<label class="f">Tìm theo mã khuôn, P/N, tên, model, mã nhựa<input id="mold-q" value="'+esc(moldQ)+'" autocomplete="off"></label>'+
-    (list.length?'<div class="scroll"><table><thead><tr><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Tên nhựa</th><th>NCC nhựa</th><th>Cavity</th><th>Kích thước</th><th class="n">KL (kg)</th><th>Trạng thái</th><th>Ở đâu</th><th class="n">Shot tháng</th><th class="n">Shot lũy kế</th><th>BOM</th></tr></thead><tbody>'+list.map(function(m){var st=moldSt(m),b=moldBom(m);return '<tr><td><a href="#khuon-'+esc(m.id)+'"><b>'+esc(m.toolId||ID(m.id))+'</b></a></td><td>'+esc(m.partNo)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.model||"")+'</td><td>'+esc(m.resin||"")+'</td><td>'+esc(m.resinName||"")+'</td><td>'+esc(m.resinSup||"")+'</td><td>'+esc(m.cavity)+'</td><td>'+esc(m.dim||"")+'</td><td class="n">'+esc(m.weight||"")+'</td><td>'+moldPill(m)+'</td><td>'+esc(st.place||"")+(m.loc?'<br><span class="hint">Kệ '+esc(m.loc)+'</span>':'')+'</td><td class="n">'+(moldShotMonth(m)?fmtN(moldShotMonth(m)):"")+'</td><td class="n">'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</td><td>'+(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Chưa có khuôn nào.</p>')+'</section>';
+    (list.length?'<div class="scroll"><table><thead><tr><th>Mã khuôn</th><th>P/N · các mã</th><th>Tên</th><th>Loại khuôn</th><th>Model</th><th>Mã nhựa</th><th>Tên nhựa</th><th>NCC nhựa</th><th>Cavity</th><th>Kích thước</th><th class="n">KL (kg)</th><th>Trạng thái</th><th>Ở đâu</th><th class="n">Shot tháng</th><th class="n">Shot lũy kế</th><th>BOM</th></tr></thead><tbody>'+list.map(function(m){var st=moldSt(m),cv=moldCavs(m),nb=moldNoBom(m);return '<tr><td><a href="#khuon-'+esc(m.id)+'"><b>'+esc(m.toolId||ID(m.id))+'</b></a></td><td><b>'+esc(cv[0]?cv[0].part:m.partNo)+'</b>'+(cv.length>1?'<br><span class="hint">+'+(cv.length-1)+' mã: '+esc(cv.slice(1).map(function(c){return c.part;}).join(", "))+'</span>':'')+'</td><td>'+esc(m.name)+'</td><td>'+esc(MOLD_KIND_S[moldKind(m)])+'</td><td>'+esc(m.model||"")+'</td><td>'+esc(m.resin||"")+'</td><td>'+esc(m.resinName||"")+'</td><td>'+esc(m.resinSup||"")+'</td><td>'+esc(m.cavity)+'</td><td>'+esc(m.dim||"")+'</td><td class="n">'+esc(m.weight||"")+'</td><td>'+moldPill(m)+'</td><td>'+esc(st.place||"")+(m.loc?'<br><span class="hint">Kệ '+esc(m.loc)+'</span>':'')+'</td><td class="n">'+(moldShotMonth(m)?fmtN(moldShotMonth(m)):"")+'</td><td class="n">'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</td><td>'+(nb.length?'<span class="pill warn">'+nb.length+'/'+cv.length+' mã chờ BOM</span>':'<span class="pill ok">'+cv.length+' mã đủ BOM</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Chưa có khuôn nào.</p>')+'</section>';
   return h;
 }
 function viewMold(){
@@ -4498,11 +4549,11 @@ function viewMold(){
   if(!m||m.void)return '<section class="card"><h2>Không tìm thấy khuôn</h2><p class="hint">'+(ready?"":"Đang tải dữ liệu…")+'</p><div><a class="btn ghost" href="#khuon">Về danh sách khuôn</a></div></section>';
   if(!moldForm||moldForm.id!==m.id)moldForm=newMoldForm(m);
   var f=moldForm,b=moldBom(m),ed=canMold();
-  var h='<section class="card"><div class="baghead"><div><div class="hint">Khuôn</div><div class="lot">'+esc(m.toolId||m.partNo)+'</div><div class="row">'+moldPill(m)+(b?'<a class="pill solid" href="#bom-'+encodeURIComponent(b.code)+'">BOM '+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</div></div><div class="remain"><span>Shot lũy kế</span><b>'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</b></div></div>'+
+  var h='<section class="card"><div class="baghead"><div><div class="hint">Khuôn</div><div class="lot">'+esc(m.toolId||m.partNo)+'</div><div class="row">'+moldPill(m)+'<span class="pill">'+esc(MOLD_KIND_S[moldKind(m)])+' · '+moldCavs(m).length+' mã</span>'+(moldNoBom(m).length?'<span class="pill warn">'+moldNoBom(m).length+' mã chờ BOM</span>':'<span class="pill ok">đủ BOM</span>')+'</div></div><div class="remain"><span>Shot lũy kế</span><b>'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</b></div></div>'+
   '<p class="hint">Shot tháng này: <b>'+fmtN(moldShotMonth(m))+'</b> · khai báo lúc nhận khuôn '+(m.shots===""||m.shots==null?"—":fmtN(m.shots))+' · tính từ sản lượng '+fmtN(moldShotApp(m))+(m.syncAt?' · cập nhật '+esc(fmtDate(m.syncAt)):'')+'</p>'+
   '<dl class="facts">'+fact("P/N",m.partNo)+fact("Tên sản phẩm",m.name)+fact("Model",m.model)+fact("Mã nhựa",m.resin)+fact("Tên nhựa / grade",m.resinName)+fact("Nhà cung cấp nhựa",m.resinSup)+fact("Cavity",m.cavity)+fact("Kích thước khuôn (mm)",m.dim)+fact("Trọng lượng khuôn (kg)",m.weight)+fact("Máy thường chạy",m.machine)+fact("Vị trí kệ",m.loc)+fact("Chủ sở hữu",m.owner)+fact("Ngày hoàn thành khuôn",m.completion)+fact("Trạng thái",moldSt(m).text+(moldSt(m).place?" – "+moldSt(m).place:"")+(moldSt(m).date?" ("+moldSt(m).date.split("-").reverse().join("/")+")":""))+fact("Vì sao",moldSt(m).why)+fact("Ghi chú",m.note)+fact("Cập nhật",fmtDate(m.at)+" · "+m.by)+'</dl>'+(m.img?'<span data-img="'+esc(m.img)+'" class="bomthumb moldimg"></span>':'')+
-  '<div class="row" style="margin-top:8px"><a class="btn small ghost" href="#khuon">Danh sách khuôn</a>'+(!b&&canBom()?'<button type="button" class="btn small" data-act="mold-bom" data-id="'+esc(m.id)+'">Tạo BOM cho khuôn này</button>':'')+'</div></section>'+
-  shotCard(m)+
+  '<div class="row" style="margin-top:8px"><a class="btn small ghost" href="#khuon">Danh sách khuôn</a><a class="btn small ghost" href="#kho-khuon">Sơ đồ kệ</a></div></section>'+
+  cavCard(m)+shotCard(m)+
   '<section class="card"><h2>Lịch sử khuôn đến / đi</h2><div class="scroll"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nơi đi / nơi đến</th><th>Lý do</th><th class="n">Shot lũy kế</th><th>Ghi chú</th><th>Người nhập</th></tr></thead><tbody>'+(m.moves||[]).slice().reverse().map(function(v){return '<tr><td>'+v.date.split("-").reverse().join("/")+'</td><td>'+(v.type==="OUT"?"Khuôn đi":"Khuôn đến")+'</td><td>'+esc((v.type==="OUT"?"Đến: ":"Từ: ")+v.place)+'</td><td>'+esc(v.reason)+'</td><td class="n">'+(v.shots===""||v.shots==null?"—":fmtN(v.shots))+'</td><td>'+esc(v.note)+'</td><td>'+esc(v.by)+'</td></tr>';}).join("")+'</tbody></table></div></section>';
   if(ed)h+='<section class="card"><h2>Ghi thêm lần khuôn đến / đi, hoặc cập nhật số shot</h2><form id="f-mold-move" class="grid" novalidate>'+moveFields(f)+'<div class="full"><button class="btn"'+dis()+'>Lưu lần này</button></div></form></section>'+
     '<section class="card"><h2>Sửa thông tin khuôn</h2><form id="f-mold-edit" class="grid" novalidate>'+moldFields(f,false)+'<div class="full row"><button class="btn ghost"'+dis()+'>Lưu thông tin khuôn</button>'+(isMgr()?'<button type="button" class="btn small ghost" data-act="mold-del">'+(moldArm?"Bấm lần nữa để xóa khuôn":"Xóa khuôn")+'</button>':'')+'</div></form></section>';
@@ -4531,12 +4582,29 @@ async function saveMold(mode){
   var id=f.id;if(isNew){var a="23456789abcdefghjkmnpqrstuvwxyz";do{id="";for(var i=0;i<6;i++)id+=a[Math.floor(Math.random()*a.length)];}while(molds.has(id));}
   pending++;writeSeq++;
   try{
-    var r=await api("saveMold",{mold:{id:id,toolId:f.toolId,partNo:f.partNo,name:f.name,model:f.model,resin:f.resin,resinName:f.resinName,resinSup:f.resinSup,cavity:f.cavity,dim:f.dim,weight:f.weight,machine:f.machine,owner:f.owner,completion:f.completion,note:f.note,img:f.img},move:withMove?{type:f.type,place:f.place,reason:f.reason,date:f.date,shots:f.shots,note:f.mnote}:null});
+    var r=await api("saveMold",{mold:{id:id,toolId:f.toolId,partNo:f.partNo,name:f.name,model:f.model,resin:f.resin,resinName:f.resinName,resinSup:f.resinSup,kind:f.kind||"SINGLE",cavs:(f.cavs||[]).filter(function(c){return String(c.part||"").trim();}),cavity:f.cavity,dim:f.dim,weight:f.weight,machine:f.machine,owner:f.owner,completion:f.completion,note:f.note,img:f.img},move:withMove?{type:f.type,place:f.place,reason:f.reason,date:f.date,shots:f.shots,note:f.mnote}:null});
     molds.set(r.mold.id,r.mold);moldForm=null;
     toast(isNew?"Đã lưu khuôn. "+(moldBom(r.mold)?"Khuôn này đã có BOM.":"Khuôn đang ở hàng chờ BOM."):"Đã lưu.");
   }catch(e){if(e.code==="mold_dup"&&e.dupId){toast("Khuôn này đã có trong danh sách. Đang mở khuôn đó để ghi thêm lần đến / đi.");moldForm=null;location.hash="khuon-"+e.dupId;return;}toast(errMsg(e,"Không lưu được khuôn."));}
   finally{pending--;}
   render();
+}
+function cavCard(m){
+  var cv=moldCavs(m),k=moldKind(m);
+  var h='<section class="card"><div class="row" style="justify-content:space-between"><h2>Mã hàng khuôn này ép ra ('+cv.length+')</h2><span class="pill">'+esc(MOLD_KIND[k])+'</span></div>'+
+    '<p class="hint">'+(k==="FAMILY"?"Khuôn bộ: mỗi shot ra đủ các mã dưới đây, nên số pcs của các mã phải bằng nhau. Shot tính theo mã nhiều nhất, không cộng dồn."
+      :k==="INSERT"?"Khuôn chung thay insert: mỗi lần chỉ chạy một nhóm. Shot cộng theo từng nhóm, trong nhóm lấy mã nhiều nhất."
+      :"Khuôn một mã. Số pcs mỗi shot bằng số lòng khuôn.")+'</p>'+
+    '<div class="scroll"><table><thead><tr><th>CAV</th><th>Mã hàng</th><th>Tên</th><th class="n">pcs / shot</th>'+(k==="INSERT"?'<th>Nhóm</th>':'')+'<th>Ghi chú</th><th>BOM</th><th>Sản lượng 30 ngày</th></tr></thead><tbody>'+
+    cv.map(function(c){
+      var b=bomOfPart(c.part),from=dstr(new Date(Date.now()-30*86400000)),pcs=0;
+      liveOuts().forEach(function(o){if(!o.timeOnly&&String(o.date)>=from&&normC(o.part)===normC(c.part))pcs+=(num(o.ok)||0)+(num(o.ng)||0);});
+      return '<tr><td>'+esc(c.no)+'</td><td><b>'+esc(c.part)+'</b></td><td>'+esc(c.name)+'</td><td class="n">'+fmtN(c.per)+'</td>'+
+        (k==="INSERT"?'<td>'+esc(c.grp)+'</td>':'')+'<td>'+esc(c.note)+'</td>'+
+        '<td>'+(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>'+(canBom()?' <button type="button" class="btn small" data-act="mold-bom-part" data-id="'+esc(m.id)+'" data-p="'+esc(c.part)+'">Tạo BOM</button>':''))+'</td>'+
+        '<td class="n">'+(pcs?fmtN(pcs)+" pcs":"")+'</td></tr>';}).join("")+
+    '</tbody></table></div></section>';
+  return h;
 }
 function shotCard(m){
   var a=m.shotApp||{},ks=Object.keys(a).filter(function(k){return (num(a[k])||0)>0;}).sort().reverse().slice(0,18);
@@ -5057,6 +5125,10 @@ document.addEventListener("click",function(e){
   else if(act==="bom-xlsx")guard(exportBom);
   else if(act==="csv-mold")exportMoldCsv();
   else if(act==="mold-bom"){var mm=molds.get(t.dataset.id);if(mm){bomSeed={code:"",btp:mm.partNo,cavity:String(mm.cavity||"").replace(/^.*[*xX]/,""),name:mm.name||""};bomEdit=null;bomKey="";location.hash="bom-new";}}
+  else if(act==="mold-bom-part"){var m3=molds.get(t.dataset.id),pc=t.dataset.p;
+    if(m3){var cv3=moldCavs(m3).filter(function(x){return x.part===pc;})[0]||{};
+      bomSeed={code:"",btp:pc,cavity:String(cv3.per||cavNum(m3.cavity)),name:cv3.name||m3.name||"",model:m3.model||"",machine:m3.machine||""};
+      bomEdit=null;bomKey="";location.hash="bom-new";}}
   else if(act==="mold-del"){if(!moldArm){moldArm=true;render();return;}guard(async function(){try{var r=await api("saveMold",{mold:{id:curMold},remove:true});molds.set(curMold,r.mold);toast("Đã xóa khuôn.");location.hash="khuon";}catch(e){toast(errMsg(e,"Không xóa được."));}});}
   else if(act==="bom-del"){if(!bomArm){bomArm=true;render();return;}guard(async function(){try{await api("deleteBom",{code:bomKey});boms.delete(bomKey);mergeBom();bomEdit=null;toast("Đã xóa BOM.");location.hash="bom";}catch(e){toast(errMsg(e,"Không xóa được."));}});}
   else if(act==="btp-print"){var bt=btps.get(curBtp);if(bt)guard(function(){return printBtps([bt]);});}
