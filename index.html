@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-7iyvTeMyQutyccLG5vZFtgi02eSQe44o5vc2jdd3PMs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-Z6hkqm7X7i0pTw5LJMXp/GwQg3tm5+B5un6Q401f5wc='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANMY N2P Warehouse Management System</title>
@@ -374,7 +374,7 @@ function canMtRecv(){return myRole==="KHO"||myRole==="QL";}
 function mtRuns(m){return Array.from(mstates.values()).filter(function(r){return String(r.machine)===String(m);}).sort(function(a,b){return a.createdAt<b.createdAt?1:-1;});}
 function mtOpenRun(m){return mtRuns(m).filter(function(r){return r.st!=="STOPPED";})[0]||null;}
 function mtPendRun(m){return mtRuns(m).filter(function(r){return r.st==="STOPPED"&&!r.done;})[0]||null;}
-function mtShiftOut(m){var sh=nowShift(),d=shiftDate(sh),t=0,n=0,staff="";liveOuts().forEach(function(o){if(o.machine===String(m)&&o.date===d&&(isNight(sh)?isNight(o.shift):!isNight(o.shift))){t+=o.ok;n++;staff=o.staff||staff;}});return {pcs:t,n:n,staff:staff};}
+function mtShiftOut(m){var sh=nowShift(),d=shiftDate(sh),t=0,n=0,staff="";liveOuts().forEach(function(o){if(o.machine===String(m)&&o.date===d&&(isNight(sh)?outNight(o):!outNight(o))){t+=o.ok;n++;staff=o.staff||staff;}});return {pcs:t,n:n,staff:staff};}
 /* Trạng thái hiển thị của một máy. Máy có sản lượng trong ca mà chưa ai cập nhật thì tạm coi là đang chạy. */
 function mtInfo(m){
   var r=mtOpenRun(m),p=mtPendRun(m),o=mtShiftOut(m),mn=manOf(m);
@@ -1017,10 +1017,27 @@ function dispUnsplit(o){return Math.max(0,(num(o.ok)||0)-dispTotal(o));}
 function stagePend(d,k){var sent=stageN(d,k),r=(d&&d.recv||{})[k]||{};return Math.max(0,sent-(r.at?(num(r.n)||0):0));}
 function dispPend(o){var d=o&&o.disp;if(!d)return 0;return ST_RECV.reduce(function(a,k){return a+stagePend(d,k);},0);}
 function dispLeft(o){var d=o&&o.disp;if(!d)return 0;var r=d.res||{};return Math.max(0,stageN(d,"hold")-(num(r.ok)||0)-(num(r.scrap)||0)-(num(r.rework)||0));}
-function dispOpen(o){return !o.timeOnly&&o.ok>0&&(dispUnsplit(o)>0||dispPend(o)>0||dispLeft(o)>0||(o.disp&&o.disp.st==="NEW"));}
+function dispOpen(o){return !o.timeOnly&&((o.ok>0&&(dispUnsplit(o)>0||dispPend(o)>0||dispLeft(o)>0||(o.disp&&o.disp.st==="NEW")))||ngTodo(o)||ngWaiting(o));}
 function canRecv(){return ["KHO","SX","QLSX","KT","QL"].indexOf(myRole)>=0;}
 function canFix(){return myRole==="QL"||myRole==="QLSX";}
-function shiftOuts(){var f=outForm||{};return liveOuts().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift)?isNight(o.shift):!isNight(o.shift));});}
+var NG_ACT={SCRAP:"Đem báo phế",SORT:"Giữ lại vớt hàng"};
+var NG_TEAM={HT:"Bộ phận hoàn thành",CN:"Công nhân đứng máy",QC:"QC"};
+var NG_STV={WAIT:"Chờ vớt hàng",DONE:"Vớt xong"};
+function ngPlanOf(o){return o&&o.ngPlan?o.ngPlan:null;}
+function ngLeft(o){var p=ngPlanOf(o);if(!p||p.act!=="SORT")return 0;var r=p.res||{};return Math.max(0,(num(p.qty)||0)-(num(r.ok)||0)-(num(r.scrap)||0));}
+function ngTodo(o){return !o.timeOnly&&(num(o.ng)||0)>0&&!ngPlanOf(o);}
+function ngWaiting(o){return ngLeft(o)>0;}
+function ngOverdue(p){return !!(p&&p.act==="SORT"&&p.st==="WAIT"&&p.due&&p.due<today());}
+function canNgRes(){return ["HT","SX","IQC","QLSX","QL"].indexOf(myRole)>=0;}
+function ngPill(o){
+  var p=ngPlanOf(o);
+  if(!(num(o.ng)||0))return "";
+  if(!p)return '<span class="pill ng">NG '+fmtN(o.ng)+' pcs chờ QLSX xử lý</span>';
+  if(p.act==="SCRAP")return '<span class="pill warn">NG '+fmtN(p.qty)+' pcs đem báo phế'+(p.scrapNo?" · "+esc(p.scrapNo):"")+'</span>';
+  if(ngLeft(o)>0)return '<span class="pill'+(ngOverdue(p)?" crit":" warn")+'">Chờ vớt '+fmtN(ngLeft(o))+' pcs'+(p.due?" · hạn "+esc(p.due.split("-").reverse().join("/")):"")+'</span>';
+  return '<span class="pill ok">Vớt xong'+((p.res&&p.res.ok)?" "+fmtN(p.res.ok)+" pcs":"")+'</span>';
+}
+function shiftOuts(){var f=outForm||{};return liveOuts().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift,f.gfrom)?outNight(o):!outNight(o));});}
 function timeRow(){var r=shiftOuts();return r.filter(function(o){return o.times;})[0]||r.filter(function(o){return o.timeOnly;})[0]||r.sort(function(a,b){return a.at<b.at?-1:1;})[0]||null;}
 function timesHtml(){
   var r=timeRow(),t=(r&&r.times)||{};
@@ -1039,7 +1056,7 @@ async function outTime(kind,val){
   try{
     if(!r){
       var f=outForm,id=nid6();
-      var cr=await api("saveOutput",{output:{id:id,machine:curMachine,prefix:f.prefix,shift:f.shift,date:f.date,part:(f.part||"").trim().toUpperCase()||"GIO-MAY",
+      var cr=await api("saveOutput",{output:{id:id,machine:curMachine,prefix:f.prefix,shift:f.shift,gfrom:(f.gfrom||"").trim(),gto:(f.gto||"").trim(),date:f.date,part:(f.part||"").trim().toUpperCase()||"GIO-MAY",
         prodLot:outLot(f.prefix,curMachine,f.date),staff:f.staff||cred.name||"",boxes:0,per:0,odd:0,ngBy:{},status:"OK",note:"Dòng ghi giờ máy",timeOnly:true}});
       r=cr.output;outputs.set(r.id,r);
     }
@@ -1063,14 +1080,17 @@ function dispPill(o){
 }
 /* Tổng hợp sản lượng đang treo ở công đoạn nào, dùng cho dashboard và trang xử lý hàng. */
 function stageSum(days){
-  var from=dstr(new Date(Date.now()-(days||30)*86400000)),t={unsplit:0,btp:0,tp:0,fin:0,hold:0,ok:0,rows:0,byPart:{}};
+  var from=dstr(new Date(Date.now()-(days||30)*86400000)),t={unsplit:0,btp:0,tp:0,fin:0,hold:0,ok:0,rows:0,ngNew:0,ngSort:0,ngLate:0,byPart:{}};
   liveOuts().forEach(function(o){
-    if(o.timeOnly||String(o.date)<from||!(o.ok>0))return;
+    if(o.timeOnly||String(o.date)<from||!(o.ok>0||(num(o.ng)||0)>0))return;
     var e=t.byPart[o.part]||(t.byPart[o.part]={part:o.part,unsplit:0,btp:0,tp:0,fin:0,hold:0,ok:0});
     var u=dispUnsplit(o),hl=dispLeft(o);
     t.ok+=o.ok;e.ok+=o.ok;t.unsplit+=u;e.unsplit+=u;t.hold+=hl;e.hold+=hl;
     ST_RECV.forEach(function(k){var v=stagePend(o.disp,k);t[k]+=v;e[k]+=v;});
-    if(u||hl||dispPend(o))t.rows++;
+    t.ngNew+=ngTodo(o)?(num(o.ng)||0):0;
+    t.ngSort+=ngLeft(o);
+    if(ngOverdue(o.ngPlan))t.ngLate++;
+    if(u||hl||dispPend(o)||ngTodo(o)||ngWaiting(o))t.rows++;
   });
   t.all=t.unsplit+t.btp+t.tp+t.fin+t.hold;
   return t;
@@ -1083,6 +1103,8 @@ function stageCards(t){
     card("Ở bộ phận hoàn thành",fmtN(t.fin)+' <small>pcs</small>',"chưa báo nhận đủ")+
     card("Chờ công nhân xử lý",fmtN(t.hold)+' <small>pcs</small>',"hàng ứ chưa có kết quả")+
     card("Tổng đang treo",fmtN(t.all)+' <small>pcs</small>',t.rows+" dòng sản lượng")+
+    card("NG chờ QLSX xử lý",fmtN(t.ngNew)+' <small>pcs</small>',"báo phế hay vớt hàng")+
+    card("Chờ vớt hàng",fmtN(t.ngSort)+' <small>pcs</small>',t.ngLate?t.ngLate+" job trễ hạn":"đúng hạn")+
     '</div>';
 }
 function stageTable(t,lim){
@@ -1106,8 +1128,9 @@ function viewDisp(){
       return '<tr><td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(o.machine)+'</td><td><b>'+esc(o.part)+'</b></td><td class="n">'+fmtN(o.ok)+'</td>'+
         '<td class="n">'+(dispUnsplit(o)?fmtN(dispUnsplit(o)):"")+'</td>'+
         ST_RECV.map(function(k){var v=d?stagePend(d,k):0;return '<td class="n">'+(v?fmtN(v):"")+'</td>';}).join("")+
-        '<td class="n">'+(dispLeft(o)?fmtN(dispLeft(o)):"")+'</td><td>'+dispPill(o)+'</td></tr>';}).join(""):'<tr><td colspan="10">Không còn dòng nào chờ chia hay chờ nhận.</td></tr>')+
+        '<td class="n">'+(dispLeft(o)?fmtN(dispLeft(o)):"")+'</td><td>'+dispPill(o)+ngPill(o)+'</td></tr>';}).join(""):'<tr><td colspan="10">Không còn dòng nào chờ chia hay chờ nhận.</td></tr>')+
     '</tbody></table></div></section>'+
+    ngBlocks(rows)+
     '<section class="card"><h3>Treo ở công đoạn nào, theo mã hàng</h3>'+stageTable(t,60)+'</section>'+
     '<section class="card"><h3>Đã xong gần đây</h3><div class="scroll"><table><thead><tr><th>Ngày</th><th>Mã hàng</th><th class="n">Kho BTP</th><th class="n">Kho TP</th><th class="n">H.thành</th><th class="n">OK sau xử lý</th><th class="n">Hủy</th><th class="n">Gỡ lại</th><th>Đơn báo phế</th></tr></thead><tbody>'+
     rows.filter(function(o){return o.disp&&!dispOpen(o);}).slice(0,40).map(function(o){var d=o.disp,r=d.res||{};
@@ -1116,6 +1139,21 @@ function viewDisp(){
         '<td class="n">'+fmtN(r.ok||0)+'</td><td class="n">'+fmtN(r.scrap||0)+'</td><td class="n">'+fmtN(r.rework||0)+'</td><td>'+esc(d.scrapNo||"")+'</td></tr>';}).join("")+
     '</tbody></table></div></section>';
   return h;
+}
+function ngBlocks(rows){
+  var ngNew=rows.filter(ngTodo),ngSort=rows.filter(ngWaiting).sort(function(a,b){return String((a.ngPlan||{}).due||"")<String((b.ngPlan||{}).due||"")?-1:1;});
+  return '<section class="card"><h3>Hàng NG trong ca chờ Quản lý sản xuất xử lý ('+ngNew.length+')</h3>'+
+    '<p class="hint">Mỗi dòng NG, QLSX chọn <b>đem báo phế</b> hoặc <b>giữ lại vớt hàng</b>. Vớt hàng thì treo lại kèm ngày hoàn thành và bộ phận vớt: bộ phận hoàn thành, công nhân đứng máy hay QC.</p>'+
+    (ngNew.length?'<div class="scroll"><table><thead><tr><th>Ngày</th><th>Ca</th><th>Máy</th><th>Mã hàng</th><th class="n">NG</th><th>Lý do NG</th><th>Công nhân</th></tr></thead><tbody>'+
+      ngNew.slice(0,60).map(function(o){return '<tr><td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(caText(o))+'</td><td>'+esc(o.machine)+'</td><td><b>'+esc(o.part)+'</b></td><td class="n"><b>'+fmtN(o.ng)+'</b></td><td>'+esc(ngText(o))+'</td><td>'+esc(o.staff||o.by)+'</td></tr>';}).join("")+
+      '</tbody></table></div>':'<p class="hint">Không còn dòng NG nào chờ xử lý.</p>')+'</section>'+
+    '<section class="card"><h3>Job chờ vớt hàng ('+ngSort.length+')</h3>'+
+    (ngSort.length?'<div class="scroll"><table><thead><tr><th>Hạn hoàn thành</th><th>Ngày SX</th><th>Máy</th><th>Mã hàng</th><th class="n">Chờ vớt</th><th>Bộ phận vớt</th><th>Người vớt</th><th class="n">Đã vớt được</th><th>Trạng thái</th></tr></thead><tbody>'+
+      ngSort.slice(0,60).map(function(o){var p=o.ngPlan,r=p.res||{};
+        return '<tr><td><b>'+esc((p.due||"").split("-").reverse().join("/"))+'</b>'+(ngOverdue(p)?' <span class="pill crit">trễ hạn</span>':'')+'</td>'+
+          '<td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(o.machine)+'</td><td><b>'+esc(o.part)+'</b></td>'+
+          '<td class="n"><b>'+fmtN(ngLeft(o))+'</b></td><td>'+esc(NG_TEAM[p.team]||"")+'</td><td>'+esc(p.who||"")+'</td><td class="n">'+(r.ok?fmtN(r.ok):"")+'</td><td>'+esc(NG_STV[p.st]||p.st)+'</td></tr>';}).join("")+
+      '</tbody></table></div>':'<p class="hint">Không có job nào đang chờ vớt hàng.</p>')+'</section>';
 }
 function newOutFix(o){
   var t=o.times||{};
@@ -1173,6 +1211,57 @@ function dispSplitHtml(o,d,f){
     (dispUnsplit(o)>0?'<p class="note">Còn '+fmtN(dispUnsplit(o))+' pcs chưa chia công đoạn.</p>':'');
   return h;
 }
+function ngCard(o,f){
+  var ng=num(o.ng)||0;
+  if(!ng)return "";
+  var p=ngPlanOf(o),qlsx=canFix(),h='<h3>NG trong ca: '+fmtN(ng)+' pcs</h3>'+
+    '<p class="hint">'+esc(ngText(o)||"Không ghi lý do NG")+'</p>';
+  if(!p){
+    if(!qlsx)return h+'<p class="hint">Chờ Quản lý sản xuất chọn đem báo phế hay giữ lại vớt hàng.</p>';
+    var act=f.ngAct||"";
+    h+='<div class="row" style="flex-wrap:wrap;gap:6px">'+["SCRAP","SORT"].map(function(k){
+      return '<button type="button" class="btn small'+(act===k?"":" ghost")+'" data-act="ng-act" data-k="'+k+'">'+esc(NG_ACT[k])+'</button>';}).join("")+'</div>';
+    if(act)h+='<div class="grid" style="margin-top:8px">'+
+      '<label class="f">Số pcs<input data-dp="ngQty" type="number" min="1" max="'+ng+'" value="'+esc(f.ngQty!=null?f.ngQty:ng)+'"></label>'+
+      (act==="SORT"?'<label class="f">Ngày hoàn thành vớt hàng *<input data-dp="ngDue" type="date" value="'+esc(f.ngDue||today())+'"></label>'+
+        '<label class="f">Bộ phận vớt hàng *<select data-dp="ngTeam">'+["","HT","CN","QC"].map(function(k){return '<option value="'+k+'"'+((f.ngTeam||"")===k?" selected":"")+'>'+(k?esc(NG_TEAM[k]):"— chọn bộ phận —")+'</option>';}).join("")+'</select></label>'+
+        '<label class="f">Người vớt (nếu đã phân)<input data-dp="ngWho" value="'+esc(f.ngWho||"")+'" list="disp-staff" maxlength="60"></label>':'')+
+      '<label class="f full">Ghi chú<input data-dp="ngNote" value="'+esc(f.ngNote||"")+'" maxlength="200"></label></div>'+
+      '<div class="row"><button type="button" class="btn" data-act="ng-save">'+(act==="SORT"?"Treo chờ vớt hàng":"Chốt đem báo phế")+'</button></div>';
+    return h;
+  }
+  h+='<p><span class="pill'+(p.act==="SCRAP"?" warn":ngLeft(o)>0?(ngOverdue(p)?" crit":" warn"):" ok")+'">'+esc(NG_ACT[p.act])+'</span> <b>'+fmtN(p.qty)+'</b> pcs'+
+    (p.act==="SORT"?' · '+esc(NG_STV[p.st]||p.st)+(p.due?' · hạn <b>'+esc(p.due.split("-").reverse().join("/"))+'</b>'+(ngOverdue(p)?' <span class="pill crit">trễ hạn</span>':''):'')+
+      (NG_TEAM[p.team]?' · '+esc(NG_TEAM[p.team]):'')+(p.who?' · '+esc(p.who):''):'')+
+    '<br><span class="hint">'+esc(p.by||"")+' chốt lúc '+esc(fmtDate(p.at))+(p.note?' · '+esc(p.note):'')+'</span></p>';
+  if(p.act==="SORT"){
+    if(p.res)h+='<p>Vớt được <b>'+fmtN(p.res.ok)+'</b> pcs · phế <b>'+fmtN(p.res.scrap)+'</b> pcs<br><span class="hint">'+esc(p.res.by||"")+' ghi lúc '+esc(fmtDate(p.res.at))+'</span></p>';
+    if(ngLeft(o)>0&&canNgRes())h+='<div class="grid">'+
+      '<label class="f">Vớt được, cho nhập kho<input data-dp="ngOk" type="number" min="0" value="'+esc(f.ngOk||"")+'"></label>'+
+      '<label class="f">Không vớt được, đem phế<input data-dp="ngBad" type="number" min="0" value="'+esc(f.ngBad||"")+'"></label>'+
+      '<label class="f full">Người vớt<input data-dp="ngWorker" value="'+esc(f.ngWorker!=null?f.ngWorker:(p.who||""))+'" maxlength="60"></label></div>'+
+      '<div class="row"><button type="button" class="btn" data-act="ng-res">Lưu kết quả vớt hàng</button></div>'+
+      '<p class="hint">Còn <b>'+fmtN(ngLeft(o))+'</b> pcs chưa ghi kết quả.</p>';
+    else if(ngLeft(o)>0)h+='<p class="hint">Chờ '+esc(NG_TEAM[p.team]||"bộ phận được phân")+' ghi kết quả vớt hàng.</p>';
+  }
+  var toBp=p.act==="SCRAP"?p.qty:((p.res||{}).scrap||0);
+  if(toBp>0){
+    h+='<div class="row" style="margin-top:6px"><button type="button" class="btn'+(p.scrapNo?" ghost":"")+'" data-act="ng-bp">Lập đơn báo phế '+fmtN(toBp)+' pcs</button>'+
+      '<label class="f" style="margin:0">Hoặc nối với đơn đã có<select data-dp="ngScrapNo"><option value="">— chọn đơn —</option>'+
+      Array.from(scraps.values()).slice(0,60).map(function(x){return '<option value="'+esc(x.no)+'"'+((f.ngScrapNo||p.scrapNo)===x.no?" selected":"")+'>'+esc(x.no)+' · '+esc((x.lines[0]||{}).part||"")+'</option>';}).join("")+'</select></label>'+
+      '<button type="button" class="btn ghost" data-act="ng-link">Nối đơn</button></div>';
+  }
+  if(p.scrapNo)h+='<p class="hint">Đã nối đơn báo phế <b>'+esc(p.scrapNo)+'</b>.</p>';
+  return h;
+}
+function ngToScrap(){
+  var o=outputs.get(curOut),p=o&&ngPlanOf(o);if(!o||!p)return;
+  var qty=p.act==="SCRAP"?p.qty:((p.res||{}).scrap||0);
+  if(!(qty>0))return;
+  scrapSeed={part:o.part,lot:o.prodLot,qty:qty,reporter:(p.res&&p.res.by)||p.who||o.staff||"",outId:o.id,
+    desc:"Hàng NG trong ca, máy "+o.machine+" ngày "+(o.date||"").split("-").reverse().join("/")+(p.act==="SORT"?", vớt không đạt":"")+(ngText(o)?". "+ngText(o):"")};
+  location.hash="bp-new";
+}
 function dispRecvHtml(o,d,f){
   var h='<h3>3. Kho và bộ phận hoàn thành ghi số thực nhận</h3>';
   var ks=ST_RECV.filter(function(k){return stageN(d,k)>0;});
@@ -1195,11 +1284,12 @@ function viewDispOne(){
     fin:String(stageN(d,"fin")),hold:String(o.disp?stageN(d,"hold"):(num(o.hold0)||0)),
     holdBy:d.holdBy||"",note:"",okPcs:"",scrapPcs:"",reworkPcs:"",worker:d.holdBy||"",scrapNo:d.scrapNo||""});
   var mg=myRole==="QL",qlsx=myRole==="QLSX"||mg,sx=myRole==="SX"||qlsx;
-  var h='<section class="card"><div class="baghead"><div><div class="hint">Sản lượng ngày '+esc((o.date||"").split("-").reverse().join("/"))+' · máy '+esc(o.machine)+' · '+esc(SHIFT_S[o.shift]||o.shift)+'</div>'+
-    '<div class="lot">'+esc(o.part)+'</div><div class="row">'+dispPill(o)+'<span class="pill solid">'+fmtN(o.ok)+' pcs đạt</span>'+(o.ng?'<span class="pill ng">'+fmtN(o.ng)+' NG</span>':'')+'</div></div></div>'+
+  var h='<section class="card"><div class="baghead"><div><div class="hint">Sản lượng ngày '+esc((o.date||"").split("-").reverse().join("/"))+' · máy '+esc(o.machine)+' · '+esc(caText(o))+'</div>'+
+    '<div class="lot">'+esc(o.part)+'</div><div class="row">'+dispPill(o)+'<span class="pill solid">'+fmtN(o.ok)+' pcs đạt</span>'+ngPill(o)+'</div></div></div>'+
     '<p class="hint">Lot SX <a href="#'+esc(lotHash(o.prodLot||""))+'">'+esc(o.prodLot||"")+'</a> · công nhân '+esc(o.staff||"")+' · nhập lúc '+esc(o.at?fmtDate(o.at):"")+(o.note?' · '+esc(o.note):'')+'</p>';
   if(o.times)h+='<p class="hint">Giờ máy: '+TKIND.map(function(k){return k[1]+" "+(o.times[k[0]]?o.times[k[0]].t:"--:--");}).join(" · ")+'</p>';
   h+=fixHtml(o);
+  h+=ngCard(o,f);
   h+=dispSplitHtml(o,d,f);
   h+='<h3>2. Quản lý xác nhận lô chờ xử lý</h3>';
   if(d.cf)h+='<p class="hint">Đã xác nhận bởi '+esc(d.cf.by)+' lúc '+esc(fmtDate(d.cf.at))+(d.cf.note?" · "+esc(d.cf.note):"")+'.</p>';
@@ -1237,7 +1327,7 @@ async function dispDo(op,extra){
     var body=Object.assign({op:op,id:o.id},extra||{});
     var r=await api("outUpdate",body);
     outputs.set(r.output.id,r.output);outDisp=null;dispArm="";
-    toast(op==="split"?"Đã chia hàng theo công đoạn.":op==="confirm"?"Đã xác nhận.":op==="result"?"Đã ghi kết quả xử lý.":op==="recv"?"Đã ghi số thực nhận.":"Đã nối đơn báo phế.");
+    toast(op==="split"?"Đã chia hàng theo công đoạn.":op==="confirm"?"Đã xác nhận.":op==="result"?"Đã ghi kết quả xử lý.":op==="recv"?"Đã ghi số thực nhận.":op==="ng"?(r.output.ngPlan&&r.output.ngPlan.act==="SORT"?"Đã treo job chờ vớt hàng.":"Đã chốt đem báo phế."):op==="ngres"?"Đã ghi kết quả vớt hàng.":"Đã nối đơn báo phế.");
   }catch(e){toast(errMsg(e,"Không lưu được."));}
   finally{pending--;}
   render();
@@ -1342,13 +1432,15 @@ function viewMoldMap(){
 }
 function mlScanHtml(){
   return '<div class="card" style="padding:10px;margin-top:10px"><h3>Đọc được '+mlScan.length+' khuôn từ bảng</h3>'+
-    '<div class="scroll"><table><thead><tr><th>Lấy</th><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Cavity</th><th>Kích thước</th><th>KL (kg)</th><th>Máy</th></tr></thead><tbody>'+
+    '<div class="scroll"><table><thead><tr><th>Lấy</th><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Tên nhựa</th><th>NCC nhựa</th><th>Cavity</th><th>Kích thước</th><th>KL (kg)</th><th>Máy</th></tr></thead><tbody>'+
     mlScan.map(function(m,i){return '<tr><td><input type="checkbox" data-mlk="'+i+'"'+(m.take?" checked":"")+'></td>'+
       '<td><input data-ml="toolId" data-i="'+i+'" value="'+esc(m.toolId||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="partNo" data-i="'+i+'" value="'+esc(m.partNo||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="name" data-i="'+i+'" value="'+esc(m.name||"")+'"></td>'+
       '<td><input data-ml="model" data-i="'+i+'" value="'+esc(m.model||"")+'" style="width:92px"></td>'+
-      '<td><input data-ml="resin" data-i="'+i+'" value="'+esc(m.resin||"")+'" style="width:110px"></td>'+
+      '<td><input data-ml="resin" data-i="'+i+'" value="'+esc(m.resin||"")+'" style="width:100px"></td>'+
+      '<td><input data-ml="resinName" data-i="'+i+'" value="'+esc(m.resinName||"")+'" style="width:120px"></td>'+
+      '<td><input data-ml="resinSup" data-i="'+i+'" value="'+esc(m.resinSup||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="cavity" data-i="'+i+'" value="'+esc(m.cavity||"")+'" style="width:52px"></td>'+
       '<td><input data-ml="dim" data-i="'+i+'" value="'+esc(m.dim||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="weight" data-i="'+i+'" value="'+esc(m.weight||"")+'" style="width:70px"></td>'+
@@ -1375,7 +1467,7 @@ async function mlSave(){
   for(var i=0;i<take.length;i++){
     var m=take[i];
     try{
-      var r=await api("saveMold",{mold:{id:nid6(),toolId:m.toolId,partNo:m.partNo,name:m.name,model:m.model||"",resin:m.resin||"",cavity:m.cavity,dim:m.dim||"",weight:m.weight||"",machine:m.machine||"",owner:"ESTec",completion:"",note:m.note||"",img:""}});
+      var r=await api("saveMold",{mold:{id:nid6(),toolId:m.toolId,partNo:m.partNo,name:m.name,model:m.model||"",resin:m.resin||"",resinName:m.resinName||"",resinSup:m.resinSup||"",cavity:m.cavity,dim:m.dim||"",weight:m.weight||"",machine:m.machine||"",owner:"ESTec",completion:"",note:m.note||"",img:""}});
       if(r.mold){molds.set(r.mold.id,r.mold);ok++;}
     }catch(e){if(e.code==="mold_dup")dup++;else er++;}
   }
@@ -1489,6 +1581,20 @@ document.addEventListener("click",function(e){
   else if(a==="disp-result")guard(function(){return dispDo("result",{okPcs:Math.round(num(outDisp.okPcs)||0),scrapPcs:Math.round(num(outDisp.scrapPcs)||0),reworkPcs:Math.round(num(outDisp.reworkPcs)||0),worker:outDisp.worker,note:outDisp.note});});
   else if(a==="disp-link"){if(!outDisp||!outDisp.scrapNo){toast("Chọn đơn báo phế.");return;}guard(function(){return dispDo("link",{scrapNo:outDisp.scrapNo});});}
   else if(a==="disp-bp")dispToScrap();
+  else if(a==="ng-act"){if(!outDisp)return;outDisp.ngAct=outDisp.ngAct===t.dataset.k?"":t.dataset.k;render();}
+  else if(a==="ng-save"){
+    var oo=outputs.get(curOut);if(!oo||!outDisp)return;
+    var q=Math.round(num(outDisp.ngQty)||oo.ng);
+    if(!(q>0&&q<=oo.ng)){toast("Số pcs phải từ 1 đến "+fmtN(oo.ng)+".");return;}
+    if(outDisp.ngAct==="SORT"){
+      if(!outDisp.ngDue){toast("Chọn ngày hoàn thành vớt hàng.");return;}
+      if(!outDisp.ngTeam){toast("Chọn bộ phận vớt hàng.");return;}
+    }
+    guard(function(){return dispDo("ng",{act:outDisp.ngAct,qty:q,due:outDisp.ngDue||"",team:outDisp.ngTeam||"",who:outDisp.ngWho||"",note:outDisp.ngNote||""});});
+  }
+  else if(a==="ng-res")guard(function(){return dispDo("ngres",{okPcs:Math.round(num(outDisp.ngOk)||0),scrapPcs:Math.round(num(outDisp.ngBad)||0),worker:outDisp.ngWorker||"",note:""});});
+  else if(a==="ng-link"){if(!outDisp||!outDisp.ngScrapNo){toast("Chọn đơn báo phế.");return;}guard(function(){return dispDo("nglink",{scrapNo:outDisp.ngScrapNo});});}
+  else if(a==="ng-bp")ngToScrap();
   else if(a==="slot"){locSlot=locSlot===t.dataset.loc?"":t.dataset.loc;locPick="";render();window.scrollTo(0,0);}
   else if(a==="loc-cancel"){locSlot="";render();}
   else if(a==="loc-set")guard(function(){return moldSetLoc(locPick||($("#loc-pick")||{}).value,locSlot);});
@@ -3278,7 +3384,7 @@ try{var sh0=parseFloat(localStorage.getItem("n2p-shift")||window.SHIFT_HOURS||8)
 function lotKey(v){return String(v||"").trim().toUpperCase().replace(/\s+/g,"");}
 function lotHash(p){return "lsx-"+encodeURIComponent(lotKey(p));}
 function lotSlips(k){var jl={};jobs.forEach(function(j){if(j.status!=="CANCEL"&&lotKey(j.prodLot)===k)jl[j.id]=1;});return Array.from(slips.values()).filter(function(s){return lotKey(s.prodLot)===k||(s.job&&jl[s.job]);}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});}
-var CLIENT_VER="2026-11-28.10",srvVer=null;
+var CLIENT_VER="2026-11-28.11",srvVer=null;
 function verWarn(){
   if(memMode||srvVer===null||["QL","KT","QLSX","KH"].indexOf(myRole)<0)return "";
   if(srvVer===CLIENT_VER)return "";
@@ -3286,7 +3392,15 @@ function verWarn(){
     '<p>File web là bản <b>'+esc(CLIENT_VER)+'</b>, máy chủ đang chạy bản <b>'+esc(srvVer||"cũ, trước 28/11")+'</b>. Các chức năng mới ở phía máy chủ (bù phiếu xuất cũ, tự nhận trang tính, kiểm tra dữ liệu) sẽ không chạy.</p>'+
     '<p class="hint">Cách sửa: mở Apps Script → dán toàn bộ Code.gs mới → Lưu → <b>Triển khai → Quản lý triển khai → biểu tượng bút chì → Phiên bản: Phiên bản mới → Triển khai</b>. Xong tải lại trang này.</p></section>';
 }
-function isNight(sh){return sh==="D"||sh==="DT";}
+function isNight(sh,from){
+  if(sh==="G"){var h=parseInt(String(from||"").slice(0,2),10);return isFinite(h)?(h>=18||h<6):false;}
+  return sh==="D"||sh==="DT";
+}
+function outNight(o){return isNight(o.shift,o.gfrom);}
+function caText(o){
+  if(!o||o.shift!=="G")return SHIFT_S[o&&o.shift]||(o&&o.shift)||"";
+  return "Ca gãy"+(o.gfrom?" "+o.gfrom+(o.gto?"–"+o.gto:""):"");
+}
 function lotState(k){var l=lots.get(k)||{};return l.sx?"DONE":l.kh?"SX":"KH";}
 function lotPill(k){var st=lotState(k);return '<span class="pill '+(st==="DONE"?"solid":"warn")+'">'+(st==="DONE"?"Đã xác nhận":st==="SX"?"Chờ QLSX":"Chờ Kế hoạch")+'</span>';}
 function normC(v){return String(v||"").toUpperCase().replace(/[^0-9A-Z]/g,"");}
@@ -3545,7 +3659,7 @@ function viewTram(){
   else h+='<p class="hint">Quản lý sản xuất và Quản lý làm việc trên hồ sơ lot: chia công đoạn, sửa dòng công nhân nhập sai, xác nhận hàng chờ xử lý.</p>'+
     '<div class="row"><a class="btn" href="#'+esc(lotHash(k))+'">Hồ sơ lot '+esc(k)+'</a><a class="btn ghost" href="#xu-ly">Xử lý hàng sau sản xuất</a><a class="btn ghost" href="#khuon-sua">Yêu cầu sửa khuôn</a></div>'+
     (i.outs.length?'<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Giờ</th><th>Ca</th><th class="n">Đạt</th><th class="n">NG</th><th>Công nhân</th><th></th></tr></thead><tbody>'+
-      i.outs.sort(function(a,b){return a.at<b.at?1:-1;}).slice(0,30).map(function(o){return '<tr><td>'+fmtDate(o.at)+'</td><td>'+esc(SHIFT_S[o.shift]||o.shift)+'</td><td class="n">'+fmtN(o.ok)+'</td><td class="n">'+fmtN(o.ng)+'</td><td>'+esc(o.staff||o.by)+'</td><td><a class="btn small ghost" href="#xl-'+esc(o.id)+'">Sửa / chia</a></td></tr>';}).join("")+'</tbody></table></div>':'');
+      i.outs.sort(function(a,b){return a.at<b.at?1:-1;}).slice(0,30).map(function(o){return '<tr><td>'+fmtDate(o.at)+'</td><td>'+esc(caText(o))+'</td><td class="n">'+fmtN(o.ok)+'</td><td class="n">'+fmtN(o.ng)+'</td><td>'+esc(o.staff||o.by)+'</td><td><a class="btn small ghost" href="#xl-'+esc(o.id)+'">Sửa / chia</a></td></tr>';}).join("")+'</tbody></table></div>':'');
   return h+'</section>';
 }
 /* ---------- Trạm lot SX: lưu dữ liệu từng bộ phận ---------- */
@@ -3570,7 +3684,7 @@ function tramHead(i,shift,date){
   return {id:nid6(),machine:String(lp.machine||i.machine||"").replace(/\D/g,"")||"1",prefix:lp.prefix==="NL"?"NL":"AM",
     shift:CA_OK(shift)?shift:nowShift(),date:lp.date||(/^\d{4}-\d\d-\d\d$/.test(date||"")?date:(i.date||today())),part:(i.part||"GIO-MAY").toUpperCase()};
 }
-function CA_OK(x){return ["N","NT","D","DT"].indexOf(x)>=0;}
+function CA_OK(x){return !!SHIFTS[x];}
 async function tramTech(i){
   var f=tramForm,pg=[0,1,2,3].map(function(x){return Math.round(num(f["purge"+x])||0);});
   var sc=Math.round(num(f.scrap)||0),wp=Math.round(num(f.wip)||0);
@@ -3795,8 +3909,8 @@ var outputs=new Map(),techs=new Map(),curMachine="",outArm="",repFrom="",repTo="
 var NG=[["TC","Tạp chất"],["GAS","Gas"],["SIL","Silver"],["TX","Trầy xước"],["WELD","Weld"],["TN","Thiếu nhựa"],["BD","Biến dạng"],["HAK","Hakka"],["LOM","Lõm"],["IRE","Ireko"],["DD","D.dầu"],["KHAC","Khác"]];
 var PURGE=["1. Đổi mã sản xuất (khác khuôn, khác nguyên liệu, khác màu sắc)","2. Đổi mã sản xuất (cùng màu, khác loại nguyên liệu)","3. Khuôn / máy hư","4. Nghỉ giải lao trên 10 phút"];
 var MACHINES=Math.max(1,Math.min(200,parseInt(window.MACHINES,10)||23));
-var SHIFTS={N:"Ca ngày (7:30–16:30)",NT:"Ca ngày + tăng ca (7:30–19:30)",D:"Ca đêm (19:30–7:30 sáng hôm sau)",DT:"Ca đêm + tăng ca (19:30–9:30 sáng hôm sau)"},SHIFT_S={N:"Ca ngày",NT:"Ngày + tăng ca",D:"Ca đêm",DT:"Đêm + tăng ca"};
-function newOutForm(){var st="";try{st=localStorage.getItem("n2p-staff")||"";}catch(e){}return {prefix:"",shift:"",date:"",dateTouched:false,part:"",staff:st,boxes:"",per:"",odd:"",ngBy:{},status:"OK",note:"",purge:["","","",""],scrap:"",wip:"",tnote:""};}
+var SHIFTS={N:"Ca ngày (7:30–16:30)",NT:"Ca ngày + tăng ca (7:30–19:30)",D:"Ca đêm (19:30–7:30 sáng hôm sau)",DT:"Ca đêm + tăng ca (19:30–9:30 sáng hôm sau)",G:"Ca gãy (tự điền giờ bắt đầu)"},SHIFT_S={N:"Ca ngày",NT:"Ngày + tăng ca",D:"Ca đêm",DT:"Đêm + tăng ca",G:"Ca gãy"};
+function newOutForm(){var st="";try{st=localStorage.getItem("n2p-staff")||"";}catch(e){}return {prefix:"",shift:"",date:"",dateTouched:false,part:"",staff:st,boxes:"",per:"",odd:"",ngBy:{},status:"OK",note:"",purge:["","","",""],scrap:"",wip:"",tnote:"",gfrom:"",gto:""};}
 var outForm=newOutForm();
 function isTech(){return ["IQC","KT","QLSX","QL"].indexOf(myRole)>=0;}
 function ngSum(){var t=0;NG.forEach(function(r){t+=Math.round(num(outForm.ngBy[r[0]])||0);});return t;}
@@ -3806,7 +3920,7 @@ function isWorker(){return myRole==="CN";}
 function dstr(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
 function nowShift(){var d=new Date(),m=d.getHours()*60+d.getMinutes();return m>=450&&m<1170?"N":"D";}
 /* Ngày sản xuất tính theo ngày bắt đầu ca: ca đêm nhập sau nửa đêm vẫn thuộc ngày hôm trước. */
-function shiftDate(shift){var d=new Date(),m=d.getHours()*60+d.getMinutes();if(m<450&&isNight(shift))d=new Date(d.getTime()-86400000);return dstr(d);}
+function shiftDate(shift,from){var d=new Date(),m=d.getHours()*60+d.getMinutes();if(m<450&&isNight(shift,from))d=new Date(d.getTime()-86400000);return dstr(d);}
 function outLot(prefix,machine,date){return prefix+machine+"-"+date.slice(2,4)+date.slice(5,7)+date.slice(8,10);}
 function liveOuts(){return Array.from(outputs.values()).filter(function(o){return !o.void;});}
 function partList(){var seen={},out=[];BOM.forEach(function(r){var k=String(r[0]).replace(/\s*#.*$/,"");if(!seen[k]){seen[k]=1;out.push(k);}});return out;}
@@ -3826,7 +3940,7 @@ function outSumText(){
 function initOutForm(){
   var f=outForm;
   if(!f.shift)f.shift=nowShift();
-  if(!f.dateTouched)f.date=shiftDate(f.shift);
+  if(!f.dateTouched)f.date=shiftDate(f.shift,f.gfrom);
   if(!f.prefix||!f.part||!f.per){var last=liveOuts().filter(function(o){return o.machine===curMachine;}).sort(function(a,b){return a.at<b.at?1:-1;})[0];
     if(last){if(!f.prefix)f.prefix=last.prefix;if(last.date===f.date){if(!f.part)f.part=last.part;if(!f.per&&last.per)f.per=String(last.per);}}}
   if(!f.prefix)f.prefix="AM";
@@ -3837,18 +3951,21 @@ function outRows(list,del){
 }
 function sumByPart(list){var by={},order=[];list.forEach(function(o){if(!by[o.part]){by[o.part]={part:o.part,ok:0,ng:0,boxes:0};order.push(o.part);}by[o.part].ok+=o.ok;by[o.part].ng+=o.ng;by[o.part].boxes+=o.boxes;});return order.map(function(k){return by[k];});}
 function lsxFor(f){var lot=outLot(f.prefix,curMachine,f.date),out=[];jobs.forEach(function(j){if(j.status==="RELEASED"&&lotKey(j.prodLot)===lotKey(lot))out.push(j);});return out;}
-function lsxStaff(f){var night=isNight(f.shift),n=[];lsxFor(f).forEach(function(j){(j.workers||[]).forEach(function(w){if(isNight(w.shift)===night&&n.indexOf(w.name)<0)n.push(w.name);});});return n;}
+function lsxStaff(f){var night=isNight(f.shift,f.gfrom),n=[];lsxFor(f).forEach(function(j){(j.workers||[]).forEach(function(w){if(w.shift==="G"||isNight(w.shift)===night){if(n.indexOf(w.name)<0)n.push(w.name);}});});return n;}
 function lsxNote(f){var js=lsxFor(f);return js.length?'<p class="full hint">Lệnh sản xuất: '+js.map(function(j){return '<b>'+esc(j.lsx)+'</b> · '+esc(j.part)+' · '+fmtN(j.qty)+' pcs'+(j.workers&&j.workers.length?' · '+esc(j.workers.map(function(w){return w.name+" ("+SHIFT_S[w.shift]+")";}).join(", ")):'');}).join("; ")+'</p>':'';}
 function viewMachine(){
   if(!curMachine)return '<section class="card"><h2>Nhập sản lượng theo máy</h2><p class="hint">Quét mã QR dán ở máy ép, hoặc chọn máy:</p><div class="row">'+Array.from({length:MACHINES},function(_,i){return '<a class="btn small ghost" href="#may-'+(i+1)+'">Máy '+(i+1)+'</a>';}).join("")+'</div></section>';
   initOutForm();
   var f=outForm,lot=outLot(f.prefix,curMachine,f.date),canDel=myRole==="QL"||myRole==="QLSX";
-  var mine=liveOuts().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift)?isNight(o.shift):!isNight(o.shift));}).sort(function(a,b){return a.at<b.at?1:-1;});
+  var mine=liveOuts().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift,f.gfrom)?outNight(o):!outNight(o));}).sort(function(a,b){return a.at<b.at?1:-1;});
   var h=timesHtml()+'<section class="card"><div class="baghead"><div><div class="hint">Nhập sản lượng</div><div class="lot">Máy '+esc(curMachine)+'</div><div class="row"><span class="pill solid" id="out-lot">Lot SX '+esc(lot)+'</span></div></div></div>'+
   '<form id="f-prod" class="grid" novalidate>'+
   '<fieldset class="f full" style="border:0;padding:0;margin:0"><legend class="hint" style="padding:0">Hàng của công ty nào</legend><div class="row">'+["NL","AM"].map(function(p){return '<label class="btn small'+(f.prefix===p?"":" ghost")+'" style="cursor:pointer"><input type="radio" name="prefix" value="'+p+'"'+(f.prefix===p?" checked":"")+' style="width:auto;margin-right:6px">Hàng '+p+'</label>';}).join("")+'</div></fieldset>'+
   '<label class="f">Ca làm việc<select name="shift" data-o="shift">'+Object.keys(SHIFTS).map(function(k){return '<option value="'+k+'"'+(f.shift===k?" selected":"")+'>'+esc(SHIFTS[k])+'</option>';}).join("")+'</select></label>'+
   '<label class="f">Ngày sản xuất<input name="date" data-o="date" type="date" value="'+esc(f.date)+'"></label>'+
+  (f.shift==="G"?'<label class="f">Giờ bắt đầu đứng máy *<input name="gfrom" data-o="gfrom" value="'+esc(f.gfrom||"")+'" placeholder="13:00" inputmode="numeric" style="max-width:130px"></label>'+
+    '<label class="f">Giờ kết thúc (nếu biết)<input name="gto" data-o="gto" value="'+esc(f.gto||"")+'" placeholder="21:00" inputmode="numeric" style="max-width:130px"></label>'+
+    '<p class="full hint">Ca gãy: ghi đúng giờ bắt đầu đứng máy. App xếp vào ca ngày hay ca đêm theo giờ này.</p>':'')+
   '<label class="f full">Mã hàng<input name="part" data-o="part" list="out-parts" value="'+esc(f.part)+'" placeholder="CG8-795273" autocomplete="off" autocapitalize="characters"><datalist id="out-parts">'+partList().map(function(k){return '<option value="'+esc(k)+'">';}).join("")+'</datalist></label>'+
   '<label class="f">Số thùng<input name="boxes" data-o="boxes" type="number" min="0" step="1" inputmode="numeric" value="'+esc(f.boxes)+'"></label>'+
   '<label class="f">Số pcs / thùng<input name="per" data-o="per" type="number" min="0" step="1" inputmode="numeric" value="'+esc(f.per)+'"></label>'+
@@ -3863,7 +3980,7 @@ function viewMachine(){
   '<p class="full hint" id="out-sum">'+outSumText()+'</p>'+
   '<div class="full"><button class="btn"'+dis()+'>Lưu sản lượng</button></div></form>'+
   '<p class="hint">Mỗi lần chỉ nhập số làm được <b>từ lần nhập trước đến giờ</b>, app tự cộng dồn. Không nhập lại tổng cả ca. Nên nhập khoảng 2 tiếng một lần; giờ nhập được ghi vào nhật ký là giờ kiểm tra.</p></section>';
-  h+='<section class="card"><h2>Đã nhập trong '+(isNight(f.shift)?"ca đêm":"ca ngày")+' '+f.date.split("-").reverse().join("/")+'</h2>';
+  h+='<section class="card"><h2>Đã nhập trong '+(f.shift==="G"?"ca gãy"+(f.gfrom?" từ "+esc(f.gfrom):""):isNight(f.shift)?"ca đêm":"ca ngày")+' '+f.date.split("-").reverse().join("/")+'</h2>';
   if(!mine.length)h+='<p class="hint">Chưa có dòng nào.</p>';
   else h+='<p>'+sumByPart(mine).map(function(x){return '<b>'+esc(x.part)+'</b>: '+fmtN(x.ok)+' pcs đạt'+(x.ng?' · '+fmtN(x.ng)+' NG':'');}).join("<br>")+'</p><div class="scroll"><table><thead><tr><th>Giờ</th><th>Mã hàng</th><th class="n">Thùng × pcs + lẻ</th><th class="n">Đạt</th><th class="n">NG</th><th>Công nhân</th>'+(canDel?'<th></th>':'')+'</tr></thead><tbody>'+outRows(mine,canDel)+'</tbody></table></div>'+(canDel?'':'<p class="hint">Nhập sai thì báo Quản lý sản xuất hủy dòng đó rồi nhập lại.</p>');
   h+='</section>';
@@ -3876,6 +3993,10 @@ async function saveOutput(){
   if(!part){toast("Nhập mã hàng.");return;}
   var ok=outTotal(),ng=ngSum(),ngBy={};NG.forEach(function(r){var n=Math.round(num(f.ngBy[r[0]])||0);if(n>0)ngBy[r[0]]=n;});
   if(!f.staff.trim()){toast("Nhập tên công nhân đứng máy.");return;}
+  if(f.shift==="G"){
+    if(!/^([01]\d|2[0-3]):[0-5]\d$/.test((f.gfrom||"").trim())){toast("Ca gãy: ghi giờ bắt đầu đứng máy, dạng 13:00.");return;}
+    if((f.gto||"").trim()&&!/^([01]\d|2[0-3]):[0-5]\d$/.test((f.gto||"").trim())){toast("Giờ kết thúc phải dạng 21:00.");return;}
+  }
   if(f.status==="NG"&&!f.note.trim()){toast("Ghi mô tả bất thường.");return;}
   if((num(f.boxes)||0)>0&&!((num(f.per)||0)>0)){toast("Nhập số pcs mỗi thùng.");return;}
   if(ok+ng<=0&&f.status!=="NG"){toast("Nhập số thùng, số lẻ hoặc số NG.");return;}
@@ -3885,7 +4006,7 @@ async function saveOutput(){
   var a="23456789abcdefghjkmnpqrstuvwxyz",id="";for(var i=0;i<6;i++)id+=a[Math.floor(Math.random()*a.length)];
   pending++;writeSeq++;
   try{
-    var r=await api("saveOutput",{output:{id:id,machine:curMachine,prefix:f.prefix,shift:f.shift,date:f.date,part:part,boxes:Math.round(num(f.boxes)||0),per:Math.round(num(f.per)||0),odd:Math.round(num(f.odd)||0),ngBy:ngBy,status:f.status,staff:f.staff.trim(),note:f.note.trim(),hold:okHold().hold,holdNote:(f.holdNote||"").trim()}});try{localStorage.setItem("n2p-staff",f.staff.trim());}catch(x){}
+    var r=await api("saveOutput",{output:{id:id,machine:curMachine,prefix:f.prefix,shift:f.shift,gfrom:(f.gfrom||"").trim(),gto:(f.gto||"").trim(),date:f.date,part:part,boxes:Math.round(num(f.boxes)||0),per:Math.round(num(f.per)||0),odd:Math.round(num(f.odd)||0),ngBy:ngBy,status:f.status,staff:f.staff.trim(),note:f.note.trim(),hold:okHold().hold,holdNote:(f.holdNote||"").trim()}});try{localStorage.setItem("n2p-staff",f.staff.trim());}catch(x){}
     outputs.set(r.output.id,r.output);f.part=part;f.boxes="";f.odd="";f.ngBy={};f.status="OK";f.note="";f.okPcs="";f.holdPcs="";f.holdNote="";
     toast("Đã lưu "+fmtN(r.output.ok)+" pcs đạt"+(r.output.ng?", "+fmtN(r.output.ng)+" NG":"")+(r.output.hold0?", "+fmtN(r.output.hold0)+" pcs hàng ứ chờ xử lý":"")+".");
   }catch(e){toast(errMsg(e,"Không lưu được. Kiểm tra mạng rồi bấm lưu lại."));}
@@ -3900,7 +4021,7 @@ async function delOutput(id,kind){
 function repList(){if(!repFrom)repFrom=today();if(!repTo)repTo=today();var a=repFrom<=repTo?repFrom:repTo,b=repFrom<=repTo?repTo:repFrom;return liveOuts().filter(function(o){return o.date>=a&&o.date<=b;});}
 function repGroups(){
   var by={},order=[];
-  repList().forEach(function(o){var sh=isNight(o.shift)?"D":"N",k=[o.date,sh,("000"+o.machine).slice(-3),o.prodLot,o.part].join("|");if(!by[k]){by[k]={date:o.date,shift:sh,machine:o.machine,lot:o.prodLot,part:o.part,ok:0,ng:0,boxes:0,ot:false,by:[]};order.push(k);}var g=by[k];g.ok+=o.ok;g.ng+=o.ng;g.boxes+=o.boxes;if(o.shift==="NT")g.ot=true;if(g.by.indexOf(o.staff||o.by)<0)g.by.push(o.staff||o.by);});
+  repList().forEach(function(o){var sh=outNight(o)?"D":"N",k=[o.date,sh,("000"+o.machine).slice(-3),o.prodLot,o.part].join("|");if(!by[k]){by[k]={date:o.date,shift:sh,machine:o.machine,lot:o.prodLot,part:o.part,ok:0,ng:0,boxes:0,ot:false,by:[]};order.push(k);}var g=by[k];g.ok+=o.ok;g.ng+=o.ng;g.boxes+=o.boxes;if(o.shift==="NT"||o.shift==="DT")g.ot=true;if(o.shift==="G")g.split=true;if(g.by.indexOf(o.staff||o.by)<0)g.by.push(o.staff||o.by);});
   return order.sort().map(function(k){return by[k];});
 }
 function matFor(lot,part){var ss=lotSlips(lotKey(lot)).filter(function(s){return samePart(s.partCode,part);});if(!ss.length)return null;var c=lotCalc(ss);return c.mat;}
@@ -3911,12 +4032,12 @@ function viewReport(){
   '<div class="grid"><label class="f">Từ ngày<input type="date" id="rep-from" value="'+esc(repFrom||today())+'"></label><label class="f">Đến ngày<input type="date" id="rep-to" value="'+esc(repTo||today())+'"></label></div>'+
   (g.length?'<p>Tổng: <b>'+fmtN(tOk)+' pcs đạt</b> · '+fmtN(tNg)+' NG'+(tOk+tNg?' ('+fmtN(tNg/(tOk+tNg)*100)+'%)':'')+'</p><div class="scroll"><table><thead><tr><th>Ngày</th><th>Ca</th><th>Máy</th><th>Lot SX</th><th>Mã hàng</th><th class="n">Thùng</th><th class="n">Đạt</th><th class="n">NG</th><th class="n">% NG</th><th class="n">Vật tư đủ cho</th><th class="n">Chênh lệch</th><th>Công nhân</th></tr></thead><tbody>'+
     g.map(function(x){var m=matFor(x.lot,x.part),made=x.ok+x.ng;
-      return '<tr><td>'+x.date.split("-").reverse().join("/")+'</td><td>'+(isNight(x.shift)?"Đêm"+(x.shift==="DT"?" + TC":""):"Ngày"+(x.ot?" + TC":""))+'</td><td>'+esc(x.machine)+'</td><td><a href="#'+esc(lotHash(x.lot))+'">'+esc(x.lot)+'</a></td><td><b>'+esc(x.part)+'</b></td><td class="n">'+fmtN(x.boxes)+'</td><td class="n"><b>'+fmtN(x.ok)+'</b></td><td class="n">'+fmtN(x.ng)+'</td><td class="n">'+(made?fmtN(x.ng/made*100):"0")+'</td><td class="n">'+(m!=null?fmtN(m):"—")+'</td><td class="n">'+(m!=null?fmtN(m-made):"—")+'</td><td>'+esc(x.by.join(", "))+'</td></tr>';}).join("")+'</tbody></table></div>'+
+      return '<tr><td>'+x.date.split("-").reverse().join("/")+'</td><td>'+(isNight(x.shift)?"Đêm":"Ngày")+(x.ot?" + TC":"")+(x.split?" + ca gãy":"")+'</td><td>'+esc(x.machine)+'</td><td><a href="#'+esc(lotHash(x.lot))+'">'+esc(x.lot)+'</a></td><td><b>'+esc(x.part)+'</b></td><td class="n">'+fmtN(x.boxes)+'</td><td class="n"><b>'+fmtN(x.ok)+'</b></td><td class="n">'+fmtN(x.ng)+'</td><td class="n">'+(made?fmtN(x.ng/made*100):"0")+'</td><td class="n">'+(m!=null?fmtN(m):"—")+'</td><td class="n">'+(m!=null?fmtN(m-made):"—")+'</td><td>'+esc(x.by.join(", "))+'</td></tr>';}).join("")+'</tbody></table></div>'+
     '<p class="hint">"Vật tư đủ cho" tính theo BOM từ các phiếu xuất của cả lot và mã hàng đó (gộp ca ngày và ca đêm). "Chênh lệch" = vật tư đủ cho − (đạt + NG) của dòng này. Dấu — nghĩa là chưa có phiếu xuất hoặc chưa có BOM cho mã đó.</p><div><button type="button" class="btn small ghost" data-act="csv-out">Xuất CSV chi tiết</button></div>'
    :'<p class="hint">Chưa có sản lượng trong khoảng ngày này.</p>')+'</section>';
 }
 function exportOutCsv(){
-  var lines=[["Ngày SX","Ca","Máy","NL/AM","Lot SX","Mã hàng","Số thùng","Pcs/thùng","Số lẻ","Đạt (pcs)","NG (pcs)","NG theo lý do","Tình trạng","Công nhân","Người nhập","Nhập lúc","Ghi chú"]].concat(repList().sort(function(a,b){return a.at<b.at?-1:1;}).map(function(o){return [o.date.split("-").reverse().join("/"),SHIFT_S[o.shift],o.machine,o.prefix,o.prodLot,o.part,o.boxes,o.per,o.odd,o.ok,o.ng,ngText(o),o.status==="NG"?"Bất thường":"Bình thường",o.staff||o.by,o.by,fmtDate(o.at),o.note];}));
+  var lines=[["Ngày SX","Ca","Máy","NL/AM","Lot SX","Mã hàng","Số thùng","Pcs/thùng","Số lẻ","Đạt (pcs)","NG (pcs)","NG theo lý do","Tình trạng","Công nhân","Người nhập","Nhập lúc","Ghi chú"]].concat(repList().sort(function(a,b){return a.at<b.at?-1:1;}).map(function(o){return [o.date.split("-").reverse().join("/"),caText(o),o.machine,o.prefix,o.prodLot,o.part,o.boxes,o.per,o.odd,o.ok,o.ng,ngText(o),o.status==="NG"?"Bất thường":"Bình thường",o.staff||o.by,o.by,fmtDate(o.at),o.note];}));
   saveFile("san-luong-"+repFrom+"_"+repTo+".csv",new Blob(["﻿"+lines.map(function(r){return r.map(csvCell).join(",");}).join("\r\n")],{type:"text/csv"}));
 }
 function lotQrCanvas(k){
@@ -3988,7 +4109,7 @@ function outCard(k,ss){
     var cell='<td>'+(o.disp?ST_KEYS.filter(function(k){return stageN(o.disp,k)>0;}).map(function(k){return esc(ST_SHORT[k])+" "+fmtN(stageN(o.disp,k));}).join("<br>")||"—":'<span class="hint">chưa chia</span>')+
       (dispPend(o)?'<br><span class="pill warn">treo '+fmtN(dispPend(o))+'</span>':'')+'</td>'+
       (canFix()?'<td class="row" style="gap:4px"><a class="btn small ghost" href="#xl-'+esc(o.id)+'">Sửa / chia</a></td>':'');
-    return '<tr><td>'+esc(SHIFT_S[o.shift])+'</td>'+outRows([o],false).slice(4).replace(/<\/tr>$/,"")+cell+'</tr>';}).join("")+'</tbody></table></div>'+
+    return '<tr><td>'+esc(caText(o))+'</td>'+outRows([o],false).slice(4).replace(/<\/tr>$/,"")+cell+'</tr>';}).join("")+'</tbody></table></div>'+
   (canFix()?'<p class="hint">Bấm "Sửa / chia" để sửa dòng công nhân nhập sai (ca, giờ máy, số lượng) hoặc chia sản lượng về kho BTP, kho TP, bộ phận hoàn thành, công nhân xử lý.</p>':'')+'</section>';
   return h;
 }
@@ -3996,7 +4117,7 @@ function outCard(k,ss){
 /* QA / Kỹ thuật: purging, mẫu hư lúc chỉnh máy, WIP, phát sinh */
 function techCard(partGuess){
   var f=outForm,canDel=myRole==="QL"||myRole==="QLSX";
-  var list=liveTechs().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift)?isNight(o.shift):!isNight(o.shift));}).sort(function(a,b){return a.at<b.at?1:-1;});
+  var list=liveTechs().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift,f.gfrom)?outNight(o):!outNight(o));}).sort(function(a,b){return a.at<b.at?1:-1;});
   if(!isTech()&&!list.length)return "";
   var h='<section class="card" id="tech-card"><h2>Purging và mẫu hư lúc chỉnh máy</h2>';
   if(isTech())h+='<p class="hint">Phần của QA / Kỹ thuật. Dùng chung máy, hàng NL/AM, ca, ngày và mã hàng ở form phía trên.</p><form id="f-tech" class="grid" novalidate>'+
@@ -4318,7 +4439,7 @@ var molds=new Map(),curMold="",moldQ="",moldArm=false,bomSeed=null;
 var OCR_MOLD="mold";
 var MPLACES=["ESTec VINA","Nam Lâm","An My N2P","Sinyoung","Jin Yang (JY)","Xưởng sửa khuôn","Nhà làm khuôn"],MWHY={IN:["Khuôn mới","Chuyển từ vendor khác","Về sau sửa chữa","Chạy thử (Event)","Sản xuất hàng loạt (MP)"],OUT:["Trả khách hàng","Đi sửa chữa","Chuyển sang vendor khác","Hết đơn hàng","Cho mượn"]};
 var moldForm=null;
-function newMoldForm(m){return {id:m?m.id:"",toolId:m?m.toolId:"",partNo:m?m.partNo:"",name:m?m.name:"",model:m?m.model||"":"",resin:m?m.resin||"":"",cavity:m?m.cavity:"",dim:m?m.dim||"":"",weight:m?m.weight||"":"",machine:m?m.machine||"":"",owner:m?m.owner:"",completion:m?m.completion:"",note:m?m.note||"":"",img:m?m.img||"":"",type:"IN",place:"",reason:"",date:today(),shots:"",mnote:"",status:""};}
+function newMoldForm(m){return {id:m?m.id:"",toolId:m?m.toolId:"",partNo:m?m.partNo:"",name:m?m.name:"",model:m?m.model||"":"",resin:m?m.resin||"":"",resinName:m?m.resinName||"":"",resinSup:m?m.resinSup||"":"",cavity:m?m.cavity:"",dim:m?m.dim||"":"",weight:m?m.weight||"":"",machine:m?m.machine||"":"",owner:m?m.owner:"",completion:m?m.completion:"",note:m?m.note||"":"",img:m?m.img||"":"",type:"IN",place:"",reason:"",date:today(),shots:"",mnote:"",status:""};}
 var MOLD_ST={MAY:"Đang trên máy",SUA:"Đang mang đi sửa",BAOTRI:"Đang bảo trì khuôn",KHO:"Trong kho khuôn",DI:"Đã chuyển đi",NHAMAY:"Đang ở nhà máy"};
 function cavNum(v){var ns=String(v==null?"":v).match(/\d+(?:[.,]\d+)?/g);if(!ns)return 1;var k=1;ns.forEach(function(x){var z=Number(String(x).replace(",","."));if(isFinite(z)&&z>0)k*=z;});k=Math.round(k);return k>0&&k<1000?k:1;}
 function ymNow(){var d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1);}
@@ -4338,7 +4459,10 @@ function moldBom(m){var p=normC(m.partNo);if(!p)return null;var hit=null;boms.fo
 function moldPill(m){var s=moldSt(m),cls=s.code==="MAY"?"ok":s.code==="SUA"||s.code==="BAOTRI"?"ng":s.code==="DI"?"warn":"solid";return '<span class="pill '+cls+'">'+esc(s.text)+(s.code==="MAY"&&s.place?" "+esc(s.place.replace(/^Máy\s*/,"máy ")):"")+'</span>';}
 function moldFields(f,withMove){
   var i=function(k,label,ph,extra){return '<label class="f">'+label+'<input data-mf="'+k+'" value="'+esc(f[k])+'" placeholder="'+(ph||"")+'" autocomplete="off"'+(extra||"")+'></label>';};
-  var h=i("toolId","Mã khuôn (EVS-ID)","EVS-TOOL-22-009",' autocapitalize="characters"')+i("partNo","P/N (mã hàng của khuôn)","C08-778655",' autocapitalize="characters"')+i("name","Tên sản phẩm","FRAME")+i("model","Model","P23-797678",' autocapitalize="characters"')+i("resin","Mã nhựa / loại nhựa","PP-T020 · LUPOX GP2306F")+i("cavity","Số cavity","1*2")+i("dim","Kích thước khuôn (mm)","560 x 450 x 380")+i("weight","Trọng lượng khuôn (kg)","850")+i("machine","Máy thường chạy","16")+i("owner","Chủ sở hữu","ESTec VINA")+i("completion","Ngày hoàn thành khuôn","2022.09.28")+'<label class="f full">Ghi chú về khuôn<input data-mf="note" value="'+esc(f.note)+'" autocomplete="off"></label>';
+  var h=i("toolId","Mã khuôn (EVS-ID)","EVS-TOOL-22-009",' autocapitalize="characters"')+i("partNo","P/N (mã hàng của khuôn)","C08-778655",' autocapitalize="characters"')+i("name","Tên sản phẩm","FRAME")+i("model","Model","P23-797678",' autocapitalize="characters"')+i("resin","Mã nhựa","PP-T020",' list="mold-rescode" autocapitalize="characters"')+i("resinName","Tên nhựa / grade","LUPOX GP2306F",' list="mold-resname"')+i("resinSup","Nhà cung cấp nhựa","Lucky Enpla",' list="mold-ressup"')+i("cavity","Số cavity","1*2")+i("dim","Kích thước khuôn (mm)","560 x 450 x 380")+i("weight","Trọng lượng khuôn (kg)","850")+i("machine","Máy thường chạy","16")+i("owner","Chủ sở hữu","ESTec VINA")+i("completion","Ngày hoàn thành khuôn","2022.09.28")+'<label class="f full">Ghi chú về khuôn<input data-mf="note" value="'+esc(f.note)+'" autocomplete="off"></label>';
+  h+='<datalist id="mold-rescode">'+Array.from(resins.values()).slice(0,200).map(function(r){return '<option value="'+esc(r.cust||r.int||"")+'">'+esc(r.name||"")+'</option>';}).join("")+'</datalist>'+
+    '<datalist id="mold-resname">'+Array.from(new Set(Array.from(resins.values()).map(function(r){return r.name;}).filter(String))).slice(0,200).map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist>'+
+    '<datalist id="mold-ressup">'+Array.from(new Set(Array.from(bags.values()).map(function(b){return b.supplier;}).filter(String))).slice(0,80).map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist>';
   if(withMove)h+=moveFields(f);
   return h;
 }
@@ -4353,7 +4477,7 @@ function moveFields(f){
 }
 function viewMolds(){
   if(!moldForm||moldForm.id)moldForm=newMoldForm();
-  var f=moldForm,q=moldQ.trim().toUpperCase(),list=liveMolds().filter(function(m){return !q||(m.toolId+" "+m.partNo+" "+m.name+" "+m.owner+" "+(m.model||"")+" "+(m.resin||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return a.at<b.at?1:-1;});
+  var f=moldForm,q=moldQ.trim().toUpperCase(),list=liveMolds().filter(function(m){return !q||(m.toolId+" "+m.partNo+" "+m.name+" "+m.owner+" "+(m.model||"")+" "+(m.resin||"")+" "+(m.resinName||"")+" "+(m.resinSup||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return a.at<b.at?1:-1;});
   var wait=liveMolds().filter(function(m){return m.partNo&&!moldBom(m);}),h="";
   if(canMold())h+='<section class="card"><h2>Nhập khuôn</h2><p class="hint">Chụp bảng tên khuôn để app tự điền, hoặc nhập tay. Kiểm tra lại từng ô trước khi lưu.</p>'+
     '<div class="row"><label class="btn'+(hasOcr?"":" ghost")+'">Chụp / chọn ảnh bảng tên khuôn<input type="file" id="mold-photo" accept="image/*" hidden></label><span class="hint" id="mold-status">'+esc(f.status||(hasOcr?"":"Chưa bật đọc chữ từ ảnh, nhập tay."))+'</span></div>'+
@@ -4366,7 +4490,7 @@ function viewMolds(){
     '<a class="btn small ghost" href="#kho-khuon">Sơ đồ kệ</a><button type="button" class="btn small ghost" data-act="csv-mold">Xuất CSV</button></span></div>'+
     '<p class="hint">Trạng thái chạy theo bản ghi mới nhất về thời gian: phiên máy (lên / xuống khuôn), lần khuôn đến – khuôn đi, yêu cầu sửa khuôn. Shot quy từ sản lượng công nhân nhập: (đạt + NG) ÷ số cavity. Tháng này cả xưởng <b>'+fmtN(sm)+'</b> shot, lũy kế <b>'+fmtN(sa)+'</b> shot.</p>'+
     '<label class="f">Tìm theo mã khuôn, P/N, tên, model, mã nhựa<input id="mold-q" value="'+esc(moldQ)+'" autocomplete="off"></label>'+
-    (list.length?'<div class="scroll"><table><thead><tr><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Cavity</th><th>Kích thước</th><th class="n">KL (kg)</th><th>Trạng thái</th><th>Ở đâu</th><th class="n">Shot tháng</th><th class="n">Shot lũy kế</th><th>BOM</th></tr></thead><tbody>'+list.map(function(m){var st=moldSt(m),b=moldBom(m);return '<tr><td><a href="#khuon-'+esc(m.id)+'"><b>'+esc(m.toolId||ID(m.id))+'</b></a></td><td>'+esc(m.partNo)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.model||"")+'</td><td>'+esc(m.resin||"")+'</td><td>'+esc(m.cavity)+'</td><td>'+esc(m.dim||"")+'</td><td class="n">'+esc(m.weight||"")+'</td><td>'+moldPill(m)+'</td><td>'+esc(st.place||"")+(m.loc?'<br><span class="hint">Kệ '+esc(m.loc)+'</span>':'')+'</td><td class="n">'+(moldShotMonth(m)?fmtN(moldShotMonth(m)):"")+'</td><td class="n">'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</td><td>'+(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Chưa có khuôn nào.</p>')+'</section>';
+    (list.length?'<div class="scroll"><table><thead><tr><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Tên nhựa</th><th>NCC nhựa</th><th>Cavity</th><th>Kích thước</th><th class="n">KL (kg)</th><th>Trạng thái</th><th>Ở đâu</th><th class="n">Shot tháng</th><th class="n">Shot lũy kế</th><th>BOM</th></tr></thead><tbody>'+list.map(function(m){var st=moldSt(m),b=moldBom(m);return '<tr><td><a href="#khuon-'+esc(m.id)+'"><b>'+esc(m.toolId||ID(m.id))+'</b></a></td><td>'+esc(m.partNo)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.model||"")+'</td><td>'+esc(m.resin||"")+'</td><td>'+esc(m.resinName||"")+'</td><td>'+esc(m.resinSup||"")+'</td><td>'+esc(m.cavity)+'</td><td>'+esc(m.dim||"")+'</td><td class="n">'+esc(m.weight||"")+'</td><td>'+moldPill(m)+'</td><td>'+esc(st.place||"")+(m.loc?'<br><span class="hint">Kệ '+esc(m.loc)+'</span>':'')+'</td><td class="n">'+(moldShotMonth(m)?fmtN(moldShotMonth(m)):"")+'</td><td class="n">'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</td><td>'+(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Chưa có khuôn nào.</p>')+'</section>';
   return h;
 }
 function viewMold(){
@@ -4376,7 +4500,7 @@ function viewMold(){
   var f=moldForm,b=moldBom(m),ed=canMold();
   var h='<section class="card"><div class="baghead"><div><div class="hint">Khuôn</div><div class="lot">'+esc(m.toolId||m.partNo)+'</div><div class="row">'+moldPill(m)+(b?'<a class="pill solid" href="#bom-'+encodeURIComponent(b.code)+'">BOM '+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</div></div><div class="remain"><span>Shot lũy kế</span><b>'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</b></div></div>'+
   '<p class="hint">Shot tháng này: <b>'+fmtN(moldShotMonth(m))+'</b> · khai báo lúc nhận khuôn '+(m.shots===""||m.shots==null?"—":fmtN(m.shots))+' · tính từ sản lượng '+fmtN(moldShotApp(m))+(m.syncAt?' · cập nhật '+esc(fmtDate(m.syncAt)):'')+'</p>'+
-  '<dl class="facts">'+fact("P/N",m.partNo)+fact("Tên sản phẩm",m.name)+fact("Model",m.model)+fact("Mã nhựa",m.resin)+fact("Cavity",m.cavity)+fact("Kích thước khuôn (mm)",m.dim)+fact("Trọng lượng khuôn (kg)",m.weight)+fact("Máy thường chạy",m.machine)+fact("Vị trí kệ",m.loc)+fact("Chủ sở hữu",m.owner)+fact("Ngày hoàn thành khuôn",m.completion)+fact("Trạng thái",moldSt(m).text+(moldSt(m).place?" – "+moldSt(m).place:"")+(moldSt(m).date?" ("+moldSt(m).date.split("-").reverse().join("/")+")":""))+fact("Vì sao",moldSt(m).why)+fact("Ghi chú",m.note)+fact("Cập nhật",fmtDate(m.at)+" · "+m.by)+'</dl>'+(m.img?'<span data-img="'+esc(m.img)+'" class="bomthumb moldimg"></span>':'')+
+  '<dl class="facts">'+fact("P/N",m.partNo)+fact("Tên sản phẩm",m.name)+fact("Model",m.model)+fact("Mã nhựa",m.resin)+fact("Tên nhựa / grade",m.resinName)+fact("Nhà cung cấp nhựa",m.resinSup)+fact("Cavity",m.cavity)+fact("Kích thước khuôn (mm)",m.dim)+fact("Trọng lượng khuôn (kg)",m.weight)+fact("Máy thường chạy",m.machine)+fact("Vị trí kệ",m.loc)+fact("Chủ sở hữu",m.owner)+fact("Ngày hoàn thành khuôn",m.completion)+fact("Trạng thái",moldSt(m).text+(moldSt(m).place?" – "+moldSt(m).place:"")+(moldSt(m).date?" ("+moldSt(m).date.split("-").reverse().join("/")+")":""))+fact("Vì sao",moldSt(m).why)+fact("Ghi chú",m.note)+fact("Cập nhật",fmtDate(m.at)+" · "+m.by)+'</dl>'+(m.img?'<span data-img="'+esc(m.img)+'" class="bomthumb moldimg"></span>':'')+
   '<div class="row" style="margin-top:8px"><a class="btn small ghost" href="#khuon">Danh sách khuôn</a>'+(!b&&canBom()?'<button type="button" class="btn small" data-act="mold-bom" data-id="'+esc(m.id)+'">Tạo BOM cho khuôn này</button>':'')+'</div></section>'+
   shotCard(m)+
   '<section class="card"><h2>Lịch sử khuôn đến / đi</h2><div class="scroll"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nơi đi / nơi đến</th><th>Lý do</th><th class="n">Shot lũy kế</th><th>Ghi chú</th><th>Người nhập</th></tr></thead><tbody>'+(m.moves||[]).slice().reverse().map(function(v){return '<tr><td>'+v.date.split("-").reverse().join("/")+'</td><td>'+(v.type==="OUT"?"Khuôn đi":"Khuôn đến")+'</td><td>'+esc((v.type==="OUT"?"Đến: ":"Từ: ")+v.place)+'</td><td>'+esc(v.reason)+'</td><td class="n">'+(v.shots===""||v.shots==null?"—":fmtN(v.shots))+'</td><td>'+esc(v.note)+'</td><td>'+esc(v.by)+'</td></tr>';}).join("")+'</tbody></table></div></section>';
@@ -4391,7 +4515,7 @@ async function moldPhoto(file){
   if(hasOcr&&!memMode){
     say("Đang đọc bảng tên khuôn…");
     try{var o=await askOcr(OCR_MOLD,file,1800),n=0,set=function(k,v){if(v!=null&&String(v).trim()){f[k]=String(v).trim();n++;}};
-      set("toolId",o.toolId);set("partNo",o.partNo?String(o.partNo).replace(/\s+/g,"").toUpperCase():"");set("cavity",o.cavity);set("owner",o.owner);set("completion",o.completion);set("model",o.model);set("resin",o.resin);set("dim",o.dim);set("weight",o.weight);
+      set("toolId",o.toolId);set("partNo",o.partNo?String(o.partNo).replace(/\s+/g,"").toUpperCase():"");set("cavity",o.cavity);set("owner",o.owner);set("completion",o.completion);set("model",o.model);set("resin",o.resin);set("resinName",o.resinName);set("resinSup",o.resinSup);set("dim",o.dim);set("weight",o.weight);
       say(n?"Đã điền "+n+" ô từ ảnh. Bảng tên khuôn thường mòn và chói sáng: so lại từng ký tự với khuôn thật trước khi lưu.":"Không đọc được chữ trên ảnh. Chụp thẳng, gần và tránh chói, hoặc nhập tay.");}
     catch(e){say(errMsg(e,"Không đọc được ảnh. Nhập tay theo bảng tên khuôn."));}
   }else say("Chưa bật đọc chữ từ ảnh. Nhập tay theo bảng tên khuôn.");
@@ -4407,7 +4531,7 @@ async function saveMold(mode){
   var id=f.id;if(isNew){var a="23456789abcdefghjkmnpqrstuvwxyz";do{id="";for(var i=0;i<6;i++)id+=a[Math.floor(Math.random()*a.length)];}while(molds.has(id));}
   pending++;writeSeq++;
   try{
-    var r=await api("saveMold",{mold:{id:id,toolId:f.toolId,partNo:f.partNo,name:f.name,model:f.model,resin:f.resin,cavity:f.cavity,dim:f.dim,weight:f.weight,machine:f.machine,owner:f.owner,completion:f.completion,note:f.note,img:f.img},move:withMove?{type:f.type,place:f.place,reason:f.reason,date:f.date,shots:f.shots,note:f.mnote}:null});
+    var r=await api("saveMold",{mold:{id:id,toolId:f.toolId,partNo:f.partNo,name:f.name,model:f.model,resin:f.resin,resinName:f.resinName,resinSup:f.resinSup,cavity:f.cavity,dim:f.dim,weight:f.weight,machine:f.machine,owner:f.owner,completion:f.completion,note:f.note,img:f.img},move:withMove?{type:f.type,place:f.place,reason:f.reason,date:f.date,shots:f.shots,note:f.mnote}:null});
     molds.set(r.mold.id,r.mold);moldForm=null;
     toast(isNew?"Đã lưu khuôn. "+(moldBom(r.mold)?"Khuôn này đã có BOM.":"Khuôn đang ở hàng chờ BOM."):"Đã lưu.");
   }catch(e){if(e.code==="mold_dup"&&e.dupId){toast("Khuôn này đã có trong danh sách. Đang mở khuôn đó để ghi thêm lần đến / đi.");moldForm=null;location.hash="khuon-"+e.dupId;return;}toast(errMsg(e,"Không lưu được khuôn."));}
@@ -4423,8 +4547,8 @@ function shotCard(m){
     '</tbody></table></div><p class="hint">Quy đổi theo '+cavNum(m.cavity)+' cavity. Shot = (đạt + NG) ÷ số cavity, làm tròn lên, lấy từ sản lượng công nhân nhập.</p></section>';
 }
 function exportMoldCsv(){
-  var lines=[["Mã khuôn (EVS-ID)","P/N","Tên sản phẩm","Model","Mã nhựa","Cavity","Kích thước (mm)","Trọng lượng (kg)","Chủ sở hữu","Ngày hoàn thành","Trạng thái","Ở đâu","Vị trí kệ","Shot tháng này","Shot lũy kế","Ngày","Loại","Nơi đi / nơi đến","Lý do","Ghi chú","Người nhập","BOM"]];
-  liveMolds().forEach(function(m){var b=moldBom(m),st=moldSt(m);(m.moves&&m.moves.length?m.moves:[{}]).forEach(function(v){lines.push([m.toolId,m.partNo,m.name,m.model||"",m.resin||"",m.cavity,m.dim||"",m.weight||"",m.owner,m.completion,st.text,st.place||"",m.loc||"",moldShotMonth(m),moldShotAll(m),v.date?v.date.split("-").reverse().join("/"):"",v.type==="OUT"?"Khuôn đi":v.type?"Khuôn đến":"",v.place||"",v.reason||"",v.note||"",v.by||"",b?b.code:"Chờ BOM"]);});});
+  var lines=[["Mã khuôn (EVS-ID)","P/N","Tên sản phẩm","Model","Mã nhựa","Tên nhựa","NCC nhựa","Cavity","Kích thước (mm)","Trọng lượng (kg)","Chủ sở hữu","Ngày hoàn thành","Trạng thái","Ở đâu","Vị trí kệ","Shot tháng này","Shot lũy kế","Ngày","Loại","Nơi đi / nơi đến","Lý do","Ghi chú","Người nhập","BOM"]];
+  liveMolds().forEach(function(m){var b=moldBom(m),st=moldSt(m);(m.moves&&m.moves.length?m.moves:[{}]).forEach(function(v){lines.push([m.toolId,m.partNo,m.name,m.model||"",m.resin||"",m.resinName||"",m.resinSup||"",m.cavity,m.dim||"",m.weight||"",m.owner,m.completion,st.text,st.place||"",m.loc||"",moldShotMonth(m),moldShotAll(m),v.date?v.date.split("-").reverse().join("/"):"",v.type==="OUT"?"Khuôn đi":v.type?"Khuôn đến":"",v.place||"",v.reason||"",v.note||"",v.by||"",b?b.code:"Chờ BOM"]);});});
   saveFile("danh-sach-khuon-"+today()+".csv",new Blob(["﻿"+lines.map(function(r){return r.map(csvCell).join(",");}).join("\r\n")],{type:"text/csv"}));
 }
 
