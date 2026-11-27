@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-8fPVf1QHcWvvANVTN1AsynRMkHpFLvQBsFOL6nP0Dec='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+XuzzrxZwGJV1TeMsHII8kQMq5YLNXnXaOTQFQlfNg4=' 'sha256-a0T6JBBdtIeCmKi5Gv9v7YywWYEP/fQKAG9DTfeCuMM=' 'sha256-7iyvTeMyQutyccLG5vZFtgi02eSQe44o5vc2jdd3PMs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANMY N2P Warehouse Management System</title>
@@ -49,6 +49,8 @@ h2{font-size:20px} h3{font-size:16px;color:var(--muted)}
 .top{background:var(--navy);color:var(--on-navy);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;border-bottom:3px solid var(--green)}
 .brand{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:.2px}
 .mt-run{--mt:#2a9d63;--mtbg:#e2f4ea}.mt-end{--mt:#b26a00;--mtbg:#fff3d9}.mt-prep{--mt:#1f6fd6;--mtbg:#e4efff}.mt-stop{--mt:#6b7489;--mtbg:#eef0f4}
+.mt-bad{--mt:#c0392b;--mtbg:#fdecea}.mt-fix{--mt:#7b4fc7;--mtbg:#f1eaff}.mt-idle{--mt:#5a6472;--mtbg:#f1f3f7}
+.mtcard.mt-man{box-shadow:inset 0 0 0 2px var(--mt)}
 .mtpill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--mtbg);color:var(--mt);border:1px solid var(--mt)}
 .mtsum{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .mtchip{display:flex;align-items:baseline;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--mt,var(--crit));background:var(--mtbg,var(--crit-bg));color:var(--mt,var(--crit));font:inherit;font-weight:600;cursor:pointer}
@@ -296,7 +298,7 @@ if(location.protocol==="http:"&&!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(locat
 var API_URL=window.API_URL||"https://script.google.com/macros/s/AKfycbwOYOfIwX6iR4umea9SZOlpOEN1qQdiMkLZDbCDA8hF5VPyVPMuPDzWvQPdqntmtGqu-A/exec";
 /* ======================================================================================= */
 var BOT="",INIT="",tg=null,hasOcr=false,hasGroup=false,pending=0,writeSeq=0,authError="",srvError="",notConfigured=false,webMode=false,needLogin=false,loginError="",WEBQR=false,cred={name:"",token:"",exp:0,role:"KHO"},myRole="KHO";
-var ROLES={KHO:"Kho",IQC:"IQC / QA",SX:"Sản xuất",KH:"Kế hoạch",QLSX:"Quản lý sản xuất",QL:"Quản lý",KT:"Kỹ thuật",CN:"Công nhân đứng máy"};
+var ROLES={KHO:"Kho",IQC:"IQC / QA",SX:"Sản xuất",KH:"Kế hoạch",QLSX:"Quản lý sản xuất",QL:"Quản lý",KT:"Kỹ thuật",CN:"Công nhân đứng máy",HT:"Bộ phận hoàn thành",XT:"Đội xay / trộn nhựa"};
 /* ---------- ngôn ngữ: tiếng Việt / tiếng Hàn ---------- */
 var LANG="vi";try{LANG=localStorage.getItem("n2p-lang")==="ko"?"ko":"vi";}catch(e){}
 var KO={"Trang chủ": "홈", "Tạo tem": "라벨 생성", "IQC": "IQC", "Quét mã": "코드 스캔", "Kế hoạch": "생산계획", "Xuất cho máy": "기계 출고", "Sản lượng": "생산량", "Khuôn": "금형", "BOM": "BOM", "Tồn kho FIFO": "재고 (선입선출)", "Báo phế": "폐기 보고", "Lịch sử": "이력", "Chức năng": "기능", "Quản lý sản xuất": "생산관리", "Kho · IQC · Sản xuất": "창고 · IQC · 생산", "Kho": "창고", "IQC / QA": "IQC / QA", "Sản xuất": "생산", "Quản lý": "관리자", "Kỹ thuật": "기술", "Công nhân đứng máy": "설비 작업자", "Đổi người dùng": "사용자 변경", "Đăng nhập": "로그인", "Vào app": "앱 들어가기", "Họ tên": "이름", "Bộ phận": "부서", "Mã PIN của bộ phận": "부서 PIN 코드", "Nhập tên, chọn bộ phận và mã PIN của bộ phận đó. Kho và Sản xuất dùng chung một mã; các bộ phận khác có mã riêng. Công nhân đứng máy chọn \"Công nhân đứng máy\". Máy này chỉ nhớ tên và bộ phận; mã PIN phải nhập lại khi phiên đăng nhập hết hạn.": "이름을 입력하고 부서와 해당 부서의 PIN 코드를 선택하세요. 창고와 생산은 같은 코드를 쓰고, 다른 부서는 각자 코드가 있습니다. 설비 작업자는 \"설비 작업자\"를 선택하세요. 이 기기는 이름과 부서만 기억하며, 로그인 세션이 만료되면 PIN을 다시 입력해야 합니다.", "Từ hạt nhựa": "수지 원료부터", "đến thùng thành phẩm": "완제품 박스까지", "Mỗi bao nhựa, mỗi lot ép và mỗi thùng hàng đều có mã QR để truy xuất.": "모든 수지 백, 사출 로트, 제품 박스에 추적용 QR 코드가 있습니다.", "Không có việc nào đang chờ xử lý.": "대기 중인 작업이 없습니다.", "Tem chờ IQC": "IQC 대기 라벨", "Tem chờ cân": "계량 대기 라벨", "Lot chờ Kế hoạch": "계획 확인 대기 로트", "Lot chờ QLSX": "생산관리 확인 대기 로트", "Khuôn chờ BOM": "BOM 대기 금형", "Job chờ kho lập phiếu": "창고 출고표 대기 Job", "Job chờ SX, KH xác nhận": "생산·계획 확인 대기 Job", "Job chờ QLSX ra lệnh": "생산관리 지시 대기 Job", "Kho nhựa và vật tư": "수지 및 자재 창고", "Nhận nhựa, vật tư; tem xay, tem trộn": "수지·자재 입고, 분쇄·혼합 라벨", "Kiểm hàng nhập, ảnh NG": "수입검사, 불량 사진", "Mở tem, nhập kg thực tế": "라벨 열기, 실제 kg 입력", "Sơ đồ kệ, lot cũ dùng trước": "랙 배치도, 오래된 로트 먼저 사용", "Job kế hoạch": "계획 Job", "WO, PO → vật tư → lệnh sản xuất": "WO, PO → 자재 → 생산지시", "Phiếu xuất, xác nhận lot": "출고표, 로트 확인", "Nhập sản lượng": "생산량 입력", "Theo máy, theo ca": "설비별, 교대별", "Báo cáo, đối chiếu vật tư": "보고서, 자재 대조", "Nhật ký sản xuất": "생산일지", "In theo mẫu, xuất Excel": "양식 인쇄, Excel 내보내기", "Mã QR dán máy": "설비 부착 QR", "In cho từng máy ép": "사출기별 인쇄", "Đơn báo phế, biên bản hủy hàng": "폐기 보고서, 폐기 확인서", "Bảng tên, khuôn đến và đi": "명판, 금형 입출", "Danh mục vật liệu, xuất Excel": "자재 목록, Excel 내보내기", "Mọi lần nhập, xuất, sửa": "모든 입고·출고·수정", "chờ": "대기", "chờ cân": "계량 대기", "đang chờ": "대기 중", "lot chờ": "로트 대기", "pcs ca này": "pcs (이번 교대)", "chờ BOM": "BOM 대기", "Lượt truy cập hôm nay": "오늘 방문 수", "Máy truy cập hôm nay": "오늘 접속 기기", "Tổng lượt truy cập": "누적 방문 수", "Mục này cần đăng nhập bằng mã PIN của bộ phận.": "이 메뉴는 부서 PIN 코드로 로그인해야 합니다.", "Bạn đang xem trang chủ. Các mục bên dưới cần đăng nhập bằng mã PIN của bộ phận.": "현재 홈 화면입니다. 아래 메뉴는 부서 PIN 코드로 로그인해야 열 수 있습니다.", "Ngôn ngữ": "언어", "Chờ IQC": "IQC 대기", "Chờ Kế hoạch": "계획 확인 대기", "Chờ kho": "창고 대기", "Chờ xác nhận": "확인 대기", "Đang chạy": "진행 중", "Đã xuất": "출고량", "Đã hủy": "취소됨", "Đạt": "합격", "OK, đạt": "OK, 합격", "Bình thường": "정상", "Bất thường": "이상", "Khác": "기타", "Tất cả": "전체", "Tổng": "합계", "Tổng:": "합계:", "hoặc": "또는", "Mã": "코드", "Tên": "이름", "Màu": "색상", "Máy": "설비", "Ngày": "날짜", "Ghi chú": "비고", "Loại": "유형", "Nhóm": "그룹", "Dòng": "행", "Thao tác": "작업", "Trạng thái": "상태", "Tồn": "재고", "Xuất": "출고", "Thêm": "추가", "Mở": "열기", "Ảnh": "사진", "Vị trí": "위치", "Lý do": "사유", "Đơn vị": "단위", "ĐV": "단위", "Mô tả": "설명", "Tuổi": "경과일", "Thời gian": "시간", "Cập nhật": "업데이트", "Xác nhận": "확인", "Hủy bỏ": "취소", "Lưu thay đổi": "변경 저장", "Thêm dòng": "행 추가", "Xóa dòng": "행 삭제", "Thêm ảnh": "사진 추가", "Bỏ ảnh": "사진 삭제", "Gắn ảnh": "사진 첨부", "Chọn hoặc chụp ảnh": "사진 선택 또는 촬영", "Chụp hoặc chọn ảnh": "사진 촬영 또는 선택", "Tải file Excel": "Excel 파일 다운로드", "Xuất CSV": "CSV 내보내기", "Xuất CSV chi tiết": "상세 CSV 내보내기", "Danh sách": "목록", "Chọn từ danh sách": "목록에서 선택", "Số dòng": "행 수", "Người tạo": "작성자", "Tạo lúc": "작성 시각", "Người nhập": "입력자", "Người nhận": "수령자", "Người làm": "작업자", "Nhà cung cấp": "공급업체", "Khách hàng": "고객", "Công nhân": "작업자", "Ca làm việc": "근무 교대", "Hiện tại:": "현재:", "cái": "개", "cuộn": "롤", "hộp": "박스", "lít": "리터", "Chưa có dòng nào.": "아직 행이 없습니다.", "Chưa xác nhận.": "아직 확인되지 않았습니다.", "Không ghi nguồn.": "출처 없음.", "Ca ngày (7:30–16:30)": "주간 (7:30–16:30)", "Ca ngày + tăng ca (7:30–19:30)": "주간 + 잔업 (7:30–19:30)", "Ca đêm (19:30–7:30 sáng hôm sau)": "야간 (19:30–다음날 7:30)", "ca ngày": "주간", "ca đêm": "야간", "Ca ngày": "주간", "Ca đêm": "야간", "Nhựa zin": "신재 수지", "Nhựa xay": "분쇄재", "Nhựa trộn": "혼합 수지", "Vật tư": "자재", "Nhựa": "수지", "Trộn": "혼합", "Ép nhựa": "사출", "Nhận nhựa zin": "신재 수지 입고", "Nhận vật tư khác": "기타 자재 입고", "Tạo tem nhựa xay": "분쇄재 라벨 생성", "Tạo tem nhựa trộn": "혼합 수지 라벨 생성", "Tạo tem nhựa xay (XP)": "분쇄재 라벨 생성 (XP)", "Tạo tem nhựa trộn (TR)": "혼합 수지 라벨 생성 (TR)", "Nhập kho bao nhựa mới": "신규 수지 백 입고", "Nhận hàng (nhựa zin, lug, plate, primer, keo): tạo tem QR. Hàng ở trạng thái Chờ IQC.": "입고 (신재 수지, lug, plate, primer, 접착제): QR 라벨 생성. 상태는 IQC 대기입니다.", "Tạo tem xong, hàng ở trạng thái Chờ IQC. IQC chọn OK thì mới vào tồn kho.": "라벨 생성 후 IQC 대기 상태가 됩니다. IQC가 OK를 선택해야 재고에 들어갑니다.", "Lug, plate, primer, keo, packing… Tạo tem xong, hàng ở trạng thái Chờ IQC. IQC chọn OK thì mới vào tồn kho.": "Lug, plate, primer, 접착제, packing… 라벨 생성 후 IQC 대기 상태가 됩니다. IQC가 OK를 선택해야 재고에 들어갑니다.", "Xay: tạo tem XP từ bao nguồn. Xay xong quét mã, nhập kg thực tế.": "분쇄: 원본 백에서 XP 라벨을 생성합니다. 분쇄 후 코드를 스캔해 실제 kg을 입력하세요.", "Trộn: chọn bao zin và bao xay theo FIFO, tạo tem TR. Trộn xong quét mã, nhập kg thực tế.": "혼합: 선입선출에 따라 신재 백과 분쇄 백을 선택해 TR 라벨을 생성합니다. 혼합 후 코드를 스캔해 실제 kg을 입력하세요.", "Tạo tem, chờ IQC": "라벨 생성, IQC 대기", "Dán ảnh tem bao nhựa": "수지 백 라벨 사진 붙여넣기", "Dán ảnh tem trên kiện vật tư": "자재 포장 라벨 사진 붙여넣기", "Chụp ảnh tem": "라벨 촬영", "(Ctrl+V), kéo thả vào đây, hoặc chọn ảnh. App đọc tên vật tư, Lot No, số lượng. Ảnh không lưu lại.": "(Ctrl+V), 여기로 끌어 놓거나 사진을 선택하세요. 앱이 자재명, Lot No, 수량을 읽습니다. 사진은 저장되지 않습니다.", "(Ctrl+V), kéo thả vào đây, hoặc chọn ảnh. Ảnh chỉ dùng để đọc chữ, không lưu lại.": "(Ctrl+V), 여기로 끌어 놓거나 사진을 선택하세요. 사진은 글자 인식에만 쓰이고 저장되지 않습니다.", "Tên / Grade · Màu": "이름 / Grade · 색상", "Lot No trên tem": "라벨의 Lot No", "Lot No nhựa": "수지 Lot No", "Ngày nhận nhựa": "수지 입고일", "Nhận hôm nay": "오늘 입고", "Ngày nhận": "입고일", "Tổng nhận về": "총 입고량", "Tổng nhận về (kg)": "총 입고량 (kg)", "Kg mỗi bao": "백당 kg", "Số bao": "백 수", "Số kiện": "포장 수", "Số lượng mỗi kiện": "포장당 수량", "Số bao mỗi pallet": "팔레트당 백 수", "Số kiện mỗi pallet": "팔레트당 포장 수", "Nhập tổng nhận về và kg mỗi bao, app tự tính số bao. Bỏ trống tổng thì tự nhập số bao.": "총 입고량과 백당 kg을 입력하면 앱이 백 수를 계산합니다. 총량을 비우면 백 수를 직접 입력하세요.", "Nhập tổng nhận về và số lượng mỗi kiện, app tự chia số kiện. Bỏ trống tổng thì tự nhập số kiện.": "총 입고량과 포장당 수량을 입력하면 앱이 포장 수를 나눕니다. 총량을 비우면 포장 수를 직접 입력하세요.", "Cách dán tem": "라벨 부착 방법", "Mỗi bao một tem": "백마다 라벨 1장", "Mỗi kiện một tem": "포장마다 라벨 1장", "Mỗi pallet một tem": "팔레트마다 라벨 1장", "Một tem cho cả lô": "로트 전체에 라벨 1장", "Loại vật tư": "자재 유형", "Tên vật tư": "자재명", "Mã vật tư": "자재 코드", "Hàng của công ty nào": "소유 회사", "Chủ sở hữu": "소유자", "Đơn vị tính": "단위", "Vị trí trong kho": "창고 내 위치", "Vị trí trong kho nhựa": "수지 창고 내 위치", "Vị trí trong kho vật tư": "자재 창고 내 위치", "Chú thích màu FIFO": "선입선출 색상 범례", "Chú thích sơ đồ": "배치도 범례", "Lấy trước": "먼저 사용", "Lấy kế tiếp": "다음 사용", "Lấy sau": "나중 사용", "Cùng loại, lấy trước": "같은 품목, 먼저 사용", "Cùng loại, kế tiếp": "같은 품목, 다음 사용", "Cùng loại, lấy sau": "같은 품목, 나중 사용", "Cùng loại: Lấy trước": "같은 품목: 먼저 사용", "Cùng loại: Lấy kế tiếp": "같은 품목: 다음 사용", "Hàng loại khác": "다른 품목", "Ô gợi ý": "추천 칸", "Chọn ô gợi ý": "추천 칸 선택", "Bỏ chọn hết": "전체 선택 해제", "Chưa chọn ô nào (chưa xếp kệ).": "선택한 칸이 없습니다 (랙 미적재).", "Hết chỗ, để cạnh các kệ này": "공간 부족, 이 랙 옆에 둠", "Nhập tên hàng ở trên, app sẽ gợi ý ô xếp.": "위에 품목명을 입력하면 앱이 적재 칸을 추천합니다.", "Loại này chưa có trong kho. Gợi ý một dãy còn trống hẳn để dành riêng cho loại này. Đây chỉ là gợi ý: ô không trống hoặc không hợp lý thì chọn ô khác.": "이 품목은 아직 창고에 없습니다. 이 품목 전용으로 완전히 빈 열을 추천합니다. 추천일 뿐이니 칸이 비어 있지 않거나 맞지 않으면 다른 칸을 선택하세요.", ": bấm vào các ô để chọn, bấm lại để bỏ. Số trong ô là số tem đang nằm ở đó. Địa chỉ dạng A1-1 là khu A, tầng 1, ô 1.": ": 칸을 눌러 선택하고 다시 누르면 해제됩니다. 칸 안의 숫자는 그 칸의 라벨 수입니다. A1-1 = A구역, 1단, 1칸.", ": bấm vào các ô để chọn, bấm lại để bỏ. Số trong ô là số tem đang nằm ở đó. Địa chỉ dạng A3 là dãy A, ô 3. Ô 1–4 là tầng 1, ô 5–8 là tầng 2.": ": 칸을 눌러 선택하고 다시 누르면 해제됩니다. 칸 안의 숫자는 그 칸의 라벨 수입니다. A3 = A열 3칸. 1–4칸은 1단, 5–8칸은 2단.", "Bao nguồn": "원본 백", "Cách chọn bao nguồn": "원본 백 선택 방법", "Chọn bao nguồn bằng ảnh mã QR": "QR 사진으로 원본 백 선택", "Quét QR bao nguồn": "원본 백 QR 스캔", "Lot gốc": "원 로트", "Chọn bao nhựa đã dùng để ép ra cuống/hàng NG đem xay. Lot trên tem = lot gốc + XP (bao nguồn là TR thì bỏ TR, ghi XP).": "런너/불량품을 사출한 수지 백을 선택하세요. 라벨 로트 = 원 로트 + XP (원본이 TR이면 TR을 빼고 XP 기재).", "— Bao nguồn chưa có trong hệ thống: nhập tay —": "— 시스템에 없는 원본 백: 직접 입력 —", "Kg dự kiến (có thể để trống)": "예상 kg (비워도 됨)", "Bộ phận xay nhựa": "분쇄 담당", "Máy ép / máy xay": "사출기 / 분쇄기", "Bao nhựa zin": "신재 수지 백", "Bao nhựa xay": "분쇄재 백", "Kg zin lấy ra": "신재 사용 kg", "Kg xay lấy ra": "분쇄재 사용 kg", "Quét tem từng bao": "백별 라벨 스캔", "Quét tem bao nhựa zin, nhập kg lấy ra; quét tem nhựa xay, nhập kg. Trộn nhiều bao cũng được. App tự tính tỷ lệ và tạo tem, rồi trừ tồn từng bao.": "신재 백 라벨을 스캔해 사용 kg을 입력하고, 분쇄재 라벨을 스캔해 kg을 입력하세요. 여러 백 혼합도 가능합니다. 앱이 비율을 계산해 라벨을 만들고 백별 재고를 차감합니다.", "Quét lần lượt từng bao. Bao zin và tem xay được nhận diện tự động.": "백을 하나씩 스캔하세요. 신재 백과 분쇄 라벨은 자동 인식됩니다.", "Chưa có bao nào. Quét tem bao nhựa zin và tem nhựa xay sẽ trộn.": "아직 백이 없습니다. 혼합할 신재 백과 분쇄재 라벨을 스캔하세요.", "Tỷ lệ trộn hiện ra khi đã nhập kg.": "kg을 입력하면 혼합 비율이 표시됩니다.", "Danh sách xếp theo FIFO, bao cũ nhất đứng đầu. Tạo tem xong, hai bao nguồn được trừ tồn ngay.": "선입선출 순으로 정렬되며 가장 오래된 백이 맨 위입니다. 라벨 생성 시 두 원본 백 재고가 즉시 차감됩니다.", "Hai bao khác lot gốc. Lot gốc ghi trên tem": "두 백의 원 로트가 다릅니다. 라벨에 기재될 원 로트", "Cần ít nhất một bao nhựa zin và một bao nhựa xay đang": "신재 백 1개와 분쇄재 백 1개 이상이 필요합니다", ". Chưa có nhựa xay đã cân.": ". 계량된 분쇄재가 없습니다.", "Sau máy xay: lot gốc + XP": "분쇄 후: 원 로트 + XP", "Zin + xay: lot gốc + TR": "신재 + 분쇄: 원 로트 + TR", "Loại tem": "라벨 유형", "Tem để in": "인쇄할 라벨", "Hiện tem để in lại": "재인쇄용 라벨 보기", "IQC quét tem, chụp ảnh, chọn OK hoặc NG. OK thì hàng vào tồn kho.": "IQC가 라벨을 스캔·촬영하고 OK 또는 NG를 선택합니다. OK이면 재고에 들어갑니다.", "Hàng chờ IQC": "IQC 대기 품목", "Không có hàng nào chờ IQC.": "IQC 대기 품목이 없습니다.", "Hàng IQC NG": "IQC 불합격 품목", "Không có hàng NG.": "불합격 품목이 없습니다.", "Kết quả IQC": "IQC 결과", "IQC đạt, nhập kho": "IQC 합격, 입고", "Hàng chờ IQC chỉ tài khoản IQC hoặc Quản lý mở được. Bấm mã để mở, hoặc quét QR trên tem.": "IQC 대기 품목은 IQC 또는 관리자 계정만 열 수 있습니다. 코드를 누르거나 라벨 QR을 스캔하세요.", "Tài khoản của bạn có quyền IQC. Bấm mã để mở, hoặc quét QR trên tem.": "IQC 권한이 있는 계정입니다. 코드를 누르거나 라벨 QR을 스캔하세요.", "Quét mã QR bằng camera": "카메라로 QR 스캔", "Quét tem bằng camera": "카메라로 라벨 스캔", "Chọn ảnh mã QR": "QR 사진 선택", "hoặc gõ mã bao": "또는 백 코드 입력", "Quét mã trên bao": "백 코드 스캔", "Quét QR bao / pallet": "백 / 팔레트 QR 스캔", "Quét mã QR trên tem bao nhựa hoặc trên phiếu xuất. Nếu không quét được, chọn ảnh mã QR hoặc gõ 6 ký tự mã bao in dưới mã QR.": "수지 백 라벨이나 출고표의 QR을 스캔하세요. 안 되면 QR 사진을 선택하거나 QR 아래 6자리 백 코드를 입력하세요.", "Mỗi lần lấy nhựa đi sản xuất: quét mã bao, nhập kg xuất.": "생산용 수지를 꺼낼 때마다 백 코드를 스캔하고 출고 kg을 입력하세요.", "Mã bao": "백 코드", "Lot nhựa": "수지 로트", "Nguồn gốc": "출처", "Làm từ": "원료", "Đã dùng cho": "사용처", "Nhật ký bao": "백 이력", "Ghi xuất kho": "출고 기록", "Tồn hiện tại": "현재 재고", "Tồn đúng (kg)": "실제 재고 (kg)", "Lưu điều chỉnh": "조정 저장", "Lưu vị trí": "위치 저장", "Hủy tem này": "이 라벨 취소", "Sửa sai: điều chỉnh tồn, hủy tem": "오류 수정: 재고 조정, 라벨 취소", "Hủy tem không trả lại kg cho các bao nguồn. Nếu cần, mở bao nguồn và điều chỉnh tồn.": "라벨을 취소해도 원본 백에 kg이 돌아가지 않습니다. 필요하면 원본 백을 열어 재고를 조정하세요.", "Chưa có tem xay/trộn nào tạo từ bao này.": "이 백으로 만든 분쇄/혼합 라벨이 없습니다.", "Chưa dùng được (chờ IQC, chờ cân)": "사용 불가 (IQC 대기, 계량 대기)", "Đang dùng với tên": "현재 사용자", "Nhận lúc": "입고 시각", "còn 1 bao cùng loại nhập trước, nên dùng trước:": "먼저 입고된 같은 품목 백이 1개 있어 먼저 사용하세요:", "Lần nhập này:": "이번 입력:", "Tồn kho theo FIFO": "선입선출 재고", "Kho nhựa": "수지 창고", "Kho vật tư": "자재 창고", "Sơ đồ giá kệ": "랙 배치도", "Nhựa zin tồn": "신재 수지 재고", "Nhựa xay tồn": "분쇄재 재고", "Nhựa trộn tồn": "혼합 수지 재고", "Vật tư tồn": "자재 재고", "Chỉ gồm hàng IQC đã xác nhận OK. Thứ tự FIFO tính riêng theo từng loại và tên vật tư. Các kiện cùng lot, cùng ngày nhận có chung một màu.": "IQC OK 품목만 포함합니다. 선입선출 순서는 유형·자재명별로 계산하며, 같은 로트·같은 입고일 포장은 같은 색입니다.", "Màu ô theo kiện cần lấy sớm nhất đang nằm ở đó, tính riêng cho từng loại nhựa, vật tư. Số trong ô là số tem; số sau dấu + là số tem để cạnh kệ. Bấm một ô để xem hàng ở ô đó.": "칸 색은 그 칸에서 가장 먼저 사용할 포장 기준이며 수지·자재별로 계산합니다. 칸 숫자는 라벨 수, + 뒤 숫자는 랙 옆 라벨 수입니다. 칸을 누르면 품목을 볼 수 있습니다.", "Dãy A": "A열", "Dãy B": "B열", "Dãy C": "C열", "Dãy D": "D열", "Dãy E": "E열", "Dãy F": "F열", "Dãy G": "G열", "Thiếu nhựa": "수지 부족", "Xuất nhựa, vật tư cho máy": "설비로 수지·자재 출고", "Tạo phiếu xuất": "출고표 생성", "Phiếu vừa tạo": "방금 만든 출고표", "Phiếu đã xuất": "출고된 전표", "Xem phiếu": "전표 보기", "Số phiếu": "전표 번호", "Phiếu": "전표", "Máy số": "기계 번호", "Lot sản xuất": "생산 로트", "Lot sản xuất:": "생산 로트:", "Xuất cho (máy, mã hàng)": "출고 대상 (설비, 품번)", "Xuất lúc": "출고 시각", "Số lượng xuất (kg)": "출고 수량 (kg)", "Số lượng xuất (pcs)": "출고 수량 (pcs)", "SL xuất": "출고량", "Tổng xuất": "총 출고", "Nhập số máy. Lot sản xuất tự ghép theo dạng AM8-261117, sửa được.": "설비 번호를 입력하세요. 생산 로트는 AM8-261117 형식으로 자동 생성되며 수정할 수 있습니다.", "Chụp hoặc dán ảnh các bao nhựa": "수지 백 사진 촬영 또는 붙여넣기", "Chụp ảnh các bao nhựa sắp xuất. Bao có tem QR được nhận ngay; bao chỉ có tem nhà cung cấp thì app đọc chữ trên tem.": "출고할 수지 백을 촬영하세요. QR 라벨이 있는 백은 바로 인식되고, 공급업체 라벨만 있으면 앱이 글자를 읽습니다.", "(tem QR của app hoặc tem nhà cung cấp). App đọc tem và thêm mỗi bao thành một dòng bên dưới.": "(앱 QR 라벨 또는 공급업체 라벨). 앱이 라벨을 읽어 백마다 아래에 한 행씩 추가합니다.", "Chưa có dòng nào. Chụp ảnh bao nhựa ở trên, hoặc thêm dòng nhập tay.": "아직 행이 없습니다. 위에서 수지 백을 촬영하거나 직접 입력 행을 추가하세요.", "Thêm dòng nhập tay": "직접 입력 행 추가", "Kiểm tra kg từng dòng rồi tạo phiếu. Bao có tem được trừ tồn ngay.": "행별 kg을 확인한 뒤 출고표를 만드세요. 라벨이 있는 백은 재고가 즉시 차감됩니다.", "Ký xác nhận (tên in trên phiếu)": "확인 서명 (전표에 인쇄될 이름)", "Người lập phiếu": "작성자", "Tải ảnh phiếu": "전표 이미지 다운로드", "Tải ảnh phiếu có mã QR rồi gửi vào nhóm.": "QR이 있는 전표 이미지를 다운로드해 그룹에 보내세요.", "Chép nội dung": "내용 복사", "Ảnh phiếu": "전표 사진", "Bấm mã bao để xem bao đó làm từ nhựa zin, nhựa xay nào.": "백 코드를 누르면 어떤 신재·분쇄재로 만들었는지 볼 수 있습니다.", "Xác nhận lot sản xuất": "생산 로트 확인", "Mở lot sản xuất để xác nhận": "확인할 생산 로트 열기", "Lot nhựa, vật tư dùng cho lot sản xuất này": "이 생산 로트에 사용된 수지·자재 로트", "Nhựa, vật tư đã xuất cho lot này": "이 로트에 출고된 수지·자재", "Bước 1 · Kế hoạch xác nhận khớp PO": "1단계 · 계획팀 PO 일치 확인", "Bước 2 · Quản lý sản xuất xác nhận": "2단계 · 생산관리 확인", "Tôi xác nhận lot sản xuất này khớp với PO": "이 생산 로트가 PO와 일치함을 확인합니다", "Ghi chú của Kế hoạch": "계획팀 비고", "Ngày giờ cần giao hàng": "납품 필요 일시", "Ngày giờ giao hàng": "납품 일시", "Số lượng cần giao (pcs)": "납품 필요 수량 (pcs)", "Chờ Kế hoạch xác nhận trước.": "계획팀 확인을 먼저 기다리는 중입니다.", "Bộ phận Kế hoạch đăng nhập bằng mã PIN của mình để xác nhận bước này.": "계획팀이 자기 PIN으로 로그인해 이 단계를 확인합니다.", "Đăng nhập bằng tài khoản Kế hoạch": "계획팀 계정으로 로그인", "Kế hoạch xác nhận": "계획팀 확인", "Kho xác nhận": "창고 확인", "Quy đổi ra bán thành phẩm theo BOM": "BOM 기준 반제품 환산", "Có thể hoàn thành trong ca": "교대 내 완료 가능", "Vật tư đã xuất đủ cho": "출고 자재로 가능한 수량", "Vật tư đủ cho": "자재로 가능한 수량", "Đủ cho": "가능 수량", "Năng lực máy trong ca": "교대당 설비 능력", "Số giờ chạy máy trong ca": "교대 내 설비 가동 시간", "Số pcs là số tối đa tính theo định mức, chưa trừ hàng NG, nhựa xả máy và vật tư còn tồn ở máy từ ca trước. Dòng \"Chưa xuất\" không được tính vào giới hạn.": "pcs는 원단위 기준 최대치이며 불량, 퍼징 수지, 이전 교대 설비 잔량을 빼지 않은 값입니다. \"미출고\" 행은 한도에 포함되지 않습니다.", "Sản lượng thực tế và đối chiếu vật tư": "실제 생산량 및 자재 대조", "Bán thành phẩm": "반제품", "Thành phẩm": "완제품", "Bán thành phẩm (chỉ ép)": "반제품 (사출만)", "Thành phẩm (gồm đóng gói)": "완제품 (포장 포함)", "Thành phẩm (TP)": "완제품 (TP)", "Mã QR dán ở máy ép": "사출기 부착 QR", "Quét mã QR dán ở máy ép, hoặc chọn máy:": "사출기에 붙은 QR을 스캔하거나 설비를 선택하세요:", "Nhập sản lượng theo máy": "설비별 생산량 입력", "Hàng NL hay AM": "NL / AM 품목", "Hàng NL hay AM (tiền tố lot SX)": "NL / AM 품목 (생산 로트 접두사)", "Hàng NL": "NL 품목", "Hàng AM": "AM 품목", "Ngày sản xuất": "생산일", "Mã hàng": "품번", "Mã hàng theo BOM": "BOM 품번", "Số thùng": "박스 수", "Số pcs / thùng": "박스당 pcs", "Số lẻ (pcs)": "낱개 (pcs)", "Hàng NG theo lý do (pcs) · bỏ trống nếu không có": "사유별 불량 (pcs) · 없으면 비워 두기", "Lưu sản lượng": "생산량 저장", "Lần ghi nhận này": "이번 기록", "Mỗi lần chỉ nhập số làm được": "매번 생산한 수량만 입력", ", app tự cộng dồn. Không nhập lại tổng cả ca. Nên nhập khoảng 2 tiếng một lần; giờ nhập được ghi vào nhật ký là giờ kiểm tra.": ", 앱이 누적합니다. 교대 전체 합계를 다시 입력하지 마세요. 약 2시간마다 입력하면 입력 시각이 일지의 점검 시각으로 기록됩니다.", "từ lần nhập trước đến giờ": "지난 입력 이후", "Chưa có sản lượng. Công nhân quét mã QR dán ở máy để nhập.": "생산량이 없습니다. 작업자가 설비 QR을 스캔해 입력하세요.", "Biến dạng": "변형", "Lõm": "싱크마크", "Trầy xước": "스크래치", "Tạp chất": "이물", "D.dầu": "오일 자국", "NG LÕM, NỨT": "불량 싱크·크랙", "Purging và mẫu hư lúc chỉnh máy": "조정 시 퍼징 및 불량 샘플", "Phần của QA / Kỹ thuật. Dùng chung máy, hàng NL/AM, ca, ngày và mã hàng ở form phía trên.": "QA / 기술 입력란. 위 양식의 설비, NL/AM, 교대, 날짜, 품번을 함께 사용합니다.", "Trọng lượng Purging (gram)": "퍼징 중량 (g)", "Số mẫu hư bỏ lúc chỉnh máy": "조정 시 폐기 샘플 수", "Số mẫu hư bỏ lúc chỉnh máy (pcs)": "조정 시 폐기 샘플 수 (pcs)", "Lưu phần QA / Kỹ thuật": "QA / 기술 입력 저장", "1. Đổi mã sản xuất (khác khuôn, khác nguyên liệu, khác màu sắc)": "1. 품번 변경 (금형·원료·색상 다름)", "2. Đổi mã sản xuất (cùng màu, khác loại nguyên liệu)": "2. 품번 변경 (같은 색, 다른 원료)", "3. Khuôn / máy hư": "3. 금형 / 설비 고장", "4. Nghỉ giải lao trên 10 phút": "4. 10분 이상 휴식", "Báo cáo sản lượng": "생산량 보고서", "Từ ngày": "시작일", "Đến ngày": "종료일", "SL thực tế": "실제 수량", "SL khai báo": "신고 수량", "Chênh lệch": "차이", "Sản xuất ra": "생산 수량", "WIP (dở dang)": "WIP (재공)", "WIP dở dang (pcs)": "재공 WIP (pcs)", "\"Vật tư đủ cho\" tính theo BOM từ các phiếu xuất của cả lot và mã hàng đó (gộp ca ngày và ca đêm). \"Chênh lệch\" = vật tư đủ cho − (đạt + NG) của dòng này. Dấu — nghĩa là chưa có phiếu xuất hoặc chưa có BOM cho mã đó.": "\"자재로 가능한 수량\"은 해당 로트·품번의 모든 출고표를 BOM으로 환산한 값입니다 (주간·야간 합산). \"차이\" = 가능 수량 − (양품 + 불량). — 는 출고표나 BOM이 없다는 뜻입니다.", "Mỗi máy một mã cố định, in một lần rồi dán. Khổ in 100 × 50 mm như tem bao; in A4 thì chọn \"Tải ảnh\" từng mã.": "설비마다 고정 코드 1개, 한 번 인쇄해 부착합니다. 백 라벨과 같은 100 × 50 mm, A4는 코드별 \"이미지 다운로드\"를 선택하세요.", "In mã QR dán máy": "설비 부착 QR 인쇄", "In tất cả 23 mã": "23개 전체 인쇄", "NHẬT KÝ SẢN XUẤT": "생산일지", "In / lưu PDF (A3 ngang)": "인쇄 / PDF 저장 (A3 가로)", "Mỗi máy và mã hàng một trang, mỗi cột là một ca (ca ngày, ca đêm), tối đa 11 cột một trang như mẫu giấy.": "설비·품번별 1페이지, 열마다 1교대(주간, 야간), 종이 양식처럼 페이지당 최대 11열.", "Nhân viên đứng máy kiểm tra ngoại quan đầu chuyền và ghi số OK, NG mỗi lần nhập (khoảng 2 giờ/lần). Bất thường: ghi vào cột NG và xử lý theo lưu trình bất thường.": "설비 작업자가 라인 초품 외관을 점검하고 입력 시마다 OK, NG 수를 기록합니다 (약 2시간마다). 이상 시 NG 열에 기록하고 이상 처리 절차를 따르세요.", "Kiểm tra ngoại quan đầu chuyền trước khi đóng gói": "포장 전 라인 외관 검사", "Biện pháp phòng tránh lỗi": "불량 예방 대책", "Phát sinh (special matters)": "특이사항 (special matters)", "Diễn giải tình trạng": "상태 설명", "QC kiểm tra": "QC 검사", "QC xác nhận": "QC 확인", "* Lỗi xảy ra do điều kiện thông số máy chạy không ổn định\n-› QC: tăng tần suất kiểm tra\n-› Kỹ thuật: kiểm tra điều chỉnh thông số máy": "* 설비 조건 불안정으로 발생한 불량\n-› QC: 검사 빈도 증가\n-› 기술: 설비 조건 점검·조정", "BOM – Danh mục vật liệu": "BOM – 자재 명세서", "Danh sách BOM": "BOM 목록", "Tạo BOM mới": "새 BOM 만들기", "Lưu BOM": "BOM 저장", "Xóa BOM": "BOM 삭제", "Tìm theo mã, tên, model": "코드, 이름, 모델로 검색", "BOM lập ở đây được dùng ngay cho phần quy đổi bán thành phẩm và nhật ký sản xuất, ưu tiên hơn sheet BOM dán từ Excel (187 dòng).": "여기서 만든 BOM은 반제품 환산과 생산일지에 바로 쓰이며, Excel에서 붙여 넣은 BOM 시트(187행)보다 우선합니다.", "Mã sản phẩm": "제품 코드", "Mã sản phẩm (TP)": "제품 코드 (TP)", "Tên sản phẩm": "제품명", "Mã BTP": "반제품 코드", "Mã TP": "완제품 코드", "Mã BTP (chi tiết ép, chưa đóng gói)": "반제품 코드 (사출품, 미포장)", "Dùng cho mã hàng": "적용 품번", "Tên vật liệu": "자재명", "Mã vật liệu (Part No.)": "자재 코드 (Part No.)", "Định mức / pcs": "원단위 / pcs", "Số cavity": "캐비티 수", "Cycle time (giây)": "사이클 타임 (초)", "Ghi chú (Notes)": "비고 (Notes)", "Ghi chú dưới tiêu đề": "제목 아래 비고", "Mô tả (chi tiết)": "설명 (상세)", "Vật liệu (Material)": "재질 (Material)", "Màu sắc (Color)": "색상 (Color)", "Nhà cung cấp (Supplier)": "공급업체 (Supplier)", "Số lượng (QTY)": "수량 (QTY)", "Cấp mẫu/Mua": "지급/구매", "Nguyên vật liệu": "원자재", "Khung nhựa": "수지 프레임", "Ngôn ngữ thứ hai": "제2 언어", "Cấp độ": "레벨", "A. KHUNG LẮP RÁP CHÍNH (FRAME) — Component MOLDED của TP": "A. 주 조립 프레임 (FRAME) — 완제품의 MOLDED 부품", "B. PHỤ KIỆN & LINH KIỆN LẮP RÁP — Component INSERT của BTP": "B. 부속품 및 조립 부품 — 반제품의 INSERT 부품", "C. LỚP PHỦ BỀ MẶT & ĐÓNG GÓI — biến BTP → TP": "C. 표면 코팅 및 포장 — 반제품 → 완제품", "Thêm dòng vào nhóm A": "A그룹에 행 추가", "Thêm dòng vào nhóm B": "B그룹에 행 추가", "Thêm dòng vào nhóm C": "C그룹에 행 추가", "Dự phòng hao hụt nhựa (%)": "수지 손실 여유율 (%)", "ở nhóm A là định mức nhựa mỗi pcs (đã gồm runner), app dùng số này để quy đổi. Nhóm B là vật tư gắn lúc ép (lug, plate). Nhóm C là vật tư ở khâu hoàn thành (packing, keo, primer).": "A그룹은 pcs당 수지 원단위(런너 포함)이며 앱이 환산에 사용합니다. B그룹은 사출 시 삽입 자재(lug, plate), C그룹은 완성 공정 자재(packing, 접착제, primer)입니다.", "CHỦNG LOẠI (MODEL)": "모델 (MODEL)", "Danh sách khuôn": "금형 목록", "Nhập khuôn": "금형 입력", "Mã khuôn": "금형 코드", "Mã khuôn (EVS-ID)": "금형 코드 (EVS-ID)", "P/N (mã hàng của khuôn)": "P/N (금형 품번)", "Tìm theo mã khuôn, P/N, tên": "금형 코드, P/N, 이름으로 검색", "Chụp / chọn ảnh bảng tên khuôn": "금형 명판 촬영 / 선택", "Chụp bảng tên khuôn để app tự điền, hoặc nhập tay. Kiểm tra lại từng ô trước khi lưu.": "금형 명판을 촬영하면 앱이 자동 입력합니다. 직접 입력도 가능하며 저장 전에 각 칸을 확인하세요.", "Ngày hoàn thành khuôn": "금형 완성일", "Shot lũy kế": "누적 쇼트", "Số shot lũy kế (nếu có)": "누적 쇼트 수 (있으면)", "Khuôn đến": "금형 입고", "Khuôn đi": "금형 반출", "Lý do đến": "입고 사유", "Ngày đến": "입고일", "Nơi đi (khuôn từ đâu đến)": "출발지 (금형이 온 곳)", "Nơi đi / nơi đến": "출발지 / 도착지", "Nơi đi / đến gần nhất": "최근 출발지 / 도착지", "Chuyển từ vendor khác": "타 업체에서 이관", "Đi sửa chữa": "수리 반출", "Đã chuyển đi": "반출됨", "Lưu khuôn vào danh sách": "금형 목록에 저장", "Lưu thông tin khuôn": "금형 정보 저장", "Sửa thông tin khuôn": "금형 정보 수정", "Xóa khuôn": "금형 삭제", "Ghi chú về khuôn": "금형 비고", "Lịch sử khuôn đến / đi": "금형 입출 이력", "Ghi thêm lần khuôn đến / đi, hoặc cập nhật số shot": "금형 입출 추가 기록 또는 쇼트 수 업데이트", "Ghi chú lần này": "이번 비고", "Lưu lần này": "이번 기록 저장", "Không có khuôn nào đang chờ BOM.": "BOM 대기 금형이 없습니다.", "Lập đơn báo phế": "폐기 보고서 작성", "Lưu đơn báo phế": "폐기 보고서 저장", "Hàng báo phế": "폐기 품목", "Ngày báo phế": "폐기 보고일", "SL báo phế": "폐기 수량", "Tổng báo phế:": "총 폐기 수량:", "Người báo": "보고자", "Người lập": "작성자", "Phế từ khách hàng": "고객 반품 폐기", "Phế từ sản xuất": "생산 폐기", "Phế nguyên liệu, vật tư": "원자재·자재 폐기", "Hàng đổi trả": "교환·반품", "Nguồn phế": "폐기 출처", "Hàng lỗi từ": "불량 출처", "Hình ảnh hàng lỗi": "불량품 사진", "Căn cứ": "근거", "Tìm theo số đơn, mã sản phẩm, lot SX, lỗi": "보고서 번호, 제품 코드, 생산 로트, 불량으로 검색", "Số đơn": "보고서 번호", "Biên bản hủy hàng": "폐기 확인서", "Lập biên bản hủy hàng": "폐기 확인서 작성", "Chưa lập biên bản hủy.": "폐기 확인서가 아직 없습니다.", "Hủy hàng": "폐기", "Ngày hủy": "폐기일", "Ảnh tiêu hủy": "폐기 사진", "Người tham gia 1": "참여자 1", "Người tham gia 2": "참여자 2", "Chức vụ": "직책", "bằng SL báo phế": "폐기 수량과 같음", "Điền phần này khi tiến hành tiêu hủy.": "폐기를 진행할 때 작성하세요.", "Đã tiêu hủy xong. Lưu xong đơn sẽ khóa.": "폐기 완료. 저장하면 보고서가 잠깁니다.", "Đơn đã hủy hàng xong nên đã khóa.": "폐기가 완료되어 보고서가 잠겼습니다.", "Đơn đã hủy hàng xong nên đã khóa. Tài khoản Quản lý vẫn sửa được.": "폐기가 완료되어 보고서가 잠겼습니다. 관리자 계정은 수정할 수 있습니다.", "Bạn chỉ xem được đơn này.": "이 보고서는 보기만 가능합니다.", "N/A, hoặc tự điền theo lot SX": "N/A 또는 생산 로트 기준 자동 입력", "Tạo Job": "Job 생성", "Tạo Job kế hoạch": "계획 Job 생성", "Lưu Job": "Job 저장", "Tạo Job dành cho bộ phận": "Job 생성 가능 부서", "Không có Job nào ở mục này.": "이 항목에 Job이 없습니다.", "Số PO": "PO 번호", "PO của khách hàng": "고객 PO", "Nhập mã hàng và số lượng, app tính nhựa và vật tư cần theo BOM rồi so với tồn kho đã qua IQC.": "품번과 수량을 입력하면 앱이 BOM으로 필요한 수지·자재를 계산해 IQC 합격 재고와 비교합니다.", "Ngày bắt đầu sản xuất": "생산 시작일", "Số lượng (pcs)": "수량 (pcs)", "Mã hàng  chưa có trong BOM. Lập BOM ở mục BOM trước.": "BOM에 없는 품번입니다. 먼저 BOM 메뉴에서 BOM을 만드세요.", "Lịch sử nhập, xuất": "입출고 이력", "Tìm theo lot SX, máy, lot nhựa, mã bao, mã hàng": "생산 로트, 설비, 수지 로트, 백 코드, 품번으로 검색", "Xuất CSV theo mẫu sổ theo dõi": "관리 대장 양식으로 CSV 내보내기", "Truy xuất nguồn gốc": "추적", "Về báo cáo": "보고서로", "Thùng": "박스", "THỨ TỰ THÙNG (CONTROL N0)": "박스 순번 (CONTROL N0)", "SỐ LƯỢNG (QUANTITY)": "수량 (QUANTITY)", "TỔNG SỐ LƯỢNG (TOTAL QUANTITY)": "총 수량 (TOTAL QUANTITY)", "Chưa kết nối máy chủ nên không xem được ảnh.": "서버에 연결되지 않아 사진을 볼 수 없습니다.", "Chưa kết nối máy chủ.": "서버에 연결되지 않았습니다.", "Chọn bao nguồn, hoặc nhập Lot gốc và Grade.": "원본 백을 선택하거나 원 로트와 Grade를 입력하세요.", "Chọn kết quả OK hoặc NG.": "OK 또는 NG 결과를 선택하세요.", "Chọn một bao nhựa zin và một bao nhựa xay còn tồn.": "재고가 있는 신재 백 1개와 분쇄재 백 1개를 선택하세요.", "Chọn ngày nhận hàng, hoặc tích Nhận hôm nay.": "입고일을 선택하거나 오늘 입고에 체크하세요.", "Cần ít nhất một bao nhựa zin và một tem nhựa xay.": "신재 백 1개와 분쇄재 라벨 1개 이상이 필요합니다.", "Ghi mô tả bất thường.": "이상 내용을 기록하세요.", "Kg dự kiến phải lớn hơn 0, hoặc để trống.": "예상 kg은 0보다 크거나 비워 두어야 합니다.", "Khuôn này đã có trong danh sách. Đang mở khuôn đó để ghi thêm lần đến / đi.": "이미 목록에 있는 금형입니다. 입출 기록을 추가하도록 해당 금형을 엽니다.", "Không mở được camera. Cho phép quyền camera, hoặc dùng ảnh mã QR.": "카메라를 열 수 없습니다. 카메라 권한을 허용하거나 QR 사진을 사용하세요.", "Không mở được ảnh.": "사진을 열 수 없습니다.", "Không tạo được file Excel.": "Excel 파일을 만들 수 없습니다.", "Kết quả NG cần ghi chú lỗi và ít nhất 1 ảnh.": "NG 결과는 불량 메모와 사진 1장 이상이 필요합니다.", "Lưu BOM trước rồi mới tải file.": "BOM을 먼저 저장한 뒤 다운로드하세요.", "Lưu đơn trước rồi mới tải file.": "보고서를 먼저 저장한 뒤 다운로드하세요.", "Mã hàng chưa có BOM hoặc BOM chưa có định mức.": "품번에 BOM이 없거나 BOM에 원단위가 없습니다.", "Mỗi lần tối đa 200 tem.": "1회 최대 200장입니다.", "Ngày nhận không được sau hôm nay.": "입고일은 오늘 이후일 수 없습니다.", "Nhập lot sản xuất.": "생산 로트를 입력하세요.", "Nhập mã hàng ở form phía trên trước.": "위 양식에 품번을 먼저 입력하세요.", "Nhập mã hàng.": "품번을 입력하세요.", "Nhập mã khuôn (EVS-ID) hoặc P/N.": "금형 코드(EVS-ID) 또는 P/N을 입력하세요.", "Nhập mã sản phẩm.": "제품 코드를 입력하세요.", "Nhập số PO.": "PO 번호를 입력하세요.", "Nhập số kg cân được.": "계량한 kg을 입력하세요.", "Nhập số kg lấy từ mỗi bao.": "백별 사용 kg을 입력하세요.", "Nhập số kg tồn đúng (0 nếu đã hết).": "실제 재고 kg을 입력하세요 (소진 시 0).", "Nhập số lượng thực nhận.": "실제 입고 수량을 입력하세요.", "Nhập số lượng xuất.": "출고 수량을 입력하세요.", "Nhập số lượng.": "수량을 입력하세요.", "Nhập số máy nhận nhựa.": "수지를 받을 설비 번호를 입력하세요.", "Nhập số máy.": "설비 번호를 입력하세요.", "Nhập số pcs mỗi thùng.": "박스당 pcs를 입력하세요.", "Nhập số thùng hoặc số lẻ.": "박스 수 또는 낱개를 입력하세요.", "Nhập số thùng, số lẻ hoặc số NG.": "박스 수, 낱개 또는 불량 수를 입력하세요.", "Nhập tên công nhân đứng máy.": "설비 작업자 이름을 입력하세요.", "Nhập ít nhất một công nhân đứng máy.": "설비 작업자를 1명 이상 입력하세요.", "Nhập ít nhất một mục.": "항목을 1개 이상 입력하세요.", "Phiếu cần ít nhất một dòng nhựa.": "전표에 수지 행이 1개 이상 필요합니다.", "Thiết bị này không mở được trình quét. Dùng ảnh mã QR.": "이 기기는 스캐너를 열 수 없습니다. QR 사진을 사용하세요.", "Tài khoản này chỉ được xem.": "이 계정은 보기만 가능합니다.", "Tích ô xác nhận khớp PO trước khi lưu.": "저장 전에 PO 일치 확인란에 체크하세요.", "Tích ô xác nhận trước khi lưu.": "저장 전에 확인란에 체크하세요.", "Vị trí không đổi.": "위치가 바뀌지 않았습니다.", "Đang gửi file…": "파일 전송 중…", "Đang gửi phiếu…": "전표 전송 중…", "Đang gửi tem…": "라벨 전송 중…", "Đang lưu kết quả IQC…": "IQC 결과 저장 중…", "Đang tạo file Excel…": "Excel 파일 생성 중…", "Đang tải ảnh lên…": "사진 업로드 중…", "Đã chép nội dung phiếu. Dán vào nhóm.": "전표 내용을 복사했습니다. 그룹에 붙여 넣으세요.", "Đã gắn ảnh. Nhớ bấm Lưu BOM.": "사진을 첨부했습니다. BOM 저장을 누르세요.", "Đã gắn ảnh. Nhớ bấm Lưu.": "사진을 첨부했습니다. 저장을 누르세요.", "Đã hủy dòng.": "행을 취소했습니다.", "Đã hủy tem BTP.": "반제품 라벨을 취소했습니다.", "Đã hủy tem.": "라벨을 취소했습니다.", "Đã lưu phần QA / Kỹ thuật.": "QA / 기술 입력을 저장했습니다.", "Đã tải ảnh phiếu.": "전표 이미지를 다운로드했습니다.", "Đã tải ảnh tem. In ở khổ 100 × 50 mm.": "라벨 이미지를 다운로드했습니다. 100 × 50 mm로 인쇄하세요.", "Đã xóa BOM.": "BOM을 삭제했습니다.", "Đã xóa khuôn.": "금형을 삭제했습니다.", "Đã điều chỉnh tồn.": "재고를 조정했습니다.", "Không chép được ở chế độ này.": "이 모드에서는 복사할 수 없습니다.", "Trình duyệt này không mở được hộp thoại in. Hãy tải file Excel.": "이 브라우저는 인쇄 창을 열 수 없습니다. Excel 파일을 다운로드하세요.", "Sai mã PIN của bộ phận đã chọn. Hỏi lại quản lý.": "선택한 부서의 PIN 코드가 틀렸습니다. 관리자에게 문의하세요.", "Phiên đăng nhập đã hết hạn. Đăng nhập lại.": "로그인 세션이 만료되었습니다. 다시 로그인하세요.", "Nhập sai mã PIN quá nhiều lần. Bộ phận này bị khóa đăng nhập 15 phút.": "PIN 오류가 너무 많아 이 부서는 15분간 로그인이 잠깁니다.", "Bộ phận của bạn không có quyền làm việc này.": "이 작업을 할 권한이 없는 부서입니다.", "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.": "서버에 연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요.", "Không đăng nhập được.": "로그인할 수 없습니다.", "Tài khoản công nhân chỉ nhập được sản lượng.": "작업자 계정은 생산량만 입력할 수 있습니다.", "Vật tư chưa đủ, Job vẫn treo chờ IQC.": "자재가 부족하여 Job이 IQC 대기 상태로 남아 있습니다.", "Máy chủ chưa đặt mã PIN cho bộ phận này. Quản lý cần điền trong Code.gs rồi triển khai phiên bản mới.": "서버에 이 부서의 PIN이 설정되지 않았습니다. 관리자가 Code.gs에 입력 후 새 버전을 배포해야 합니다.", "Chưa có BOM nào lập trong app.": "앱에서 만든 BOM이 없습니다.", "Chưa có BOM nào lập trong app. IQC / QA, Kỹ thuật hoặc Quản lý mới tạo được BOM.": "앱에서 만든 BOM이 없습니다. IQC / QA, 기술, 관리자만 BOM을 만들 수 있습니다.", "Chưa có dữ liệu sản lượng trong khoảng ngày này.": "이 기간에 생산량 데이터가 없습니다.", "Chưa có sản lượng trong khoảng ngày này.": "이 기간에 생산량이 없습니다.", "Chưa có hàng nào trong kho. Vào": "창고에 품목이 없습니다.", "để nhận hàng, sau đó IQC xác nhận.": "에서 입고한 뒤 IQC가 확인합니다.", "Chưa có khuôn nào.": "금형이 없습니다.", "Chưa có phiếu xuất nào.": "출고표가 없습니다.", "Chưa có thao tác nào.": "작업 기록이 없습니다.", "Chưa có đơn báo phế nào.": "폐기 보고서가 없습니다.", "Loại hàng": "품목 유형", "Đã ra lệnh": "지시 완료", "thực tế:": "실제:", "Lot gốc *": "원 로트 *", "Mã PIN": "PIN 코드", "Ngày giờ": "일시", "Ca": "교대", "Đã xác nhận": "확인 완료", "Chưa xuất": "미출고", "Kiểm tra (Check)": "점검 (Check)", "Lưu": "저장", "Hủy": "취소", "Sửa": "수정", "Xóa": "삭제", "In": "인쇄", "Tải ảnh": "이미지 다운로드", "Đóng": "닫기", "Quay lại": "뒤로", "Có": "예", "Không": "아니요", "Lượt truy cập": "방문 수", "Tên vật tư theo BOM": "BOM 자재명", "Tình trạng": "상태", "Treo": "보류", "Treo – chờ vật tư / IQC": "보류 – 자재 / IQC 대기", "Đủ vật tư, chờ chuyển kho": "자재 충분, 창고 이관 대기", "Chờ kho lập phiếu xuất": "창고 출고표 작성 대기", "Chờ SX và KH xác nhận": "생산·계획 확인 대기", "Chờ QLSX ra lệnh sản xuất": "생산관리 생산지시 대기", "Đã ra lệnh sản xuất": "생산지시 완료", "Trong kho": "재고 있음", "Đã dùng hết": "사용 완료", "IQC NG": "IQC 불합격", "Chờ cân": "계량 대기", "Lệnh sản xuất": "생산지시", "Ra lệnh sản xuất": "생산지시 발행", "Phiếu yêu cầu xuất": "출고 요청서", "Chuyển cho kho": "창고로 이관", "Cần": "필요", "Có trong kho": "재고", "Thiếu": "부족", "Đủ": "충분", "Tình trạng máy": "설비 상태", "Đang chạy, sắp ngưng, dừng máy 3D5S": "가동, 정지 예정, 3D5S 정지", "Chuẩn bị sản xuất": "생산 준비", "Đang sản xuất": "생산 중", "Sắp ngưng": "정지 예정", "Đã dừng máy": "설비 정지", "Chưa xong 3D5S": "3D5S 미완료", "Dừng chưa xong 3D5S": "정지 후 3D5S 미완료", "Máy dừng chưa xong 3D5S": "3D5S 미완료 정지 설비", "Vật tư trả kho chờ nhận": "창고 반납 자재 수령 대기", "Bấm vào một máy để chuẩn bị sản xuất, báo sắp ngưng hoặc dừng máy. Dừng máy phải làm checklist 3D5S, ghi khuôn xuống về đâu và trả vật tư tồn về kho.": "설비를 눌러 생산 준비, 정지 예정 보고, 설비 정지를 하세요. 정지 시 3D5S 체크리스트, 금형 하차 위치, 잔여 자재 창고 반납을 기록해야 합니다.", "Có sản lượng ca này, chưa cập nhật tình trạng": "이번 교대 생산량 있음, 상태 미업데이트", "Sản lượng ca này": "이번 교대 생산량", "Tất cả máy": "전체 설비", "Bắt đầu": "시작", "Dự kiến dừng": "정지 예정 시각", "Dự kiến dừng lúc": "정지 예정 시각", "Chuẩn bị mã hàng tiếp theo": "다음 품번 준비", "Lần dừng trước chưa xong 3D5S. Nên hoàn tất trước khi lên khuôn mới.": "이전 정지의 3D5S가 끝나지 않았습니다. 새 금형 장착 전에 완료하세요.", "Bắt đầu sản xuất ngay": "바로 생산 시작", "Bắt đầu sản xuất": "생산 시작", "Lên khuôn, sấy nhựa, chỉnh máy xong thì bấm Bắt đầu sản xuất.": "금형 장착, 수지 건조, 설비 조정 후 생산 시작을 누르세요.", "Báo sắp ngưng": "정지 예정 보고", "Lưu thông tin": "정보 저장", "Tiếp tục sản xuất": "생산 계속", "Dừng máy": "기계 정지", "Dừng máy · checklist 3D5S": "설비 정지 · 3D5S 체크리스트", "bước đã xong": "단계 완료", "Đã hoàn tất 3D5S": "3D5S 완료", "Lý do dừng": "정지 사유", "— Chọn —": "— 선택 —", "Máy đã dừng (tắt bơm, hạ nhiệt)": "설비 정지 (펌프 정지, 히터 하강)", "Nhựa đã xả hết trong xi lanh": "실린더 내 수지 퍼징 완료", "Screw đã vệ sinh sạch": "스크류 청소 완료", "Khu vực máy đã dọn sạch (5S)": "설비 주변 정리 완료 (5S)", "5. Khuôn xuống về đâu": "5. 금형 하차 위치", "Trả về kho khuôn": "금형 창고 반납", "Mang đi sửa": "수리 반출", "Bảo trì khuôn": "금형 보전", "Giữ khuôn trên máy": "금형 설비에 유지", "Vị trí trong kho khuôn": "금형 창고 위치", "Nơi sửa khuôn *": "수리처 *", "Nơi bảo trì *": "보전 장소 *", "Shot lũy kế (nếu có)": "누적 쇼트 (있으면)", "Ghi chú khuôn": "금형 비고", "Xem lịch sử khuôn": "금형 이력 보기", "6. Vật tư tồn trả về kho": "6. 잔여 자재 창고 반납", "Không còn vật tư tồn ở máy": "설비에 잔여 자재 없음", "Không còn vật tư tồn ở máy.": "설비에 잔여 자재가 없습니다.", "Trả về": "반납", "Mã tem": "라벨 코드", "Thêm dòng vật tư": "자재 행 추가", "Chờ kho nhận": "창고 수령 대기", "Đã cộng vào tem": "라벨에 합산됨", "Kho tạo tem mới": "창고에서 새 라벨 생성", "Vị trí cất (nếu có)": "보관 위치 (있으면)", "Kho đã nhận vật tư trả về": "창고 반납 자재 수령 완료", "Bấm xong, số lượng trả về được cộng lại vào đúng tem trong kho.": "누르면 반납 수량이 창고의 해당 라벨에 다시 합산됩니다.", "Chờ Kho kiểm và bấm \"đã nhận\".": "창고가 확인 후 \"수령\"을 누를 때까지 대기합니다.", "Chưa dừng": "아직 정지 안 함", "Lưu checklist 3D5S": "3D5S 체크리스트 저장", "Dừng máy và lưu checklist": "설비 정지 및 체크리스트 저장", "Có thể lưu khi chưa làm xong; máy hiện \"Chưa xong 3D5S\" cho tới khi đủ 6 bước.": "완료 전에도 저장할 수 있으며, 6단계를 마칠 때까지 \"3D5S 미완료\"로 표시됩니다.", "Lần dừng máy này đã hoàn tất và khóa lại.": "이번 정지는 완료되어 잠겼습니다.", "Cập nhật tình trạng máy, dừng máy 3D5S": "설비 상태 업데이트, 3D5S 정지", "— Không chọn khuôn —": "— 금형 선택 안 함 —", "Hết lệnh sản xuất": "생산지시 완료", "Đổi mã hàng": "품번 변경", "Hết vật tư": "자재 소진", "Khuôn hư": "금형 고장", "Máy hư": "설비 고장", "Bảo trì định kỳ": "정기 보전", "Lịch sử máy": "설비 이력", "Người": "담당자", "Lần chạy này chưa chọn khuôn nên không tự ghi vào lịch sử khuôn. Chọn khuôn ở phần thông tin phía trên nếu cần.": "이번 가동에 금형을 선택하지 않아 금형 이력에 자동 기록되지 않습니다. 필요하면 위 정보에서 금형을 선택하세요.", "Bộ phận của bạn chỉ xem được. Sản xuất, QLSX, Kỹ thuật hoặc Quản lý cập nhật tình trạng máy.": "이 부서는 보기만 가능합니다. 생산, 생산관리, 기술, 관리자가 설비 상태를 업데이트합니다.", "Chưa có phiếu xuất nào cho lot này. Thêm dòng nếu còn vật tư ở máy.": "이 로트의 출고표가 없습니다. 설비에 자재가 남아 있으면 행을 추가하세요.", "Trả về kho từ máy": "설비에서 창고 반납", "Đã hoàn tất dừng máy 3D5S.": "3D5S 설비 정지를 완료했습니다.", "Ghi giờ dự kiến dừng hoặc lý do.": "정지 예정 시각 또는 사유를 기록하세요.", "Số lượng trả về không hợp lệ.": "반납 수량이 올바르지 않습니다.", "Ghi nơi sửa / bảo trì khuôn.": "금형 수리 / 보전 장소를 기록하세요.", "Kho đã nhận vật tư trả về. Số lượng đã cộng lại vào tem.": "창고가 반납 자재를 수령했습니다. 수량이 라벨에 합산되었습니다.", "Danh mục vật tư": "자재 목록", "Mã MISA, tồn đầu kỳ, vị trí": "MISA 코드, 기초 재고, 위치", "Tải lại danh mục": "목록 새로고침", "Tìm theo mã, tên, nhóm, kho": "코드, 이름, 그룹, 창고로 검색", "Lọc": "필터", "Có tồn": "재고 있음", "Có tồn, chưa có vị trí": "재고 있음, 위치 미지정", "Vật tư, thành phẩm": "자재, 완제품", "Kho MISA": "MISA 창고", "Tồn MISA": "MISA 재고", "Tồn trên app": "앱 재고", "Tem": "라벨", "Chưa có": "없음", "Đang tải danh mục…": "목록 불러오는 중…", "Hiện thêm": "더 보기", "Danh mục vật tư (MISA), cập nhật vị trí": "자재 목록 (MISA), 위치 업데이트", "Tải lại": "새로고침", "Vật tư hàng hóa": "자재·상품", "Chỉ là diễn giải": "설명 항목", "Dịch vụ": "서비스", "Thêm mã mới": "새 코드 추가", "Thêm mã vật tư mới": "새 자재 코드 추가", "Mã *": "코드 *", "Tên *": "이름 *", "Tính chất": "성격", "Đơn vị MISA": "MISA 단위", "Đơn vị trên app": "앱 단위", "Địa chỉ (A1-1 kho nhựa, A3 kho vật tư)": "주소 (A1-1 수지창고, A3 자재창고)", "Nhựa zin (kho nhựa)": "신재 수지 (수지창고)", "Nhựa xay / phế (kho nhựa)": "분쇄/폐수지 (수지창고)", "Vật tư, thành phẩm (kho vật tư)": "자재, 완제품 (자재창고)", "Xóa mã này": "이 코드 삭제", "Bấm lần nữa để xóa mã": "한 번 더 누르면 코드 삭제", "Hủy luôn các tem còn tồn của mã này (nếu có)": "이 코드의 재고 라벨도 함께 취소 (있는 경우)", "Hủy luôn tem còn tồn của các mã này": "선택 코드의 재고 라벨도 함께 취소", "Chọn / bỏ chọn các dòng đang hiện": "표시된 줄 전체 선택/해제", "Sửa thông tin tem (Quản lý)": "라벨 정보 수정 (관리자)", "Tên / Grade": "이름 / 등급", "Lot No": "Lot No", "Sửa thông tin": "정보 수정", "Xóa mã là xóa khỏi danh mục. Tem đã hủy vẫn nằm trong lịch sử.": "코드 삭제는 목록에서 제거하는 것입니다. 취소된 라벨은 이력에 남습니다.", "Sửa luôn tên, đơn vị, nhóm trên tem tồn đầu kỳ của mã này": "이 코드의 기초재고 라벨의 이름, 단위, 그룹도 함께 수정", "Mỗi lần sửa được ghi vào nhật ký bao (ai sửa, sửa gì). Sai số lượng thì dùng \"Tồn đúng\" phía trên; sai cả tem thì Hủy tem.": "수정할 때마다 백 이력에 기록됩니다(누가, 무엇을). 수량 오류는 위의 '실제 재고'를, 라벨 전체가 잘못되면 라벨 취소를 사용하세요.", "Tiêu chuẩn kiểm tra": "검사 기준", "Chỉ số đo, dung sai, CTQ theo mã": "코드별 측정 항목, 공차, CTQ", "Báo cáo PQC": "PQC 보고서", "Đầu – giữa – cuối ca, ảnh NG": "초·중·종물, NG 사진", "Báo cáo PQC đầu – giữa – cuối ca": "PQC 초·중·종물 보고서", "Lập phiếu mới": "신규 작성", "Đọc bản vẽ": "도면 읽기", "Đọc lại từ bản vẽ": "도면에서 다시 읽기", "Nhập tay": "수동 입력", "Chỉ số đo": "측정 항목", "Hạng mục ngoại quan": "외관 항목", "Hạng mục kiểm tra": "검사 항목", "Tiêu chuẩn": "기준", "Chỉ số": "번호", "Dụng cụ đo": "측정 도구", "Lưu tiêu chuẩn": "기준 저장", "Xóa tiêu chuẩn": "기준 삭제", "Tạo BOM tạm": "임시 BOM 생성", "Thêm chỉ số": "항목 추가", "Đầu ca": "초물", "Giữa ca": "중물", "Cuối ca": "종물", "Trọng lượng tiêu chuẩn": "기준 중량", "Lot SX": "생산 Lot", "Ngoại quan NG – ảnh và mô tả": "외관 NG – 사진 및 설명", "Thêm lỗi ngoại quan": "외관 불량 추가", "Xóa lỗi này": "이 불량 삭제", "Chụp / chọn ảnh": "사진 촬영 / 선택", "Lưu phiếu": "전표 저장", "Xuất phiếu Excel": "엑셀 내보내기", "Chốt phiếu": "전표 확정", "Bỏ chốt": "확정 해제", "Đã chốt": "확정됨", "Remark / ghi chú chung": "비고", "Danh sách phiếu PQC": "PQC 전표 목록", "Giờ máy ca này": "이번 교대 기계 시간", "Bật máy": "기계 가동", "Tắt máy": "기계 종료", "Lưu giờ đã sửa": "수정한 시간 저장", "Xử lý hàng sau sản xuất": "생산 후 처리", "Xử lý hàng sau SX": "생산 후 처리", "Nhập kho, chờ xử lý, NG hủy / gỡ lại": "입고, 처리 대기, NG 폐기/재작업", "Chia hàng (Quản lý sản xuất)": "수량 분배 (생산관리)", "Quản lý xác nhận lô chờ xử lý": "관리자 처리 대기 확인", "Kết quả xử lý": "처리 결과", "Nhập kho (pcs)": "입고 (pcs)", "Chờ xử lý (pcs)": "처리 대기 (pcs)", "Người xử lý": "처리자", "Lưu chia hàng": "분배 저장", "Xác nhận lô chờ xử lý": "처리 대기 확인", "Lưu kết quả xử lý": "처리 결과 저장", "OK cho nhập kho": "입고 가능 OK", "NG đem hủy": "폐기 NG", "NG gỡ xử lý lại": "재작업 NG", "Chờ Quản lý xác nhận": "관리자 확인 대기", "Chờ xử lý": "처리 대기", "Xử lý xong": "처리 완료", "Chưa chia": "미분배", "Nối đơn": "전표 연결", "Kho khuôn": "금형 창고", "Kho khuôn – sơ đồ kệ": "금형 창고 – 랙 배치도", "Sơ đồ kệ A–F và khu khuôn to": "A–F 랙 및 대형 금형 구역", "Quét bảng khuôn": "금형 보드 스캔", "Khuôn chưa có vị trí": "위치 미지정 금형", "Lấy khuôn ra khỏi ô": "이 칸에서 금형 빼기", "trống": "비어 있음", "Lưu các khuôn đã tick": "선택한 금형 저장", "Bỏ": "취소", "Danh sách xử lý": "처리 목록", "Danh sách tiêu chuẩn": "기준 목록", "Danh mục nhựa": "수지 목록", "Mã khách, mã nội bộ, chạy cho mã hàng nào": "고객 코드, 내부 코드, 적용 품번", "Thêm mã nhựa": "수지 코드 추가", "Mã nhựa của khách hàng": "고객 수지 코드", "Mã nhựa nội bộ": "내부 수지 코드", "Mã nhựa khách": "고객 수지 코드", "Mã nội bộ": "내부 코드", "Tên nhựa / grade": "수지명 / 등급", "Chạy cho mã hàng": "적용 품번", "Xóa dòng này": "이 줄 삭제", "Thêm hết vào": "모두 추가", "Dashboard tồn kho": "재고 대시보드", "NVL → bán thành phẩm → thành phẩm": "원자재 → 반제품 → 완제품", "Tìm kiếm": "검색", "Tem, mã hàng, BOM, khuôn, phiếu": "라벨, 품번, BOM, 금형, 전표", "Tổng quan": "전체 현황", "Nhựa xay (XP)": "분쇄재 (XP)", "Nhựa trộn (TR)": "혼합재 (TR)", "Sản lượng đạt": "양품 생산량", "Đã nhập kho": "입고 완료", "NG gỡ lại": "재작업 NG", "Nguyên liệu nhựa trong kho": "창고 내 수지 원료", "Tìm trong bảng": "표 안에서 검색", "Tìm trong tồn kho": "재고에서 검색", "Tìm trong lịch sử": "이력에서 검색", "Tìm trong danh sách IQC": "IQC 목록에서 검색", "Lọc mã hàng": "품번 필터", "Grade / màu": "등급 / 색상", "Lot cũ nhất": "가장 오래된 로트", "Nhựa dùng": "사용 수지", "Nhựa tồn (kg)": "수지 재고 (kg)", "Chạy được (pcs)": "생산 가능 (pcs)", "Chọn nhiều tem để xóa": "여러 라벨 선택 삭제", "Chọn hết đang hiện": "표시된 항목 전체 선택", "Bỏ chọn": "선택 해제", "Xong": "완료", "Tem chưa qua IQC bị xóa hẳn. Tem đã vào kho chuyển sang trạng thái Đã hủy, tồn về 0 và vẫn giữ lịch sử để truy xuất.": "IQC 미완료 라벨은 완전 삭제되고, 입고된 라벨은 취소 상태로 바뀌어 재고가 0이 되며 이력은 추적용으로 남습니다.", "Phiếu xuất tạm": "임시 출고표", "Phiếu xuất tạm chờ Kế hoạch xác nhận": "생산계획 확인 대기 임시 출고표", "Phiếu tạm, chờ Kế hoạch": "임시 전표, 계획 확인 대기", "Kế hoạch xác nhận phiếu tạm": "계획 부서 임시 전표 확인", "Xác nhận phiếu này": "이 전표 확인", "Bỏ xác nhận": "확인 취소", "Kiểm kê phiếu xuất": "출고 전표 재고조사", "Đối chiếu hàng đã xuất, phiếu chờ xác nhận": "출고 내역 대조, 확인 대기 전표", "Danh sách phiếu": "전표 목록", "Tất cả phiếu": "전체 전표", "Phiếu tạm chờ Kế hoạch": "계획 확인 대기 임시 전표", "Chưa xác nhận": "미확인", "Phiếu tạm chờ": "대기 임시 전표", "Tổng xuất theo mã hàng": "품번별 총 출고", "Tổng xuất theo lot nhựa": "수지 로트별 총 출고", "Tổng xuất theo loại": "종류별 총 출고", "Loại phiếu": "전표 종류", "Người xuất": "출고자", "Chưa gán lot SX": "생산 Lot 미지정", "Chưa ghi máy": "기계 미기재", "Bù phiếu cho các lần xuất cũ": "과거 출고 전표 보완", "Bù phiếu xuất cũ": "과거 출고 전표 보완", "Bấm lần nữa để chạy": "한 번 더 누르면 실행", "Chỉ bù từ ngày (để trống là lấy hết)": "이 날짜부터만 보완 (비우면 전체)", "Dữ liệu trong Google Sheet": "구글 시트 데이터", "Kiểm tra dữ liệu": "데이터 점검", "Nhận trang tính vừa nhập": "새로 가져온 시트 반영", "Phần": "항목", "Trang tính": "시트", "App đọc được": "앱이 읽은 수", "chưa có trang tính": "시트 없음", "trang tính trống": "빈 시트", "dùng được": "사용 가능", "có dòng nhưng app không đọc được": "행은 있으나 앱이 읽지 못함", "Hàng làm ra đã gọn chưa": "생산품 정리 상태", "Hàng OK": "정상품", "Hàng ứ, chưa xử lý": "적체품, 미처리", "Số pcs hàng ứ": "적체 수량 (pcs)", "Hàng ứ vì sao": "적체 사유", "Chờ gọt bavia, chờ lắp vật tư…": "버 제거 대기, 부품 조립 대기…", "Đọc bản vẽ → BOM tạm": "도면 읽기 → 임시 BOM", "BOM tạm": "임시 BOM", "Đánh dấu BOM hoàn thiện": "BOM 완료 표시", "Tải ảnh hoặc file PDF bản vẽ, app đọc mã hàng, model, vật liệu và các kích thước có dung sai rồi dựng sẵn khung BOM tạm; trọng lượng và vật tư đi kèm điền sau. Bản vẽ không được lưu lại.": "도면 이미지나 PDF를 올리면 품번, 모델, 재질, 공차 치수를 읽어 임시 BOM 틀을 만듭니다. 중량과 부자재는 나중에 입력하세요. 도면은 저장되지 않습니다.", "BOM tạm dựng từ bản vẽ. Điền trọng lượng, định mức nhựa và vật tư đi kèm rồi bấm Lưu BOM.": "도면으로 만든 임시 BOM입니다. 중량, 수지 원단위, 부자재를 입력한 뒤 BOM 저장을 누르세요.", "Hàng bình thường (pcs)": "정상품 (pcs)", "Hàng ứ, chưa xử lý (pcs)": "적체품, 미처리 (pcs)", "để trống = tất cả": "비우면 전체", "để trống nếu không có": "없으면 비움", "Ca đêm + tăng ca (19:30–9:30 sáng hôm sau)": "야간 + 잔업 (19:30–익일 9:30)", "Đêm + tăng ca": "야간 + 잔업", "Phiếu xuất gần đây": "최근 출고 전표", "Phiếu tạm · chờ Kế hoạch": "임시 전표 · 계획 대기", "Chờ KH": "계획 대기", "Chờ QLSX": "생산관리 대기", "Ghi lịch sử ra Google Sheet": "이력을 구글 시트에 기록", "Máy chủ bản": "서버 버전", "Gán lot sản xuất cho nhiều phiếu một lúc": "여러 전표에 생산 Lot 일괄 지정", "chưa có": "없음"},KO_PRE={"Đã lưu ": "저장됨: ", "Đã lưu BOM ": "BOM 저장됨: ", "Đã lưu vị trí ": "위치 저장됨: ", "Đã lưu đơn ": "보고서 저장됨: ", "Đã nhập kho ": "입고됨: ", "Đã thêm ": "추가됨: ", "Đã tạo ": "생성됨: ", "Đã tạo phiếu ": "전표 생성됨: ", "Đã xóa ": "삭제됨: ", "Đã chọn bao ": "백 선택됨: ", "Đã chọn ô gợi ý ": "추천 칸 선택됨: ", "Đã ghi xuất ": "출고 기록됨: ", "Đã gắn phiếu vào ": "전표 연결됨: ", "Đã điền sẵn phiếu xuất cho ": "출고표 미리 입력됨: ", "Đã điền theo lot ": "로트 기준 입력됨: ", "Đang tạo tem ": "라벨 생성 중: ", "Đang lưu IQC ": "IQC 저장 중: ", "Đang chuẩn bị ": "준비 중: ", "Tồn không đủ cho ": "재고 부족: ", "Nhập số kg lấy ra từ bao ": "이 백에서 사용한 kg 입력: ", "Mỗi lần tạo tối đa ": "1회 최대 생성 수: ", "Gợi ý xếp vào: ": "추천 적재 위치: ", "Đang có: ": "현재 적재: ", "Từ: ": "출발: ", "Đến: ": "도착: ", "Mở lot ": "로트 열기 ", "Đơn báo phế ": "폐기 보고서 ", "Mã bao ": "백 코드 ", "Nhập sản lượng máy ": "생산량 입력 · 설비 ", "Đã nhập trong ca đêm ": "야간 입력분 ", "Tối đa ": "최대 ", "Tất cả (": "전체 (", "Đã ra lệnh (": "지시 완료 (", "→ ": "→ ", "Chào ": "안녕하세요, ", "Điền sẵn theo lệnh sản xuất ": "생산지시 기준 자동 입력: ", "Cập nhật ": "업데이트 ", "Xóa ": "삭제 ", "Sửa mã ": "코드 수정 ", "Bấm lần nữa để xóa ": "한 번 더 누르면 삭제 ", "Kệ ": "랙 ", "Hàng ": "행 ", "Đặt vào ": "배치 ", "Ô ": "칸 ", "Lập đơn báo phế ": "폐기 전표 작성 ", "Tiêu chuẩn mã ": "기준 코드 ", "Lập phiếu PQC mã ": "PQC 전표 작성 ", "Chưa có tiêu chuẩn cho ": "기준 없음: ", "Theo mã hàng ": "품번별 ", "Nhựa này chạy cho mã hàng": "이 수지를 사용하는 품번", "Đã chọn ": "선택 ", "Hàng ứ ": "적체품 "},KO_PK=Object.keys(KO_PRE).sort(function(a,b){return b.length-a.length;});
@@ -354,9 +356,16 @@ function setLang(l){
   LANG="ko";langStart();
 }
 /* ---------- tình trạng máy: chuẩn bị, đang sản xuất, sắp ngưng, đã dừng + 3D5S ---------- */
-var mstates=new Map(),curMt="",mtForm=null,mtFilter="";
-var MT_ST={PREP:"Chuẩn bị sản xuất",RUN:"Đang sản xuất",ENDING:"Sắp ngưng",STOPPED:"Đã dừng máy"};
-var MT_CLS={PREP:"mt-prep",RUN:"mt-run",ENDING:"mt-end",STOPPED:"mt-stop"};
+var mstates=new Map(),curMt="",mtForm=null,mtFilter="",mans=new Map(),manForm=null,manArm="";
+var MT_ST={PREP:"Chuẩn bị sản xuất",RUN:"Đang sản xuất",ENDING:"Sắp ngưng",STOPPED:"Đã dừng máy",HONG:"Máy hư",BAOTRI:"Bảo trì máy",CHO:"Chờ lệnh, không có việc",TAT:"Tắt máy, nghỉ"};
+var MT_CLS={PREP:"mt-prep",RUN:"mt-run",ENDING:"mt-end",STOPPED:"mt-stop",HONG:"mt-bad",BAOTRI:"mt-fix",CHO:"mt-idle",TAT:"mt-idle"};
+var MAN_ST=["RUN","PREP","ENDING","STOPPED","HONG","BAOTRI","CHO","TAT"];
+var MAN_WHY={HONG:["Hỏng bơm thủy lực","Lỗi điện, mất nguồn","Hỏng băng nhiệt / cảm biến nhiệt","Kẹt trục vít","Hỏng hệ thống kẹp khuôn","Rò dầu","Khác"],
+  BAOTRI:["Bảo trì định kỳ","Thay dầu thủy lực","Vệ sinh trục vít","Hiệu chuẩn","Khác"],
+  CHO:["Chưa có lệnh sản xuất","Chờ vật tư","Chờ khuôn","Chờ công nhân","Khác"],
+  TAT:["Nghỉ ca","Nghỉ lễ","Tiết giảm điện","Khác"]};
+function manOf(m){var x=mans.get(String(m));return x&&x.st?x:null;}
+function canMan(){return ["KT","QLSX","QL"].indexOf(myRole)>=0;}
 var MT_MOLD={KHO:"Trả về kho khuôn",SUA:"Mang đi sửa",BAOTRI:"Bảo trì khuôn",GIU:"Giữ khuôn trên máy"};
 var MT_CHECK=[["stop","Máy đã dừng (tắt bơm, hạ nhiệt)"],["purge","Nhựa đã xả hết trong xi lanh"],["screw","Screw đã vệ sinh sạch"],["clean","Khu vực máy đã dọn sạch (5S)"]];
 var MT_END=["Hết lệnh sản xuất","Đổi mã hàng","Hết vật tư","Khuôn hư","Máy hư","Bảo trì định kỳ","Khác"];
@@ -368,7 +377,8 @@ function mtPendRun(m){return mtRuns(m).filter(function(r){return r.st==="STOPPED
 function mtShiftOut(m){var sh=nowShift(),d=shiftDate(sh),t=0,n=0,staff="";liveOuts().forEach(function(o){if(o.machine===String(m)&&o.date===d&&(isNight(sh)?isNight(o.shift):!isNight(o.shift))){t+=o.ok;n++;staff=o.staff||staff;}});return {pcs:t,n:n,staff:staff};}
 /* Trạng thái hiển thị của một máy. Máy có sản lượng trong ca mà chưa ai cập nhật thì tạm coi là đang chạy. */
 function mtInfo(m){
-  var r=mtOpenRun(m),p=mtPendRun(m),o=mtShiftOut(m);
+  var r=mtOpenRun(m),p=mtPendRun(m),o=mtShiftOut(m),mn=manOf(m);
+  if(mn)return {m:String(m),st:mn.st,run:r||p,man:mn,pend:p,out:o};
   if(r)return {m:String(m),st:r.st,run:r,pend:p,out:o};
   if(o.n)return {m:String(m),st:"RUN",run:null,auto:true,pend:p,out:o};
   return {m:String(m),st:"STOPPED",run:p,pend:p,out:o};
@@ -378,22 +388,23 @@ function mtSteps(r){
   return {check:n,mold:!!(s.mold&&MT_MOLD[s.mold.act]),mat:s.matSt==="NONE"||s.matSt==="RECEIVED",matWait:s.matSt==="WAIT",total:n+(s.mold&&MT_MOLD[s.mold.act]?1:0)+(s.matSt==="NONE"||s.matSt==="RECEIVED"?1:0)};
 }
 function mtPill(st,pend){return '<span class="mtpill '+MT_CLS[st]+'">'+esc(MT_ST[st])+'</span>'+(pend?' <span class="pill crit">Chưa xong 3D5S</span>':'');}
-function mtCounts(){var c={PREP:0,RUN:0,ENDING:0,STOPPED:0,pend:0,recv:0};for(var i=1;i<=MACHINES;i++){var x=mtInfo(i);c[x.st]++;if(x.pend)c.pend++;}mstates.forEach(function(r){if(r.stop&&r.stop.matSt==="WAIT")c.recv++;});return c;}
+function mtCounts(){var c={PREP:0,RUN:0,ENDING:0,STOPPED:0,HONG:0,BAOTRI:0,CHO:0,TAT:0,pend:0,recv:0,man:0};for(var i=1;i<=MACHINES;i++){var x=mtInfo(i);c[x.st]=(c[x.st]||0)+1;if(x.pend)c.pend++;if(x.man)c.man++;}mstates.forEach(function(r){if(r.stop&&r.stop.matSt==="WAIT")c.recv++;});return c;}
 function mtCard(x){
   var r=x.run,lines=[];
+  if(x.man)lines.push('<span class="mt-warn">'+esc([x.man.why,x.man.note].filter(String).join(" · ")||"Đặt tay")+'</span><br><span class="hint">'+esc(x.man.by||"")+' đặt '+esc(fmtDate(x.man.at))+(x.man.until?' · dự kiến xong '+esc(x.man.until.replace("T"," ")):'')+'</span>');
   if(x.auto)lines.push('<span class="hint">Có sản lượng ca này, chưa cập nhật tình trạng</span>');
   if(r&&r.st!=="STOPPED"){lines.push('<b>'+esc(r.part)+'</b>'+(r.lot?' · '+esc(r.lot):''));if(r.moldName)lines.push('Khuôn '+esc(r.moldName));}
   if(x.out.pcs)lines.push(fmtN(x.out.pcs)+' pcs ca này'+(x.out.staff?' · '+esc(x.out.staff):''));
   if(r&&r.st==="ENDING")lines.push('<span class="mt-warn">'+esc([r.planEnd?"Dự kiến dừng "+r.planEnd.replace("T"," "):"",r.endReason].filter(String).join(" · "))+'</span>');
   if(x.pend){var s=mtSteps(x.pend);lines.push('<span class="mt-warn">3D5S '+s.check+'/4'+(s.mold?'':' · Khuôn chưa ghi')+(s.matWait?' · Vật tư chờ kho nhận':s.mat?'':' · Vật tư chưa trả')+'</span>');}
   else if(x.st==="STOPPED"&&r&&r.done&&r.stop)lines.push('<span class="hint">Dừng '+fmtDate(r.stop.at)+(r.stop.mold?' · '+esc(MT_MOLD[r.stop.mold.act]):'')+'</span>');
-  return '<a class="mtcard '+MT_CLS[x.st]+(x.pend?" mt-pend":"")+'" href="#mtt-'+esc(x.m)+'"><div class="mthead"><b>Máy '+esc(x.m)+'</b>'+mtPill(x.st,false)+'</div>'+lines.map(function(l){return '<div>'+l+'</div>';}).join("")+'</a>';
+  return '<a class="mtcard '+MT_CLS[x.st]+(x.man?" mt-man":"")+(x.pend?" mt-pend":"")+'" href="#mtt-'+esc(x.m)+'"><div class="mthead"><b>Máy '+esc(x.m)+'</b>'+mtPill(x.st,false)+'</div>'+lines.map(function(l){return '<div>'+l+'</div>';}).join("")+'</a>';
 }
 function viewMachineStates(){
   var all=[];for(var i=1;i<=MACHINES;i++)all.push(mtInfo(i));
-  var c=mtCounts(),order=["RUN","ENDING","PREP","STOPPED"];
+  var c=mtCounts(),order=["RUN","ENDING","PREP","HONG","BAOTRI","CHO","TAT","STOPPED"].filter(function(k){return c[k]>0||["RUN","ENDING","PREP","STOPPED"].indexOf(k)>=0;});
   var h='<section class="card"><div class="row" style="justify-content:space-between"><h2>Tình trạng máy</h2><span class="hint">Cập nhật '+fmtDate(new Date().toISOString())+'</span></div>'+
-  '<p class="hint">Bấm vào một máy để chuẩn bị sản xuất, báo sắp ngưng hoặc dừng máy. Dừng máy phải làm checklist 3D5S, ghi khuôn xuống về đâu và trả vật tư tồn về kho.</p>'+
+  '<p class="hint">Bấm vào một máy để chuẩn bị sản xuất, báo sắp ngưng hoặc dừng máy. Dừng máy phải làm checklist 3D5S, ghi khuôn xuống về đâu và trả vật tư tồn về kho.'+(canMan()?' Kỹ thuật, QLSX và Quản lý đặt tay được trạng thái máy ngay trong trang từng máy, kể cả máy hư hay bảo trì.':'')+(c.man?' Đang có <b>'+c.man+'</b> máy đặt tay.':'')+'</p>'+
   '<div class="mtsum">'+order.map(function(k){return '<button type="button" class="mtchip '+MT_CLS[k]+(mtFilter===k?" on":"")+'" data-act="mt-filter" data-k="'+k+'"><b>'+c[k]+'</b>'+esc(MT_ST[k])+'</button>';}).join("")+
   (c.pend?'<button type="button" class="mtchip mt-pend'+(mtFilter==="pend"?" on":"")+'" data-act="mt-filter" data-k="pend"><b>'+c.pend+'</b>Dừng chưa xong 3D5S</button>':'')+'</div></section>';
   order.forEach(function(k){
@@ -473,6 +484,44 @@ function mtStopForm(f,r){
   else if(done)h+='<p class="hint">Lần dừng máy này đã hoàn tất và khóa lại.</p>';
   return h+'</section>';
 }
+function manCard(m){
+  var mn=mans.get(String(m))||null,cur=manOf(m),x=mtInfo(m);
+  if(!canMan()){
+    if(!cur)return "";
+    return '<section class="card"><h2>Trạng thái máy đặt tay</h2><p><span class="mtpill '+MT_CLS[cur.st]+'">'+esc(MT_ST[cur.st]||cur.st)+'</span> '+esc([cur.why,cur.note].filter(String).join(" · "))+'</p>'+
+      '<p class="hint">'+esc(cur.by||"")+' đặt lúc '+esc(fmtDate(cur.at))+(cur.until?' · dự kiến xong '+esc(cur.until.replace("T"," ")):'')+'. Kỹ thuật, QLSX hoặc Quản lý bỏ được.</p></section>';
+  }
+  if(!manForm||manForm.m!==String(m))manForm={m:String(m),st:cur?cur.st:"",why:cur?cur.why||"":"",note:cur?cur.note||"":"",until:cur?cur.until||"":""};
+  var f=manForm,whys=MAN_WHY[f.st]||[];
+  var h='<section class="card"><div class="row" style="justify-content:space-between"><h2>Đặt trạng thái máy bằng tay</h2>'+
+    (cur?'<span class="mtpill '+MT_CLS[cur.st]+'">Đang đặt: '+esc(MT_ST[cur.st]||cur.st)+'</span>':'<span class="hint">Chưa đặt tay</span>')+'</div>'+
+    '<p class="hint">Trạng thái đặt tay đè lên trạng thái app tự tính từ phiên máy, dùng cho cả những việc không gắn với một lần sản xuất: máy hư, bảo trì, chờ lệnh. Bỏ đặt tay thì máy quay về trạng thái app tự tính'+(cur?' (hiện là <b>'+esc(MT_ST[x.run&&x.run.st==="STOPPED"?"STOPPED":(x.run?x.run.st:"STOPPED")]||"")+'</b>)':'')+'.</p>'+
+    '<div class="row" style="flex-wrap:wrap;gap:6px">'+MAN_ST.map(function(k){
+      return '<button type="button" class="mtchip '+MT_CLS[k]+(f.st===k?" on":"")+'" data-act="man-pick" data-k="'+k+'" style="padding:6px 12px">'+esc(MT_ST[k])+'</button>';}).join("")+'</div>';
+  if(f.st)h+='<div class="grid" style="margin-top:10px">'+
+    '<label class="f">Lý do<input data-mn="why" value="'+esc(f.why)+'" list="man-why" maxlength="80" autocomplete="off"><datalist id="man-why">'+whys.map(function(w){return '<option value="'+esc(w)+'">';}).join("")+'</datalist></label>'+
+    '<label class="f">Dự kiến xong<input data-mn="until" type="datetime-local" value="'+esc(f.until)+'"></label>'+
+    '<label class="f full">Ghi chú<input data-mn="note" value="'+esc(f.note)+'" maxlength="300" autocomplete="off" placeholder="Đã báo nhà cung cấp, chờ phụ tùng…"></label></div>';
+  h+='<div class="row" style="margin-top:8px">'+(f.st?'<button type="button" class="btn" data-act="man-save">Đặt máy '+esc(m)+' là "'+esc(MT_ST[f.st])+'"</button>':'')+
+    (cur?'<button type="button" class="btn ghost" data-act="man-clear">'+(manArm===String(m)?"Bấm lần nữa để bỏ đặt tay":"Bỏ đặt tay")+'</button>':'')+'</div>';
+  if(mn&&(mn.hist||[]).length)h+='<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Lúc</th><th>Trạng thái</th><th>Lý do, ghi chú</th><th>Người đặt</th></tr></thead><tbody>'+
+    mn.hist.slice().reverse().slice(0,12).map(function(v){return '<tr><td>'+esc(fmtDate(v.at))+'</td><td>'+esc(v.st?MT_ST[v.st]||v.st:"Bỏ đặt tay")+'</td><td>'+esc(v.note||"")+'</td><td>'+esc(v.by||"")+'</td></tr>';}).join("")+'</tbody></table></div>';
+  return h+'</section>';
+}
+async function manSave(op){
+  var f=manForm;if(!f)return;
+  if(op!=="clear"&&!f.st){toast("Chọn trạng thái.");return;}
+  if(memMode){toast("Chưa kết nối máy chủ.");return;}
+  pending++;writeSeq++;
+  try{
+    var r=await api("machineMan",op==="clear"?{op:"clear",machine:f.m}:{op:"set",machine:f.m,st:f.st,why:f.why,note:f.note,until:f.until});
+    mans.set(String(r.man.machine),r.man);manArm="";
+    if(op==="clear"){manForm=null;toast("Đã bỏ đặt tay, máy "+f.m+" quay về trạng thái app tự tính.");}
+    else toast("Máy "+f.m+": "+MT_ST[r.man.st]+".");
+  }catch(e){toast(errMsg(e,"Không đặt được trạng thái máy."));}
+  finally{pending--;}
+  render();
+}
 function viewMachineState(){
   var m=curMt;if(!(Number(m)>=1&&Number(m)<=MACHINES))return '<section class="card"><h2>Không có máy '+esc(m)+'</h2><a class="btn ghost" href="#tinh-trang-may">Về tình trạng máy</a></section>';
   if(!ready)return '<section class="card"><h2>Máy '+esc(m)+'</h2><p class="hint">Đang tải dữ liệu…</p></section>';
@@ -483,6 +532,7 @@ function viewMachineState(){
   if(r)h+='<dl class="facts">'+fact("Mã hàng",r.part)+fact("Lot SX",r.lot)+fact("Khuôn",r.moldName)+fact("Lệnh sản xuất",r.lsx)+fact("Công nhân",r.staff||x.out.staff)+fact("Bắt đầu",r.startAt?fmtDate(r.startAt):"")+(r.st==="ENDING"?fact("Dự kiến dừng",(r.planEnd||"").replace("T"," "))+fact("Lý do",r.endReason):"")+fact("Ghi chú",r.note)+'</dl>';
   h+='<div class="row"><a class="btn small ghost" href="#may-'+esc(m)+'">Nhập sản lượng máy '+esc(m)+'</a>'+(r&&r.lot?'<a class="btn small ghost" href="#'+esc(lotHash(r.lot))+'">Mở lot sản xuất</a>':'')+'<a class="btn small ghost" href="#tinh-trang-may">Tất cả máy</a></div></section>';
   if(!ed&&!canMtRecv())h+='<p class="hint">Bộ phận của bạn chỉ xem được. Sản xuất, QLSX, Kỹ thuật hoặc Quản lý cập nhật tình trạng máy.</p>';
+  h+='</section>'+manCard(m);
   /* lần dừng chưa xong 3D5S (máy đã dừng) */
   if(pend&&!open){h+=mtStopForm(f,pend);}
   else if(!open&&last&&last.st==="STOPPED"&&last.done)h+=mtStopForm(Object.assign({},f,{stop:Object.assign({},f.stop,{check:(f.doneStop||{}).check||{}})}),last);
@@ -955,9 +1005,21 @@ async function exportPqc(){
 }
 
 /* ---------- Giờ máy và xử lý hàng sau sản xuất ---------- */
-var curOut="",outDisp=null,dispArm="";
+var curOut="",outDisp=null,dispArm="",outFix=null;
 var TKIND=[["on","Bật máy"],["stop","Dừng máy"],["off","Tắt máy"]];
 var DISP_ST={NEW:"Chờ Quản lý xác nhận",CONFIRM:"Chờ xử lý",DONE:"Xử lý xong"};
+var ST_KEYS=["btp","tp","fin","hold"],ST_RECV=["btp","tp","fin"];
+var ST_VI={btp:"Nhập kho BTP",tp:"Nhập kho TP",fin:"Chuyển bộ phận hoàn thành",hold:"Chuyển công nhân xử lý"};
+var ST_SHORT={btp:"Kho BTP",tp:"Kho TP",fin:"Bộ phận hoàn thành",hold:"Công nhân xử lý"};
+function stageN(d,k){if(!d)return 0;if(d[k]!=null)return Math.max(0,num(d[k])||0);if(k==="tp"&&d.btp==null&&d.tp==null)return Math.max(0,num(d.stock)||0);return 0;}
+function dispTotal(o){var d=o&&o.disp;if(!d)return 0;return ST_KEYS.reduce(function(a,k){return a+stageN(d,k);},0);}
+function dispUnsplit(o){return Math.max(0,(num(o.ok)||0)-dispTotal(o));}
+function stagePend(d,k){var sent=stageN(d,k),r=(d&&d.recv||{})[k]||{};return Math.max(0,sent-(r.at?(num(r.n)||0):0));}
+function dispPend(o){var d=o&&o.disp;if(!d)return 0;return ST_RECV.reduce(function(a,k){return a+stagePend(d,k);},0);}
+function dispLeft(o){var d=o&&o.disp;if(!d)return 0;var r=d.res||{};return Math.max(0,stageN(d,"hold")-(num(r.ok)||0)-(num(r.scrap)||0)-(num(r.rework)||0));}
+function dispOpen(o){return !o.timeOnly&&o.ok>0&&(dispUnsplit(o)>0||dispPend(o)>0||dispLeft(o)>0||(o.disp&&o.disp.st==="NEW"));}
+function canRecv(){return ["KHO","SX","QLSX","KT","QL"].indexOf(myRole)>=0;}
+function canFix(){return myRole==="QL"||myRole==="QLSX";}
 function shiftOuts(){var f=outForm||{};return liveOuts().filter(function(o){return o.machine===curMachine&&o.date===f.date&&(isNight(f.shift)?isNight(o.shift):!isNight(o.shift));});}
 function timeRow(){var r=shiftOuts();return r.filter(function(o){return o.times;})[0]||r.filter(function(o){return o.timeOnly;})[0]||r.sort(function(a,b){return a.at<b.at?-1:1;})[0]||null;}
 function timesHtml(){
@@ -992,63 +1054,176 @@ function dispOf(o){return o&&o.disp?o.disp:null;}
 function dispPill(o){
   var d=dispOf(o);
   if(!d)return o.ok>0?'<span class="pill">Chưa chia</span>':'';
-  return '<span class="pill'+(d.st==="DONE"?" ok":d.st==="NEW"?" ng":"")+'">'+esc(DISP_ST[d.st]||d.st)+'</span>';
+  var h=dispUnsplit(o)>0?'<span class="pill">Còn '+fmtN(dispUnsplit(o))+' pcs chưa chia</span>':"";
+  if(stageN(d,"hold")>0)h+='<span class="pill'+(d.st==="DONE"?" ok":d.st==="NEW"?" ng":"")+'">Hàng ứ: '+esc(DISP_ST[d.st]||d.st)+'</span>';
+  var pd=dispPend(o);
+  if(pd>0)h+='<span class="pill warn">Treo '+fmtN(pd)+' pcs ở công đoạn</span>';
+  else if(!h)h+='<span class="pill ok">Xong các công đoạn</span>';
+  return h;
+}
+/* Tổng hợp sản lượng đang treo ở công đoạn nào, dùng cho dashboard và trang xử lý hàng. */
+function stageSum(days){
+  var from=dstr(new Date(Date.now()-(days||30)*86400000)),t={unsplit:0,btp:0,tp:0,fin:0,hold:0,ok:0,rows:0,byPart:{}};
+  liveOuts().forEach(function(o){
+    if(o.timeOnly||String(o.date)<from||!(o.ok>0))return;
+    var e=t.byPart[o.part]||(t.byPart[o.part]={part:o.part,unsplit:0,btp:0,tp:0,fin:0,hold:0,ok:0});
+    var u=dispUnsplit(o),hl=dispLeft(o);
+    t.ok+=o.ok;e.ok+=o.ok;t.unsplit+=u;e.unsplit+=u;t.hold+=hl;e.hold+=hl;
+    ST_RECV.forEach(function(k){var v=stagePend(o.disp,k);t[k]+=v;e[k]+=v;});
+    if(u||hl||dispPend(o))t.rows++;
+  });
+  t.all=t.unsplit+t.btp+t.tp+t.fin+t.hold;
+  return t;
+}
+function stageCards(t){
+  return '<div class="dgrid">'+
+    card("Chưa chia",fmtN(t.unsplit)+' <small>pcs</small>',"QLSX chưa chia công đoạn")+
+    card("Chờ kho BTP nhận",fmtN(t.btp)+' <small>pcs</small>',"đã chuyển, chưa ghi nhận")+
+    card("Chờ kho TP nhận",fmtN(t.tp)+' <small>pcs</small>',"đã chuyển, chưa ghi nhận")+
+    card("Ở bộ phận hoàn thành",fmtN(t.fin)+' <small>pcs</small>',"chưa báo nhận đủ")+
+    card("Chờ công nhân xử lý",fmtN(t.hold)+' <small>pcs</small>',"hàng ứ chưa có kết quả")+
+    card("Tổng đang treo",fmtN(t.all)+' <small>pcs</small>',t.rows+" dòng sản lượng")+
+    '</div>';
+}
+function stageTable(t,lim){
+  var ks=Object.keys(t.byPart).filter(function(k){var e=t.byPart[k];return e.unsplit||e.btp||e.tp||e.fin||e.hold;})
+    .sort(function(a,b){var x=t.byPart[a],y=t.byPart[b];return (y.unsplit+y.btp+y.tp+y.fin+y.hold)-(x.unsplit+x.btp+x.tp+x.fin+x.hold);});
+  if(!ks.length)return '<p class="hint">Không còn sản lượng nào treo ở công đoạn.</p>';
+  return '<div class="scroll"><table><thead><tr><th>Mã hàng</th><th class="n">Đạt</th><th class="n">Chưa chia</th><th class="n">Chờ kho BTP</th><th class="n">Chờ kho TP</th><th class="n">Hoàn thành</th><th class="n">Chờ xử lý</th></tr></thead><tbody>'+
+    ks.slice(0,lim||60).map(function(k){var e=t.byPart[k];
+      return '<tr><td><b>'+esc(k)+'</b></td><td class="n">'+fmtN(e.ok)+'</td><td class="n">'+(e.unsplit?fmtN(e.unsplit):"")+'</td><td class="n">'+(e.btp?fmtN(e.btp):"")+'</td><td class="n">'+(e.tp?fmtN(e.tp):"")+'</td><td class="n">'+(e.fin?fmtN(e.fin):"")+'</td><td class="n">'+(e.hold?fmtN(e.hold):"")+'</td></tr>';}).join("")+
+    '</tbody></table></div>';
 }
 function viewDisp(){
+  var t=stageSum(30);
   var rows=liveOuts().filter(function(o){return !o.timeOnly&&o.ok>0;}).sort(function(a,b){return (a.date+a.at)<(b.date+b.at)?1:-1;}).slice(0,200);
-  var need=rows.filter(function(o){return !o.disp||o.disp.st!=="DONE";});
+  var need=rows.filter(dispOpen);
   var h='<section class="card"><h2>Xử lý hàng sau sản xuất</h2>'+
-    '<p class="hint">QLSX xem sản lượng rồi chia: bao nhiêu pcs nhập kho, bao nhiêu pcs chờ xử lý và ai xử lý. Quản lý xác nhận lô chờ xử lý. Xử lý xong ghi lại OK / hủy / gỡ lại, phần hủy chuyển sang báo phế.</p>'+
-    '<div class="scroll"><table><thead><tr><th>Ngày</th><th>Máy</th><th>Mã hàng</th><th class="n">Đạt</th><th class="n">Nhập kho</th><th class="n">Chờ xử lý</th><th>Trạng thái</th><th>Người xử lý</th></tr></thead><tbody>'+
-    (need.length?need.map(function(o){var d=dispOf(o)||{};
-      return '<tr><td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(o.machine)+'</td><td><b>'+esc(o.part)+'</b></td><td class="n">'+fmtN(o.ok)+'</td><td class="n">'+(d.stock==null?"":fmtN(d.stock))+'</td><td class="n">'+(d.hold==null?"":fmtN(d.hold))+'</td><td>'+dispPill(o)+'</td><td>'+esc(d.holdBy||"")+'</td></tr>';}).join(""):'<tr><td colspan="8">Không còn dòng nào chờ xử lý.</td></tr>')+
+    '<p class="hint">QLSX xem sản lượng rồi chia về 4 công đoạn: nhập kho BTP, nhập kho TP, chuyển bộ phận hoàn thành, chuyển công nhân xử lý. Kho và bộ phận hoàn thành ghi số thực nhận. Quản lý xác nhận lô chờ xử lý; xử lý xong ghi OK / hủy / gỡ lại, phần hủy chuyển sang báo phế.</p>'+
+    stageCards(t)+'<p class="hint">Số trong 30 ngày gần nhất. Bấm vào ngày để mở dòng sản lượng.</p></section>';
+  h+='<section class="card"><h3>Đang chờ chia hoặc chờ nhận ('+need.length+' dòng)</h3><div class="scroll"><table><thead><tr><th>Ngày</th><th>Máy</th><th>Mã hàng</th><th class="n">Đạt</th><th class="n">Chưa chia</th><th class="n">Kho BTP</th><th class="n">Kho TP</th><th class="n">H.thành</th><th class="n">Chờ xử lý</th><th>Trạng thái</th></tr></thead><tbody>'+
+    (need.length?need.map(function(o){var d=dispOf(o);
+      return '<tr><td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(o.machine)+'</td><td><b>'+esc(o.part)+'</b></td><td class="n">'+fmtN(o.ok)+'</td>'+
+        '<td class="n">'+(dispUnsplit(o)?fmtN(dispUnsplit(o)):"")+'</td>'+
+        ST_RECV.map(function(k){var v=d?stagePend(d,k):0;return '<td class="n">'+(v?fmtN(v):"")+'</td>';}).join("")+
+        '<td class="n">'+(dispLeft(o)?fmtN(dispLeft(o)):"")+'</td><td>'+dispPill(o)+'</td></tr>';}).join(""):'<tr><td colspan="10">Không còn dòng nào chờ chia hay chờ nhận.</td></tr>')+
     '</tbody></table></div></section>'+
-    '<section class="card"><h3>Đã xong gần đây</h3><div class="scroll"><table><thead><tr><th>Ngày</th><th>Mã hàng</th><th class="n">Nhập kho</th><th class="n">OK sau xử lý</th><th class="n">Hủy</th><th class="n">Gỡ lại</th><th>Đơn báo phế</th></tr></thead><tbody>'+
-    rows.filter(function(o){return o.disp&&o.disp.st==="DONE";}).slice(0,40).map(function(o){var d=o.disp,r=d.res||{};
-      return '<tr><td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(o.part)+'</td><td class="n">'+fmtN(d.stock||0)+'</td><td class="n">'+fmtN(r.ok||0)+'</td><td class="n">'+fmtN(r.scrap||0)+'</td><td class="n">'+fmtN(r.rework||0)+'</td><td>'+esc(d.scrapNo||"")+'</td></tr>';}).join("")+
+    '<section class="card"><h3>Treo ở công đoạn nào, theo mã hàng</h3>'+stageTable(t,60)+'</section>'+
+    '<section class="card"><h3>Đã xong gần đây</h3><div class="scroll"><table><thead><tr><th>Ngày</th><th>Mã hàng</th><th class="n">Kho BTP</th><th class="n">Kho TP</th><th class="n">H.thành</th><th class="n">OK sau xử lý</th><th class="n">Hủy</th><th class="n">Gỡ lại</th><th>Đơn báo phế</th></tr></thead><tbody>'+
+    rows.filter(function(o){return o.disp&&!dispOpen(o);}).slice(0,40).map(function(o){var d=o.disp,r=d.res||{};
+      return '<tr><td><a href="#xl-'+esc(o.id)+'">'+esc((o.date||"").split("-").reverse().join("/"))+'</a></td><td>'+esc(o.part)+'</td>'+
+        ST_RECV.map(function(k){return '<td class="n">'+fmtN(stageN(d,k))+'</td>';}).join("")+
+        '<td class="n">'+fmtN(r.ok||0)+'</td><td class="n">'+fmtN(r.scrap||0)+'</td><td class="n">'+fmtN(r.rework||0)+'</td><td>'+esc(d.scrapNo||"")+'</td></tr>';}).join("")+
     '</tbody></table></div></section>';
+  return h;
+}
+function newOutFix(o){
+  var t=o.times||{};
+  return {shift:o.shift,date:o.date,staff:o.staff||"",boxes:String(o.boxes||0),per:String(o.per||0),odd:String(o.odd||0),
+    status:o.status||"OK",note:o.note||"",ngBy:Object.assign({},o.ngBy||{}),on:(t.on||{}).t||"",stop:(t.stop||{}).t||"",off:(t.off||{}).t||"",why:""};
+}
+function fixTotal(){var f=outFix||{};return Math.round(num(f.boxes)||0)*Math.round(num(f.per)||0)+Math.round(num(f.odd)||0);}
+function fixHtml(o){
+  var f=outFix;
+  var h='<h3>0. Sửa dòng công nhân nhập sai (Quản lý sản xuất)</h3>';
+  if(!canFix())return h+'<p class="hint">Nhập sai thì báo Quản lý sản xuất sửa hoặc hủy dòng này.</p>';
+  if(!f)return h+'<div class="row"><button type="button" class="btn ghost" data-act="fix-open">Sửa dòng này</button>'+
+    '<button type="button" class="btn ghost danger" data-act="fix-del">'+(dispArm==="del"?"Bấm lần nữa để hủy dòng":"Hủy cả dòng")+'</button></div>'+
+    (o.edits&&o.edits.length?'<p class="hint">Đã sửa '+o.edits.length+' lần, lần cuối bởi '+esc(o.edits[o.edits.length-1].by)+' lúc '+esc(fmtDate(o.edits[o.edits.length-1].at))+(o.edits[o.edits.length-1].why?' · '+esc(o.edits[o.edits.length-1].why):'')+'.</p>':'');
+  h+='<div class="grid">'+
+    '<label class="f">Ca làm việc<select data-fx="shift">'+Object.keys(SHIFTS).map(function(k){return '<option value="'+k+'"'+(f.shift===k?" selected":"")+'>'+esc(SHIFTS[k])+'</option>';}).join("")+'</select></label>'+
+    '<label class="f">Ngày sản xuất<input data-fx="date" type="date" value="'+esc(f.date)+'"></label>'+
+    '<label class="f full">Công nhân đứng máy<input data-fx="staff" value="'+esc(f.staff)+'" maxlength="40"></label>'+
+    '<label class="f">Số thùng<input data-fx="boxes" type="number" min="0" step="1" value="'+esc(f.boxes)+'"></label>'+
+    '<label class="f">Pcs / thùng<input data-fx="per" type="number" min="0" step="1" value="'+esc(f.per)+'"></label>'+
+    '<label class="f">Số lẻ (pcs)<input data-fx="odd" type="number" min="0" step="1" value="'+esc(f.odd)+'"></label>'+
+    '<label class="f">Giờ bật máy<input data-fx="on" value="'+esc(f.on)+'" placeholder="07:30" style="max-width:120px"></label>'+
+    '<label class="f">Giờ dừng máy<input data-fx="stop" value="'+esc(f.stop)+'" placeholder="11:30" style="max-width:120px"></label>'+
+    '<label class="f">Giờ tắt máy<input data-fx="off" value="'+esc(f.off)+'" placeholder="16:30" style="max-width:120px"></label>'+
+    '<fieldset class="full" style="border:1px solid var(--line,#d5dae3);border-radius:8px;padding:10px"><legend class="hint">Hàng NG theo lý do (pcs)</legend><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+
+      NG.map(function(r){return '<label class="f" style="margin:0">'+esc(r[1])+'<input data-fng="'+r[0]+'" type="number" min="0" step="1" value="'+esc(f.ngBy[r[0]]||"")+'"></label>';}).join("")+'</div></fieldset>'+
+    '<label class="f full">Ghi chú của dòng<input data-fx="note" value="'+esc(f.note)+'" maxlength="300"></label>'+
+    '<label class="f full">Sửa vì sao (ghi vào nhật ký)<input data-fx="why" value="'+esc(f.why)+'" maxlength="200" placeholder="Công nhân chọn sai ca, nhập sai số thùng…"></label>'+
+    '</div><p class="hint">Số đạt sau khi sửa: <b>'+fmtN(fixTotal())+' pcs</b>'+(dispTotal(o)>0?' · đã chia theo công đoạn '+fmtN(dispTotal(o))+' pcs, số đạt mới không được nhỏ hơn số này':'')+'.</p>'+
+    '<div class="row"><button type="button" class="btn" data-act="fix-save">Lưu dòng đã sửa</button><button type="button" class="btn ghost" data-act="fix-cancel">Bỏ</button>'+
+    '<button type="button" class="btn ghost danger" data-act="fix-del">'+(dispArm==="del"?"Bấm lần nữa để hủy dòng":"Hủy cả dòng")+'</button></div>';
+  if(o.edits&&o.edits.length)h+='<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Sửa lúc</th><th>Người sửa</th><th>Trước khi sửa</th><th>Vì sao</th></tr></thead><tbody>'+
+    o.edits.slice().reverse().map(function(e){var b=e.before||{};
+      return '<tr><td>'+esc(fmtDate(e.at))+'</td><td>'+esc(e.by||"")+'</td><td class="hint">'+esc((SHIFT_S[b.shift]||b.shift||"")+" · "+String(b.date||"").split("-").reverse().join("/")+" · "+(b.staff||"")+" · "+fmtN(b.ok||0)+" pcs đạt"+(b.ng?", "+fmtN(b.ng)+" NG":""))+'</td><td>'+esc(e.why||"")+'</td></tr>';}).join("")+
+    '</tbody></table></div>';
+  return h;
+}
+function dispSplitHtml(o,d,f){
+  var h='<h3>1. Chia hàng theo công đoạn (Quản lý sản xuất)</h3>';
+  var qlsx=myRole==="QLSX"||myRole==="QL";
+  if(qlsx&&!d.res){
+    var sum=ST_KEYS.reduce(function(a,k){return a+Math.round(num(f[k])||0);},0);
+    h+='<div class="grid">'+ST_KEYS.map(function(k){
+        return '<label class="f">'+esc(ST_VI[k])+' (pcs)<input data-dp="'+k+'" type="number" min="0" step="1" inputmode="numeric" value="'+esc(f[k])+'"></label>';}).join("")+
+      '<label class="f full">Công nhân xử lý hàng ứ<input data-dp="holdBy" value="'+esc(f.holdBy)+'" list="disp-staff" placeholder="Tên công nhân xử lý"><datalist id="disp-staff">'+Array.from(new Set(liveOuts().map(function(x){return x.staff;}).filter(String))).slice(0,60).map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist></label>'+
+      '<label class="f full">Ghi chú<input data-dp="note" value="'+esc(f.note)+'"></label></div>'+
+      '<p class="hint">Tổng đã chia <b>'+fmtN(sum)+'</b> / '+fmtN(o.ok)+' pcs đạt'+(sum>o.ok?' · <span class="pill ng">vượt '+fmtN(sum-o.ok)+' pcs</span>':sum<o.ok?' · còn <b>'+fmtN(o.ok-sum)+'</b> pcs chưa chia':'')+'. Công đoạn nào không có thì để 0.</p>'+
+      '<div class="row"><button type="button" class="btn" data-act="disp-split">Lưu chia hàng</button>'+
+      '<button type="button" class="btn ghost" data-act="disp-all-tp">Tất cả vào kho TP</button>'+
+      '<button type="button" class="btn ghost" data-act="disp-all-fin">Tất cả sang hoàn thành</button></div>';
+  }
+  else if(!o.disp)h+='<p class="hint">Chưa chia. Chờ Quản lý sản xuất chia '+fmtN(o.ok)+' pcs về các công đoạn.</p>';
+  else h+='<p class="hint">'+ST_KEYS.map(function(k){return esc(ST_VI[k])+" <b>"+fmtN(stageN(d,k))+"</b>";}).join(" · ")+' pcs'+
+    (d.holdBy?' · công nhân xử lý '+esc(d.holdBy):'')+(d.by?' · chia bởi '+esc(d.by):'')+(d.note?' · '+esc(d.note):'')+'</p>'+
+    (dispUnsplit(o)>0?'<p class="note">Còn '+fmtN(dispUnsplit(o))+' pcs chưa chia công đoạn.</p>':'');
+  return h;
+}
+function dispRecvHtml(o,d,f){
+  var h='<h3>3. Kho và bộ phận hoàn thành ghi số thực nhận</h3>';
+  var ks=ST_RECV.filter(function(k){return stageN(d,k)>0;});
+  if(!ks.length)return h+'<p class="hint">Dòng này chưa chia về kho BTP, kho TP hay bộ phận hoàn thành.</p>';
+  var can=canRecv();
+  h+='<div class="scroll"><table><thead><tr><th>Công đoạn</th><th class="n">Đã chuyển</th><th class="n">Đã nhận</th><th class="n">Còn treo</th><th>Người nhận</th>'+(can?'<th></th>':'')+'</tr></thead><tbody>'+
+    ks.map(function(k){var sent=stageN(d,k),r=(d.recv||{})[k]||{},got=r.at?(num(r.n)||0):0,v=f["rc_"+k];
+      return '<tr><td>'+esc(ST_SHORT[k])+'</td><td class="n">'+fmtN(sent)+'</td><td class="n">'+(r.at?fmtN(got):"")+'</td><td class="n">'+(sent-got>0?'<b>'+fmtN(sent-got)+'</b>':"0")+'</td>'+
+        '<td>'+esc(r.by||"")+(r.at?'<br><span class="hint">'+esc(fmtDate(r.at))+(r.note?" · "+esc(r.note):"")+'</span>':"")+'</td>'+
+        (can?'<td class="row" style="gap:6px"><input data-dp="rc_'+k+'" type="number" min="0" step="1" value="'+esc(v!=null?v:sent)+'" style="width:88px">'+
+          '<button type="button" class="btn small" data-act="disp-recv" data-k="'+k+'">Ghi nhận</button></td>':'')+'</tr>';}).join("")+
+    '</tbody></table></div><p class="hint">Phần còn treo hiện trên dashboard để biết hàng đang nằm ở công đoạn nào. Nhận thiếu thì ghi đúng số thực nhận, phần còn lại vẫn treo.</p>';
   return h;
 }
 function viewDispOne(){
   var o=outputs.get(curOut);
   if(!o)return '<section class="card"><h2>Không tìm thấy dòng sản lượng</h2><div><a class="btn ghost" href="#xu-ly">Về danh sách</a></div></section>';
-  var d=dispOf(o)||{},f=outDisp||(outDisp={stock:d.stock==null?o.ok:d.stock,hold:d.hold==null?0:d.hold,holdBy:d.holdBy||"",note:"",okPcs:"",scrapPcs:"",reworkPcs:"",worker:d.holdBy||"",scrapNo:d.scrapNo||""});
+  var d=dispOf(o)||{};
+  var f=outDisp||(outDisp={btp:String(stageN(d,"btp")||(o.disp?0:0)),tp:String(o.disp?stageN(d,"tp"):Math.max(0,o.ok-(num(o.hold0)||0))),
+    fin:String(stageN(d,"fin")),hold:String(o.disp?stageN(d,"hold"):(num(o.hold0)||0)),
+    holdBy:d.holdBy||"",note:"",okPcs:"",scrapPcs:"",reworkPcs:"",worker:d.holdBy||"",scrapNo:d.scrapNo||""});
   var mg=myRole==="QL",qlsx=myRole==="QLSX"||mg,sx=myRole==="SX"||qlsx;
   var h='<section class="card"><div class="baghead"><div><div class="hint">Sản lượng ngày '+esc((o.date||"").split("-").reverse().join("/"))+' · máy '+esc(o.machine)+' · '+esc(SHIFT_S[o.shift]||o.shift)+'</div>'+
     '<div class="lot">'+esc(o.part)+'</div><div class="row">'+dispPill(o)+'<span class="pill solid">'+fmtN(o.ok)+' pcs đạt</span>'+(o.ng?'<span class="pill ng">'+fmtN(o.ng)+' NG</span>':'')+'</div></div></div>'+
-    '<p class="hint">Lot SX '+esc(o.prodLot||"")+' · công nhân '+esc(o.staff||"")+' · nhập lúc '+esc(o.at?fmtDate(o.at):"")+'</p>';
+    '<p class="hint">Lot SX <a href="#'+esc(lotHash(o.prodLot||""))+'">'+esc(o.prodLot||"")+'</a> · công nhân '+esc(o.staff||"")+' · nhập lúc '+esc(o.at?fmtDate(o.at):"")+(o.note?' · '+esc(o.note):'')+'</p>';
   if(o.times)h+='<p class="hint">Giờ máy: '+TKIND.map(function(k){return k[1]+" "+(o.times[k[0]]?o.times[k[0]].t:"--:--");}).join(" · ")+'</p>';
-  /* bước 1: chia hàng */
-  h+='<h3>1. Chia hàng (Quản lý sản xuất)</h3>';
-  if(qlsx&&!d.res)h+='<div class="grid">'+
-    '<label class="f">Nhập kho (pcs)<input data-dp="stock" type="number" min="0" value="'+esc(f.stock)+'"></label>'+
-    '<label class="f">Chờ xử lý (pcs)<input data-dp="hold" type="number" min="0" value="'+esc(f.hold)+'"></label>'+
-    '<label class="f full">Người xử lý<input data-dp="holdBy" value="'+esc(f.holdBy)+'" list="disp-staff" placeholder="Tên công nhân xử lý"><datalist id="disp-staff">'+Array.from(new Set(liveOuts().map(function(x){return x.staff;}).filter(String))).slice(0,60).map(function(n){return '<option value="'+esc(n)+'">';}).join("")+'</datalist></label>'+
-    '<label class="f full">Ghi chú<input data-dp="note" value="'+esc(f.note)+'"></label>'+
-    '</div><div class="row"><button type="button" class="btn" data-act="disp-split">Lưu chia hàng</button></div>';
-  else h+='<p class="hint">'+(d.stock==null?"Chưa chia.":"Nhập kho <b>"+fmtN(d.stock)+"</b> pcs · chờ xử lý <b>"+fmtN(d.hold)+"</b> pcs"+(d.holdBy?" · người xử lý "+esc(d.holdBy):"")+(d.by?" · "+esc(d.by):""))+'</p>';
-  /* bước 2: quản lý xác nhận */
+  h+=fixHtml(o);
+  h+=dispSplitHtml(o,d,f);
   h+='<h3>2. Quản lý xác nhận lô chờ xử lý</h3>';
   if(d.cf)h+='<p class="hint">Đã xác nhận bởi '+esc(d.cf.by)+' lúc '+esc(fmtDate(d.cf.at))+(d.cf.note?" · "+esc(d.cf.note):"")+'.</p>';
-  else if(mg&&d.stock!=null)h+='<div class="row"><button type="button" class="btn" data-act="disp-confirm">Xác nhận lô chờ xử lý</button></div>';
-  else h+='<p class="hint">'+(d.stock==null?"Chờ QLSX chia hàng.":"Chờ Quản lý xác nhận.")+'</p>';
-  /* bước 3: kết quả xử lý */
-  h+='<h3>3. Kết quả xử lý</h3>';
+  else if(!o.disp)h+='<p class="hint">Chờ QLSX chia hàng.</p>';
+  else if(!stageN(d,"hold"))h+='<p class="hint">Dòng này không có hàng chờ xử lý nên không cần xác nhận.</p>';
+  else if(mg)h+='<div class="row"><button type="button" class="btn" data-act="disp-confirm">Xác nhận '+fmtN(stageN(d,"hold"))+' pcs chờ xử lý</button></div>';
+  else h+='<p class="hint">Chờ Quản lý xác nhận.</p>';
+  h+=dispRecvHtml(o,d,f);
+  h+='<h3>4. Kết quả xử lý hàng ứ</h3>';
   if(d.res)h+='<p>OK nhập kho <b>'+fmtN(d.res.ok)+'</b> pcs · NG đem hủy <b>'+fmtN(d.res.scrap)+'</b> pcs · NG gỡ xử lý lại <b>'+fmtN(d.res.rework)+'</b> pcs<br><span class="hint">Người xử lý '+esc(d.res.by||"")+' · ghi lúc '+esc(fmtDate(d.res.at))+'</span></p>';
-  if(sx&&d.hold>0&&d.st!=="NEW"&&(!d.res||mg))h+='<div class="grid">'+
+  if(sx&&stageN(d,"hold")>0&&d.st!=="NEW"&&(!d.res||mg))h+='<div class="grid">'+
     '<label class="f">OK cho nhập kho<input data-dp="okPcs" type="number" min="0" value="'+esc(f.okPcs)+'"></label>'+
     '<label class="f">NG đem hủy<input data-dp="scrapPcs" type="number" min="0" value="'+esc(f.scrapPcs)+'"></label>'+
     '<label class="f">NG gỡ xử lý lại<input data-dp="reworkPcs" type="number" min="0" value="'+esc(f.reworkPcs)+'"></label>'+
     '<label class="f full">Người xử lý<input data-dp="worker" value="'+esc(f.worker)+'"></label></div>'+
     '<div class="row"><button type="button" class="btn" data-act="disp-result">Lưu kết quả xử lý</button></div>';
-  else if(d.hold>0&&d.st==="NEW")h+='<p class="hint">Quản lý chưa xác nhận nên chưa ghi được kết quả.</p>';
-  /* bước 4: báo phế */
-  h+='<h3>4. Hàng NG đem hủy → báo phế</h3>';
+  else if(stageN(d,"hold")>0&&d.st==="NEW")h+='<p class="hint">Quản lý chưa xác nhận nên chưa ghi được kết quả.</p>';
+  else if(!stageN(d,"hold"))h+='<p class="hint">Không có hàng ứ.</p>';
+  h+='<h3>5. Hàng NG đem hủy → báo phế</h3>';
   if(d.res&&d.res.scrap>0){
     h+='<p class="hint">'+fmtN(d.res.scrap)+' pcs cần lập đơn báo phế.</p><div class="row">'+
       '<button type="button" class="btn" data-act="disp-bp">Lập đơn báo phế '+fmtN(d.res.scrap)+' pcs</button>'+
       '<label class="f" style="margin:0">Hoặc nối với đơn đã có<select data-dp="scrapNo"><option value="">— chọn đơn —</option>'+
-      Array.from(scraps.values()).slice(0,60).map(function(s){return '<option value="'+esc(s.no)+'"'+(f.scrapNo===s.no?" selected":"")+'>'+esc(s.no)+' · '+esc((s.lines[0]||{}).part||"")+'</option>';}).join("")+'</select></label>'+
+      Array.from(scraps.values()).slice(0,60).map(function(x){return '<option value="'+esc(x.no)+'"'+(f.scrapNo===x.no?" selected":"")+'>'+esc(x.no)+' · '+esc((x.lines[0]||{}).part||"")+'</option>';}).join("")+'</select></label>'+
       '<button type="button" class="btn ghost" data-act="disp-link">Nối đơn</button></div>';
   }else h+='<p class="hint">Chưa có hàng hủy.</p>';
   if(d.scrapNo)h+='<p class="hint">Đã nối đơn báo phế <b>'+esc(d.scrapNo)+'</b>.</p>';
@@ -1062,8 +1237,43 @@ async function dispDo(op,extra){
     var body=Object.assign({op:op,id:o.id},extra||{});
     var r=await api("outUpdate",body);
     outputs.set(r.output.id,r.output);outDisp=null;dispArm="";
-    toast(op==="split"?"Đã chia hàng.":op==="confirm"?"Đã xác nhận.":op==="result"?"Đã ghi kết quả xử lý.":"Đã nối đơn báo phế.");
+    toast(op==="split"?"Đã chia hàng theo công đoạn.":op==="confirm"?"Đã xác nhận.":op==="result"?"Đã ghi kết quả xử lý.":op==="recv"?"Đã ghi số thực nhận.":"Đã nối đơn báo phế.");
   }catch(e){toast(errMsg(e,"Không lưu được."));}
+  finally{pending--;}
+  render();
+}
+async function fixSave(){
+  var o=outputs.get(curOut),f=outFix;
+  if(!o||!f)return;
+  if(!f.staff.trim()){toast("Nhập tên công nhân đứng máy.");return;}
+  var ngBy={};NG.forEach(function(r){var x=Math.round(num(f.ngBy[r[0]])||0);if(x>0)ngBy[r[0]]=x;});
+  var ok=fixTotal(),ng=0;Object.keys(ngBy).forEach(function(k){ng+=ngBy[k];});
+  if(ok+ng<=0&&!o.timeOnly){toast("Nhập số lượng đạt hoặc số NG.");return;}
+  if(dispTotal(o)>ok){toast("Số đạt mới "+fmtN(ok)+" pcs nhỏ hơn "+fmtN(dispTotal(o))+" pcs đã chia. Chia lại trước.");return;}
+  for(var i=0;i<TKIND.length;i++){var tv=String(f[TKIND[i][0]]||"").trim();if(tv&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(tv)){toast("Giờ "+TKIND[i][1].toLowerCase()+" phải dạng 07:30.");return;}}
+  if(memMode){toast("Chưa kết nối máy chủ.");return;}
+  pending++;writeSeq++;
+  try{
+    var r=await api("outUpdate",{op:"edit",id:o.id,fix:{shift:f.shift,date:f.date,staff:f.staff.trim(),boxes:Math.round(num(f.boxes)||0),per:Math.round(num(f.per)||0),odd:Math.round(num(f.odd)||0),
+      ngBy:ngBy,status:f.status,note:(f.note||"").trim(),why:(f.why||"").trim(),times:{on:String(f.on||"").trim(),stop:String(f.stop||"").trim(),off:String(f.off||"").trim()}}});
+    outputs.set(r.output.id,r.output);outFix=null;outDisp=null;dispArm="";
+    toast("Đã sửa dòng sản lượng: "+fmtN(r.output.ok)+" pcs đạt"+(r.output.ng?", "+fmtN(r.output.ng)+" NG":"")+".");
+  }catch(e){toast(errMsg(e,"Không sửa được dòng này."));}
+  finally{pending--;}
+  render();
+}
+async function fixDelete(){
+  var o=outputs.get(curOut);
+  if(!o)return;
+  if(memMode){toast("Chưa kết nối máy chủ.");return;}
+  pending++;writeSeq++;
+  try{
+    var r=await api("deleteOutput",{id:o.id});
+    if(r&&r.output)outputs.set(r.output.id,r.output);
+    outFix=null;outDisp=null;dispArm="";
+    toast("Đã hủy dòng sản lượng. Công nhân nhập lại dòng mới.");
+    location.hash="xu-ly";
+  }catch(e){toast(errMsg(e,"Không hủy được dòng này."));}
   finally{pending--;}
   render();
 }
@@ -1080,10 +1290,23 @@ var locSlot="",locPick="",mlScan=null;
 function liveMolds(){return Array.from(molds.values()).filter(function(m){return !m.void;});}
 function moldAt(loc){return liveMolds().filter(function(m){return String(m.loc||"").toUpperCase()===loc;});}
 function moldLabel(m){return (m.toolId||"")+(m.toolId&&m.partNo?" · ":"")+(m.partNo||"")+(m.name?" – "+m.name:"");}
+function moldSort(a,b){return (moldShotAll(b)-moldShotAll(a))||0;}
 function slotCell(loc){
   var ms=moldAt(loc),sel=locSlot===loc;
   return '<button type="button" class="slot'+(ms.length?" on":"")+(sel?" sel":"")+'" data-act="slot" data-loc="'+loc+'">'+
     '<b>'+loc+'</b>'+(ms.length?ms.map(function(m){return '<span>'+esc(m.toolId||m.partNo)+'</span>'+(m.partNo&&m.toolId?'<small>'+esc(m.partNo)+'</small>':'');}).join(""):'<small>trống</small>')+'</button>';
+}
+async function moldSync(){
+  if(memMode){toast("Chưa kết nối máy chủ.");return;}
+  pending++;writeSeq++;
+  try{
+    var r=await api("moldSync",{days:400});
+    toast("Đã cập nhật "+fmtN(r.molds)+" khuôn từ "+fmtN(r.rows)+" dòng sản lượng: "+fmtN(r.shots)+" shot."+
+      (r.noMold?" "+fmtN(r.noMold)+" dòng chưa gán được khuôn (mã hàng có nhiều khuôn hoặc chưa có khuôn trong danh sách).":""));
+    await refresh();
+  }catch(e){toast(errMsg(e,"Không cập nhật được."));}
+  finally{pending--;}
+  render();
 }
 function viewMoldMap(){
   var noloc=liveMolds().filter(function(m){return !m.loc;});
@@ -1119,12 +1342,16 @@ function viewMoldMap(){
 }
 function mlScanHtml(){
   return '<div class="card" style="padding:10px;margin-top:10px"><h3>Đọc được '+mlScan.length+' khuôn từ bảng</h3>'+
-    '<div class="scroll"><table><thead><tr><th>Lấy</th><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Cavity</th><th>Máy</th></tr></thead><tbody>'+
+    '<div class="scroll"><table><thead><tr><th>Lấy</th><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Cavity</th><th>Kích thước</th><th>KL (kg)</th><th>Máy</th></tr></thead><tbody>'+
     mlScan.map(function(m,i){return '<tr><td><input type="checkbox" data-mlk="'+i+'"'+(m.take?" checked":"")+'></td>'+
       '<td><input data-ml="toolId" data-i="'+i+'" value="'+esc(m.toolId||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="partNo" data-i="'+i+'" value="'+esc(m.partNo||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="name" data-i="'+i+'" value="'+esc(m.name||"")+'"></td>'+
+      '<td><input data-ml="model" data-i="'+i+'" value="'+esc(m.model||"")+'" style="width:92px"></td>'+
+      '<td><input data-ml="resin" data-i="'+i+'" value="'+esc(m.resin||"")+'" style="width:110px"></td>'+
       '<td><input data-ml="cavity" data-i="'+i+'" value="'+esc(m.cavity||"")+'" style="width:52px"></td>'+
+      '<td><input data-ml="dim" data-i="'+i+'" value="'+esc(m.dim||"")+'" style="width:110px"></td>'+
+      '<td><input data-ml="weight" data-i="'+i+'" value="'+esc(m.weight||"")+'" style="width:70px"></td>'+
       '<td><input data-ml="machine" data-i="'+i+'" value="'+esc(m.machine||"")+'" style="width:80px"></td></tr>';}).join("")+
     '</tbody></table></div><div class="row"><button type="button" class="btn" data-act="ml-save">Lưu các khuôn đã tick</button><button type="button" class="btn ghost" data-act="ml-cancel">Bỏ</button></div>'+
     '<p class="hint">Khuôn đã có trong danh sách sẽ bị bỏ qua. Kiểm lại mã trước khi lưu.</p></div>';
@@ -1148,7 +1375,7 @@ async function mlSave(){
   for(var i=0;i<take.length;i++){
     var m=take[i];
     try{
-      var r=await api("saveMold",{mold:{id:nid6(),toolId:m.toolId,partNo:m.partNo,name:m.name,cavity:m.cavity,owner:"ESTec",completion:"",note:(m.machine?"Máy "+m.machine+". ":"")+(m.note||""),img:""}});
+      var r=await api("saveMold",{mold:{id:nid6(),toolId:m.toolId,partNo:m.partNo,name:m.name,model:m.model||"",resin:m.resin||"",cavity:m.cavity,dim:m.dim||"",weight:m.weight||"",machine:m.machine||"",owner:"ESTec",completion:"",note:m.note||"",img:""}});
       if(r.mold){molds.set(r.mold.id,r.mold);ok++;}
     }catch(e){if(e.code==="mold_dup")dup++;else er++;}
   }
@@ -1185,7 +1412,14 @@ document.addEventListener("input",function(e){
     else if(d.kind==="v"){q.v=q.v||{};q.v[d.key]=q.v[d.key]||[];q.v[d.key][+d.ci]=t.value;}
     return;
   }
-  if(d.dp&&outDisp){outDisp[d.dp]=t.value;return;}
+  if(d.dp&&outDisp){outDisp[d.dp]=t.value;if(/^(btp|tp|fin|hold)$/.test(d.dp))keepFocus('[data-dp="'+d.dp+'"]',render);return;}
+  if(d.fx&&outFix){outFix[d.fx]=t.value;if(/^(boxes|per|odd)$/.test(d.fx))keepFocus('[data-fx="'+d.fx+'"]',render);return;}
+  if(d.fng&&outFix){outFix.ngBy[d.fng]=t.value;return;}
+  if(d.tf&&tramForm){tramForm[d.tf]=t.value;return;}
+  if(d.mn&&manForm){manForm[d.mn]=t.value;return;}
+  if(d.tl){tramLogin[d.tl]=t.value;return;}
+  if(d.td&&tramForm&&tramForm.del){tramForm.del[d.td]=t.value;return;}
+  if(d.dl&&tramForm&&tramForm.del){var dline=tramForm.del.lines[+d.i];if(dline)dline[d.dl]=t.value;return;}
   if(d.ml&&mlScan){var m=mlScan[+d.i];if(m)m[d.ml]=t.value;return;}
 });
 document.addEventListener("change",function(e){
@@ -1194,6 +1428,9 @@ document.addEventListener("change",function(e){
   if(d.pc==="part"&&pqcEdit){pqcEdit.part=(t.value||"").trim().toUpperCase();if(stdOf(pqcEdit.part))pqcLoad(pqcEdit,pqcEdit.part);setTimeout(render,0);return;}
   if(d.pc==="cavity"&&pqcEdit){pqcEdit.cavity=t.value;setTimeout(render,0);return;}
   if(d.dp==="scrapNo"&&outDisp){outDisp.scrapNo=t.value;return;}
+  if(d.fx&&outFix){outFix[d.fx]=t.value;setTimeout(render,0);return;}
+  if(d.tf&&tramForm){tramForm[d.tf]=t.value;if(d.tf==="kind")setTimeout(render,0);return;}
+  if(d.td&&tramForm&&tramForm.del){tramForm.del[d.td]=t.value;return;}
   if(t.id==="loc-pick"){locPick=t.value;return;}
   if(d.mlk!=null&&mlScan){var m2=mlScan[+d.mlk];if(m2)m2.take=t.checked;return;}
   if(d.draw){var f=t.files&&t.files[0];t.value="";if(f)guard(function(){return drawScan(f,d.draw);});return;}
@@ -1222,7 +1459,32 @@ document.addEventListener("click",function(e){
   else if(a==="out-now")guard(function(){return outTime(t.dataset.k);});
   else if(a==="out-time-save"){var tv={};TKIND.forEach(function(k){var el=document.querySelector('[data-tm="'+k[0]+'"]');if(el)tv[k[0]]=el.value.trim();});
     guard(async function(){for(var i=0;i<TKIND.length;i++){var k=TKIND[i][0];await outTime(k,tv[k]);}});}
-  else if(a==="disp-split")guard(function(){return dispDo("split",{stock:Math.round(num(outDisp.stock)||0),hold:Math.round(num(outDisp.hold)||0),holdBy:outDisp.holdBy,note:outDisp.note});});
+  else if(a==="disp-split")guard(function(){var b={holdBy:outDisp.holdBy,note:outDisp.note};ST_KEYS.forEach(function(k){b[k]=Math.round(num(outDisp[k])||0);});return dispDo("split",b);});
+  else if(a==="disp-all-tp"||a==="disp-all-fin"){var oo=outputs.get(curOut);if(!oo||!outDisp)return;ST_KEYS.forEach(function(k){outDisp[k]="0";});outDisp[a==="disp-all-tp"?"tp":"fin"]=String(oo.ok);render();}
+  else if(a==="disp-recv"){var k2=t.dataset.k,v2=outDisp?outDisp["rc_"+k2]:null;guard(function(){return dispDo("recv",{stage:k2,qty:Math.round(num(v2)||0)});});}
+  else if(a==="fix-open"){var of=outputs.get(curOut);if(of){outFix=newOutFix(of);dispArm="";render();}}
+  else if(a==="fix-cancel"){outFix=null;dispArm="";render();}
+  else if(a==="fix-save")guard(fixSave);
+  else if(a==="fix-del"){if(dispArm!=="del"){dispArm="del";render();return;}guard(fixDelete);}
+  else if(a==="tram-dept"){tramDept=t.dataset.r;tramForm={};loginError="";render();window.scrollTo(0,0);}
+  else if(a==="tram-back"){tramDept="";tramForm=null;loginError="";render();}
+  else if(a==="tram-login"){var tr=t.dataset.r;if(!tramLogin.name.trim()||!tramLogin.pin){toast("Nhập họ tên và mã PIN.");return;}
+    guard(function(){return doLogin(tramLogin.name.trim(),ROLES[tr]?tr:"KHO",tramLogin.pin);});}
+  else if(a==="tram-tech")guard(function(){return tramTech(tramInfo(curTram));});
+  else if(a==="tram-now")guard(function(){return tramTime(tramInfo(curTram),t.dataset.k);});
+  else if(a==="tram-time")guard(async function(){var i2=tramInfo(curTram);for(var x=0;x<TKIND.length;x++){var kk=TKIND[x][0],vv=tramForm["t_"+kk];if(vv!=null)await tramTime(i2,kk,vv);}});
+  else if(a==="tram-mreq")guard(function(){return tramMreq(tramInfo(curTram));});
+  else if(a==="tram-fin")guard(function(){return tramFin(tramInfo(curTram));});
+  else if(a==="tram-del")guard(function(){return tramDel(tramInfo(curTram));});
+  else if(a==="tram-xp")guard(function(){return tramXp(tramInfo(curTram));});
+  else if(a==="del-line-add"&&tramForm&&tramForm.del){if(tramForm.del.lines.length>=30){toast("Tối đa 30 dòng mỗi phiếu.");return;}tramForm.del.lines.push({part:"",name:"",unit:"pcs",req:"",qty:"",lot:curTram,box:"",note:""});render();}
+  else if(a==="del-line-del"&&tramForm&&tramForm.del){tramForm.del.lines.splice(+t.dataset.i,1);if(!tramForm.del.lines.length)tramForm.del.lines.push({part:"",name:"",unit:"pcs",req:"",qty:"",lot:curTram,box:"",note:""});render();}
+  else if(a==="del-print")guard(function(){printVt(t.dataset.id);});
+  else if(a==="del-void"){var dvid=t.dataset.id;if(tramArm!==dvid){tramArm=dvid;render();return;}
+    guard(async function(){try{var dd=delivers.get(dvid);var r=await api("saveDeliver",{deliver:dd,void:true,why:"Hủy phiếu"});delivers.set(r.deliver.id,r.deliver);toast("Đã hủy phiếu xuất.");}catch(e){toast(errMsg(e,"Không hủy được."));}tramArm="";render();});}
+  else if(a==="mreq-st"){var mid=t.dataset.id,mst=t.dataset.st;
+    guard(async function(){try{var r=await api("moldReqAct",{id:mid,st:mst,note:""});mreqs.set(r.mreq.id,r.mreq);toast("Đã cập nhật: "+MREQ_ST[mst]+".");}catch(e){toast(errMsg(e,"Không cập nhật được."));}render();});}
+  else if(a==="lot-qr")guard(function(){return printLotQr(curLot);});
   else if(a==="disp-confirm")guard(function(){return dispDo("confirm",{note:outDisp?outDisp.note:""});});
   else if(a==="disp-result")guard(function(){return dispDo("result",{okPcs:Math.round(num(outDisp.okPcs)||0),scrapPcs:Math.round(num(outDisp.scrapPcs)||0),reworkPcs:Math.round(num(outDisp.reworkPcs)||0),worker:outDisp.worker,note:outDisp.note});});
   else if(a==="disp-link"){if(!outDisp||!outDisp.scrapNo){toast("Chọn đơn báo phế.");return;}guard(function(){return dispDo("link",{scrapNo:outDisp.scrapNo});});}
@@ -1231,6 +1493,10 @@ document.addEventListener("click",function(e){
   else if(a==="loc-cancel"){locSlot="";render();}
   else if(a==="loc-set")guard(function(){return moldSetLoc(locPick||($("#loc-pick")||{}).value,locSlot);});
   else if(a==="loc-clear")guard(function(){return moldSetLoc(t.dataset.id,"");});
+  else if(a==="man-pick"){if(!manForm)return;manForm.st=manForm.st===t.dataset.k?"":t.dataset.k;manArm="";render();}
+  else if(a==="man-save")guard(function(){return manSave("set");});
+  else if(a==="man-clear"){if(manArm!==String(curMt)){manArm=String(curMt);render();return;}guard(function(){return manSave("clear");});}
+  else if(a==="mold-sync")guard(moldSync);
   else if(a==="ml-save")guard(mlSave);
   else if(a==="ml-cancel"){mlScan=null;render();}
 });
@@ -1458,6 +1724,10 @@ function viewDash(){
     card("NG đem hủy",fmtN(p.scrap)+' <small>pcs</small>',"chuyển báo phế")+
     card("NG gỡ lại",fmtN(p.rework)+' <small>pcs</small>',"làm lại")+
     '</div></section>';
+  var sg=stageSum(dashDays);
+  h+='<section class="card"><h3>Sản lượng đang treo ở công đoạn nào</h3>'+stageCards(sg)+
+    '<p class="hint">Chưa chia = QLSX chưa chia dòng sản lượng về công đoạn. Chờ kho nhận = đã chuyển nhưng kho BTP, kho TP chưa ghi số thực nhận. Số trong '+dashDays+' ngày gần nhất.</p>'+
+    stageTable(sg,40)+'<p class="hint"><a href="#xu-ly">Mở trang xử lý hàng sau sản xuất</a></p></section>';
   h+=dchkHtml();
   h+='<section class="card"><h3>Nguyên liệu nhựa trong kho</h3>'+
     (grades.length?'<div class="scroll"><table><thead><tr><th>Grade / màu</th><th>Mã khách</th><th>Mã nội bộ</th><th class="n">Tồn (kg)</th><th class="n">Số tem</th><th>Lot cũ nhất</th></tr></thead><tbody>'+
@@ -2620,7 +2890,7 @@ function viewBag(){
   var h='<section class="card"><div class="baghead"><div><div class="lot">'+esc(b.lotNo)+'</div><div class="row">'+kindPill(b.kind)+statusPill(b.status)+'<span class="hint">Mã bao '+esc(ID(b.id))+'</span></div></div>'+
     '<div class="remain"><span>Tồn hiện tại</span><b>'+fmtKg(b.status==="PENDING"||isIqc(b)?null:b.remainKg,b.unit)+'</b>'+(b.status==="IN_STOCK"&&b.perBag?'<span>'+esc(bagsText(b,b.remainKg).replace(" ≈ ","≈ "))+'</span>':'')+'</div></div>'+
     '<dl class="facts">'+fact(b.kind==="MAT"?"Tên vật tư":"Grade",b.grade)+fact("Loại vật tư",b.cat)+fact("Màu",b.color)+fact("Lot gốc",b.baseLot)+fact("Vị trí",locText(b)||"Chưa xếp")+fact("Pallet",b.pal)+(b.bagCount>1?fact("Quy cách",b.bagCount+" "+(b.kind==="MAT"?"kiện":"bao")+" × "+fmtKg(b.perBag,b.unit)):"")+fact(NEED_IQC[b.kind]?"SL khai báo":"SL dự kiến",b.plannedKg==null?"":fmtKg(b.plannedKg,b.unit))+fact("SL thực tế",b.actualKg==null?"":fmtKg(b.actualKg,b.unit))+
-    (b.ratio?fact("Tỷ lệ trộn","Zin "+b.ratio.zinPct+"% : Xay "+b.ratio.xpPct+"%"):"")+fact("Mã hàng",b.partCode)+fact("Mã nhựa khách hàng",b.custCode)+fact("Mã nhựa nội bộ",b.intCode)+fact("Chạy cho mã hàng",partsStr(b.forParts))+fact("Máy",b.machine)+fact("Nhà cung cấp",b.supplier)+fact("Tạo lúc",fmtDate(b.createdAt))+fact("Ghi chú",b.note)+
+    (b.ratio?fact("Tỷ lệ trộn","Zin "+b.ratio.zinPct+"% : Xay "+b.ratio.xpPct+"%"):"")+(b.prodLot?'<dt>Lot sản xuất</dt><dd><a href="#'+esc(lotHash(b.prodLot))+'">'+esc(b.prodLot)+'</a></dd>':"")+fact("Mã hàng",b.partCode)+fact("Mã nhựa khách hàng",b.custCode)+fact("Mã nhựa nội bộ",b.intCode)+fact("Chạy cho mã hàng",partsStr(b.forParts))+fact("Máy",b.machine)+fact("Nhà cung cấp",b.supplier)+fact("Tạo lúc",fmtDate(b.createdAt))+fact("Ghi chú",b.note)+
     '<div><dt>Người tạo</dt><dd>'+who(b.createdBy)+'</dd></div></dl></section>'+iqcInfoHtml(b)+
     (canWrite&&present(b)?'<section class="card"><h2>Vị trí trong kho</h2><p class="hint">Hiện tại: <b>'+esc(locText(b)||"chưa xếp")+'</b>.</p><form id="f-loc" class="form" novalidate>'+locFields(b,whOf(b))+'<div class="full"><button class="btn ghost">Lưu vị trí</button></div></form></section>':'');
   h+='<section class="card"><h2>Thao tác</h2>';
@@ -3008,7 +3278,7 @@ try{var sh0=parseFloat(localStorage.getItem("n2p-shift")||window.SHIFT_HOURS||8)
 function lotKey(v){return String(v||"").trim().toUpperCase().replace(/\s+/g,"");}
 function lotHash(p){return "lsx-"+encodeURIComponent(lotKey(p));}
 function lotSlips(k){var jl={};jobs.forEach(function(j){if(j.status!=="CANCEL"&&lotKey(j.prodLot)===k)jl[j.id]=1;});return Array.from(slips.values()).filter(function(s){return lotKey(s.prodLot)===k||(s.job&&jl[s.job]);}).sort(function(a,b){return a.createdAt<b.createdAt?-1:1;});}
-var CLIENT_VER="2026-11-28.6",srvVer=null;
+var CLIENT_VER="2026-11-28.10",srvVer=null;
 function verWarn(){
   if(memMode||srvVer===null||["QL","KT","QLSX","KH"].indexOf(myRole)<0)return "";
   if(srvVer===CLIENT_VER)return "";
@@ -3112,6 +3382,386 @@ function confirmCard(k,ss){
   if(isMgr()&&(kh||sx))h+='<div><button type="button" class="btn small ghost" data-act="lot-reset">Hủy các xác nhận của lot này</button></div>';
   return h+'</section>';
 }
+/* ---------- Trạm lot sản xuất: quét QR lot, chọn bộ phận, nhập PIN ---------- */
+var fins=new Map(),delivers=new Map(),mreqs=new Map();
+var curTram="",tramDept="",tramForm=null,tramArm="",tramLogin={name:"",pin:""},lastDeliver="";
+var TRAM=[["KT","Kỹ thuật","Purging, giờ máy, báo khuôn cần sửa"],
+  ["HT","Bộ phận hoàn thành","Báo số đã hoàn thiện"],
+  ["KHO","Kho TP / BTP","Xuất theo PO, WO và in biên bản giao hàng kiêm phiếu xuất kho"],
+  ["XT","Đội xay / trộn nhựa","Nhập số nhựa xay rồi in tem"],
+  ["CN","Công nhân đứng máy","Nhập sản lượng, giờ máy"],
+  ["QLSX","Quản lý sản xuất","Chia công đoạn, sửa dòng nhập sai"],
+  ["QL","Quản lý","Xem và sửa được của mọi bộ phận"]];
+var MREQ_ST={MOI:"Mới báo",NHAN:"Kỹ thuật đã nhận",SUA:"Đang sửa",XONG:"Đã sửa xong",HUY:"Bỏ qua"};
+var MREQ_MUC={NGAY:"Phải dừng máy sửa ngay",CA:"Sửa trong ca",KEHOACH:"Đưa vào kế hoạch bảo trì"};
+var DEL_KHO={TP:"Kho thành phẩm",BTP:"Kho bán thành phẩm"};
+function liveFins(){return Array.from(fins.values()).filter(function(x){return !x.void;});}
+function liveDels(){return Array.from(delivers.values()).filter(function(x){return !x.void;});}
+function tramHash(p){return "tram-"+encodeURIComponent(lotKey(p));}
+function lotOuts(k){return liveOuts().filter(function(o){return lotKey(o.prodLot)===k;});}
+function tramInfo(k){
+  var outs=lotOuts(k),ss=lotSlips(k),o0=outs[0]||null,s0=ss[0]||null;
+  var part=(o0&&o0.part)||(s0&&s0.partCode)||"",machine=(o0&&o0.machine)||(s0&&s0.machine)||(/^[A-Z]{2}(\d{1,3})-/.exec(k)||[])[1]||"";
+  var ok=0,ng=0;outs.forEach(function(o){ok+=o.ok;ng+=o.ng;});
+  var res=null;ss.forEach(function(sx){(sx.lines||[]).forEach(function(l){if(!res&&l.cls!=="MAT"&&(l.unit||"kg")==="kg")res={lotNo:l.lotNo,name:l.name};});});
+  return {key:k,outs:outs,slips:ss,part:part,machine:machine,ok:ok,ng:ng,date:(o0&&o0.date)||(s0&&s0.prodDate)||today(),prefix:k.slice(0,2),res:res};
+}
+function tramStage(k){
+  var t={btp:0,tp:0,fin:0,hold:0,unsplit:0};
+  lotOuts(k).forEach(function(o){if(o.timeOnly||!(o.ok>0))return;t.unsplit+=dispUnsplit(o);t.hold+=dispLeft(o);ST_RECV.forEach(function(x){t[x]+=stagePend(o.disp,x);});});
+  return t;
+}
+function tramPick(){
+  return '<div class="zones" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">'+TRAM.map(function(r){
+    var on=tramDept===r[0];
+    return '<button type="button" class="slot'+(on?" sel":"")+'" style="text-align:left;align-items:flex-start" data-act="tram-dept" data-r="'+r[0]+'">'+
+      '<b>'+esc(r[1])+'</b><small>'+esc(r[2])+'</small>'+(myRole===r[0]||myRole==="QL"?'<small style="color:var(--ok,#157347)">Đang đăng nhập được</small>':'<small>Cần mã PIN</small>')+'</button>';}).join("")+'</div>';
+}
+function tramAuth(dept){
+  if(myRole===dept||myRole==="QL")return "";
+  return '<div class="card" style="padding:10px;margin:8px 0"><h3>Đăng nhập bộ phận '+esc(ROLES[dept]||dept)+'</h3>'+
+    '<p class="hint">Bạn đang dùng với tên <b>'+esc(cred.name||"")+'</b> · '+esc(ROLES[myRole]||myRole)+'. Nhập tên và mã PIN của bộ phận '+esc(ROLES[dept]||dept)+' để làm việc ở bước này.</p>'+
+    '<div class="grid"><label class="f">Họ tên<input data-tl="name" value="'+esc(tramLogin.name)+'" autocomplete="off" maxlength="40"></label>'+
+    '<label class="f">Mã PIN<input data-tl="pin" type="password" inputmode="numeric" value="'+esc(tramLogin.pin)+'" autocomplete="off"></label></div>'+
+    '<div class="row"><button type="button" class="btn" data-act="tram-login" data-r="'+esc(dept)+'">Vào bộ phận '+esc(ROLES[dept]||dept)+'</button></div>'+
+    (loginError?'<p class="note">'+esc(loginError)+'</p>':'')+'</div>';
+}
+function tramKt(i){
+  var f=tramForm,r=timeRowLot(i.key),t=(r&&r.times)||{};
+  var h='<h3>Purging và mẫu hư lúc chỉnh máy</h3><div class="grid">'+
+    PURGE.map(function(lab,x){return '<label class="f">'+esc(lab)+' (g)<input data-tf="purge'+x+'" type="number" min="0" step="1" value="'+esc(f["purge"+x]||"")+'"></label>';}).join("")+
+    '<label class="f">Mẫu hư lúc chỉnh máy (pcs)<input data-tf="scrap" type="number" min="0" step="1" value="'+esc(f.scrap||"")+'"></label>'+
+    '<label class="f">WIP còn trên chuyền (pcs)<input data-tf="wip" type="number" min="0" step="1" value="'+esc(f.wip||"")+'"></label>'+
+    '<label class="f full">Phát sinh, ghi chú<input data-tf="tnote" value="'+esc(f.tnote||"")+'" maxlength="300"></label></div>'+
+    '<div class="row"><button type="button" class="btn" data-act="tram-tech">Lưu purging</button></div>';
+  h+='<h3>Giờ máy</h3><div class="row">'+TKIND.map(function(k){return '<div style="min-width:110px"><div class="hint">'+k[1]+'</div><b>'+esc(t[k[0]]?t[k[0]].t:"--:--")+'</b></div>';}).join("")+'</div>'+
+    '<div class="grid" style="margin-top:6px">'+TKIND.map(function(k){return '<label class="f">'+k[1]+'<input data-tf="t_'+k[0]+'" value="'+esc(f["t_"+k[0]]!=null?f["t_"+k[0]]:(t[k[0]]?t[k[0]].t:""))+'" placeholder="07:30" style="max-width:120px"></label>';}).join("")+'</div>'+
+    '<div class="row">'+TKIND.map(function(k){return '<button type="button" class="btn small ghost" data-act="tram-now" data-k="'+k[0]+'">Ghi giờ '+k[1].toLowerCase()+' lúc này</button>';}).join("")+
+    '<button type="button" class="btn small" data-act="tram-time">Lưu giờ đã gõ</button></div>';
+  h+='<h3>Báo khuôn cần sửa</h3><div class="grid">'+
+    '<label class="f">Mã khuôn<input data-tf="toolId" value="'+esc(f.toolId||"")+'" list="tram-molds" autocomplete="off"><datalist id="tram-molds">'+liveMolds().slice(0,300).map(function(m){return '<option value="'+esc(m.toolId||"")+'">'+esc(moldLabel(m))+'</option>';}).join("")+'</datalist></label>'+
+    '<label class="f">P/N<input data-tf="partNo" value="'+esc(f.partNo!=null?f.partNo:i.part)+'" autocomplete="off"></label>'+
+    '<label class="f full">Mức độ<select data-tf="level">'+Object.keys(MREQ_MUC).map(function(k){return '<option value="'+k+'"'+((f.level||"CA")===k?" selected":"")+'>'+esc(MREQ_MUC[k])+'</option>';}).join("")+'</select></label>'+
+    '<label class="f full">Hiện tượng<input data-tf="what" value="'+esc(f.what||"")+'" maxlength="400" placeholder="Slide kẹt, bavia cạnh lug, ty đẩy gãy…"></label></div>'+
+    '<div class="row"><button type="button" class="btn" data-act="tram-mreq">Gửi yêu cầu sửa khuôn</button><a class="btn ghost small" href="#khuon-sua">Danh sách yêu cầu</a></div>';
+  var mine=Array.from(mreqs.values()).filter(function(x){return lotKey(x.prodLot)===i.key;});
+  if(mine.length)h+='<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Ngày</th><th>Khuôn</th><th>Mức độ</th><th>Hiện tượng</th><th>Trạng thái</th></tr></thead><tbody>'+
+    mine.map(function(x){return '<tr><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td>'+esc(x.toolId||x.partNo)+'</td><td>'+esc(MREQ_MUC[x.level]||x.level)+'</td><td>'+esc(x.what)+'</td><td>'+esc(MREQ_ST[x.st]||x.st)+'</td></tr>';}).join("")+'</tbody></table></div>';
+  return h;
+}
+function timeRowLot(k){var r=lotOuts(k);return r.filter(function(o){return o.times;})[0]||r.filter(function(o){return o.timeOnly;})[0]||r.sort(function(a,b){return a.at<b.at?-1:1;})[0]||null;}
+function tramHt(i){
+  var f=tramForm,st=tramStage(i.key),mine=liveFins().filter(function(x){return lotKey(x.prodLot)===i.key;});
+  var done=0,ngs=0;mine.forEach(function(x){done+=num(x.done)||0;ngs+=num(x.ng)||0;});
+  var h='<p class="hint">Lot này đang chuyển sang bộ phận hoàn thành <b>'+fmtN(st.fin)+'</b> pcs chưa báo nhận. Đã báo hoàn thiện <b>'+fmtN(done)+'</b> pcs'+(ngs?', NG '+fmtN(ngs)+' pcs':'')+'.</p>'+
+    '<div class="grid">'+
+    '<label class="f">Ca làm việc<select data-tf="shift">'+Object.keys(SHIFTS).map(function(k){return '<option value="'+k+'"'+((f.shift||nowShift())===k?" selected":"")+'>'+esc(SHIFTS[k])+'</option>';}).join("")+'</select></label>'+
+    '<label class="f">Ngày<input data-tf="date" type="date" value="'+esc(f.date||today())+'"></label>'+
+    '<label class="f">Nhận về (pcs)<input data-tf="got" type="number" min="0" step="1" value="'+esc(f.got||"")+'" placeholder="để trống nếu không đếm"></label>'+
+    '<label class="f">Đã hoàn thiện (pcs)<input data-tf="done" type="number" min="0" step="1" value="'+esc(f.done||"")+'"></label>'+
+    '<label class="f">NG phát hiện (pcs)<input data-tf="ng" type="number" min="0" step="1" value="'+esc(f.ng||"")+'"></label>'+
+    '<label class="f">Chuyển vào kho<select data-tf="to"><option value="">— chưa chuyển —</option><option value="TP"'+(f.to==="TP"?" selected":"")+'>Kho thành phẩm</option><option value="BTP"'+(f.to==="BTP"?" selected":"")+'>Kho bán thành phẩm</option></select></label>'+
+    '<label class="f full">Tổ, người làm<input data-tf="staff" value="'+esc(f.staff||cred.name||"")+'" maxlength="60"></label>'+
+    '<label class="f full">Ghi chú<input data-tf="note" value="'+esc(f.note||"")+'" maxlength="300" placeholder="Gọt bavia, lắp lug, dán gioăng…"></label></div>'+
+    '<div class="row"><button type="button" class="btn" data-act="tram-fin">Lưu số đã hoàn thiện</button></div>';
+  if(mine.length)h+='<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Ngày</th><th>Ca</th><th class="n">Nhận</th><th class="n">Hoàn thiện</th><th class="n">NG</th><th>Vào kho</th><th>Người làm</th></tr></thead><tbody>'+
+    mine.sort(function(a,b){return a.at<b.at?1:-1;}).map(function(x){return '<tr><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td>'+esc(SHIFT_S[x.shift]||x.shift)+'</td><td class="n">'+fmtN(x.got||0)+'</td><td class="n"><b>'+fmtN(x.done||0)+'</b></td><td class="n">'+fmtN(x.ng||0)+'</td><td>'+esc(DEL_KHO[x.to]||"")+'</td><td>'+esc(x.staff||x.by)+'</td></tr>';}).join("")+'</tbody></table></div>';
+  return h;
+}
+function newDel(i){
+  return {kho:"TP",date:today(),cust:"",po:"",wo:"",prodLot:i.key,receiver:"",recvDept:"",reason:"",place:"",note:"",
+    lines:[{part:i.part||"",name:"",unit:"pcs",req:"",qty:"",lot:i.key,box:"",note:""}]};
+}
+function tramKho(i){
+  var f=tramForm.del||(tramForm.del=newDel(i));
+  var h='<p class="hint">Kho thành phẩm, kho bán thành phẩm xuất hàng theo PO hoặc WO. Lưu xong app in được biên bản giao hàng kiêm phiếu xuất kho theo mẫu 02-VT.</p>'+
+    '<div class="grid">'+
+    '<label class="f">Xuất tại kho<select data-td="kho"><option value="TP"'+(f.kho==="TP"?" selected":"")+'>Kho thành phẩm</option><option value="BTP"'+(f.kho==="BTP"?" selected":"")+'>Kho bán thành phẩm</option></select></label>'+
+    '<label class="f">Ngày xuất<input data-td="date" type="date" value="'+esc(f.date)+'"></label>'+
+    '<label class="f full">Khách hàng / đơn vị nhận<input data-td="cust" value="'+esc(f.cust)+'" maxlength="120" placeholder="ESTEC VINA CO., LTD"></label>'+
+    '<label class="f">Số PO<input data-td="po" value="'+esc(f.po)+'" maxlength="60"></label>'+
+    '<label class="f">Số WO<input data-td="wo" value="'+esc(f.wo)+'" maxlength="60"></label>'+
+    '<label class="f">Lot sản xuất<input data-td="prodLot" value="'+esc(f.prodLot)+'" maxlength="40"></label>'+
+    '<label class="f">Họ tên người nhận hàng<input data-td="receiver" value="'+esc(f.receiver)+'" maxlength="60"></label>'+
+    '<label class="f">Địa chỉ (bộ phận) người nhận<input data-td="recvDept" value="'+esc(f.recvDept)+'" maxlength="80"></label>'+
+    '<label class="f full">Lý do xuất kho<input data-td="reason" value="'+esc(f.reason)+'" maxlength="160" placeholder="Xuất giao hàng theo PO…"></label>'+
+    '<label class="f full">Xuất tại kho (địa điểm)<input data-td="place" value="'+esc(f.place)+'" maxlength="120" placeholder="Kho thành phẩm Nam Lâm"></label></div>'+
+    '<h3>Các dòng hàng</h3><div class="scroll"><table><thead><tr><th>Mã hàng</th><th>Tên, quy cách</th><th>ĐVT</th><th class="n">Yêu cầu</th><th class="n">Thực xuất</th><th>Lot / thùng</th><th></th></tr></thead><tbody>'+
+    f.lines.map(function(l,x){return '<tr>'+
+      '<td><input data-dl="part" data-i="'+x+'" value="'+esc(l.part)+'" style="width:120px" autocapitalize="characters"></td>'+
+      '<td><input data-dl="name" data-i="'+x+'" value="'+esc(l.name)+'"></td>'+
+      '<td><input data-dl="unit" data-i="'+x+'" value="'+esc(l.unit)+'" style="width:62px"></td>'+
+      '<td><input data-dl="req" data-i="'+x+'" type="number" min="0" value="'+esc(l.req)+'" style="width:92px"></td>'+
+      '<td><input data-dl="qty" data-i="'+x+'" type="number" min="0" value="'+esc(l.qty)+'" style="width:92px"></td>'+
+      '<td><input data-dl="lot" data-i="'+x+'" value="'+esc(l.lot)+'" style="width:130px"></td>'+
+      '<td><button type="button" class="btn small ghost" data-act="del-line-del" data-i="'+x+'">Xóa</button></td></tr>';}).join("")+
+    '</tbody></table></div>'+
+    '<div class="row"><button type="button" class="btn small ghost" data-act="del-line-add">Thêm dòng</button>'+
+    '<button type="button" class="btn" data-act="tram-del">Lưu phiếu xuất</button>'+
+    '<a class="btn small ghost" href="#xuat-tp">Danh sách phiếu đã xuất</a></div>';
+  var mine=liveDels().filter(function(x){return lotKey(x.prodLot)===i.key;});
+  if(mine.length)h+='<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Số phiếu</th><th>Ngày</th><th>Khách hàng</th><th>PO</th><th class="n">Tổng</th><th></th></tr></thead><tbody>'+
+    mine.map(function(x){var tot=x.lines.reduce(function(a,l){return a+(num(l.qty)||0);},0);
+      return '<tr><td><b>'+esc(x.no)+'</b></td><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td>'+esc(x.cust)+'</td><td>'+esc(x.po)+'</td><td class="n">'+fmtN(tot)+'</td><td><button type="button" class="btn small ghost" data-act="del-print" data-id="'+esc(x.id)+'">In 02-VT</button></td></tr>';}).join("")+'</tbody></table></div>';
+  return h;
+}
+function tramXt(i){
+  var f=tramForm,sug=i.res||{};
+  var h='<p class="hint">Xay cuống, hàng NG ngay tại lot sản xuất này. Không cần nhập lot nhựa gốc: app lấy <b>'+esc(i.key)+'</b> làm lot gốc của tem, nên tra ngược từ tem nhựa xay ra lot sản xuất và tra xuôi từ lot sản xuất ra tem đều được.</p>'+
+    '<div class="grid">'+
+    '<label class="f">Số kg nhựa xay<input data-tf="kg" type="number" min="0" step="0.1" inputmode="decimal" value="'+esc(f.kg||"")+'"></label>'+
+    '<label class="f">Loại<select data-tf="kind"><option value="XP"'+((f.kind||"XP")==="XP"?" selected":"")+'>Nhựa xay (XP)</option><option value="TR"'+(f.kind==="TR"?" selected":"")+'>Nhựa trộn (TR)</option></select></label>'+
+    '<label class="f">Grade<input data-tf="grade" value="'+esc(f.grade!=null?f.grade:(sug.name||""))+'" autocomplete="off" placeholder="LUPOX GP2306F"></label>'+
+    '<label class="f">Màu<input data-tf="color" value="'+esc(f.color||"")+'" autocomplete="off"></label>'+
+    '<label class="f">Mã hàng<input data-tf="part" value="'+esc(f.part!=null?f.part:i.part)+'" autocomplete="off"></label>'+
+    '<label class="f">Máy xay<input data-tf="machine" value="'+esc(f.machine!=null?f.machine:i.machine)+'" autocomplete="off"></label>'+
+    '<label class="f full">Lot nhựa gốc (nếu biết, để trống cũng được)<input data-tf="srcLot" value="'+esc(f.srcLot!=null?f.srcLot:(sug.lotNo||""))+'" autocomplete="off"></label>'+
+    '<label class="f full">Ghi chú<input data-tf="note" value="'+esc(f.note||"")+'" maxlength="300"></label></div>'+
+    '<p class="hint">Lot No trên tem: <b>'+esc(i.key+"-"+(f.kind||"XP"))+'</b></p>'+
+    '<div class="row"><button type="button" class="btn" data-act="tram-xp">Tạo tem và in</button><a class="btn small ghost" href="#tao-tem">Trang tạo tem đầy đủ</a></div>';
+  var mine=Array.from(bags.values()).filter(function(b){return !b.void&&b.status!=="VOID"&&lotKey(b.prodLot||"")===i.key;});
+  if(mine.length)h+='<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Mã tem</th><th>Lot No</th><th>Loại</th><th class="n">Kg</th><th>Trạng thái</th></tr></thead><tbody>'+
+    mine.map(function(b){return '<tr><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td>'+esc(b.lotNo)+'</td><td>'+esc(b.kind)+'</td><td class="n">'+fmtKg(b.actualKg!=null?b.actualKg:b.plannedKg,b.unit)+'</td><td>'+esc(STATUS[b.status]||b.status)+'</td></tr>';}).join("")+'</tbody></table></div>';
+  return h;
+}
+function viewTram(){
+  var k=curTram,i=tramInfo(k),st=tramStage(k);
+  if(!tramForm)tramForm={};
+  var h='<section class="card"><div class="baghead"><div><div class="hint">Trạm lot sản xuất</div><div class="lot">'+esc(k)+'</div>'+
+    '<div class="row"><span class="pill solid">'+esc(i.part||"chưa có mã hàng")+'</span>'+(i.machine?'<span class="pill">Máy '+esc(i.machine)+'</span>':'')+'<span class="pill">'+fmtN(i.ok)+' pcs đạt</span>'+(i.ng?'<span class="pill ng">'+fmtN(i.ng)+' NG</span>':'')+'</div></div>'+
+    '<div><a class="btn small ghost" href="#'+esc(lotHash(k))+'">Hồ sơ lot</a></div></div>'+
+    '<p class="hint">Đang treo: kho BTP '+fmtN(st.btp)+' · kho TP '+fmtN(st.tp)+' · hoàn thành '+fmtN(st.fin)+' · công nhân xử lý '+fmtN(st.hold)+' · chưa chia '+fmtN(st.unsplit)+' pcs.</p>'+
+    '<h3>Bạn thuộc bộ phận nào?</h3>'+tramPick()+'</section>';
+  if(!tramDept)return h+'<section class="card"><p class="hint">Chọn bộ phận ở trên. Bộ phận nào cần mã PIN riêng thì app hỏi tên và mã PIN ngay tại đây, không phải thoát ra đăng nhập lại.</p></section>';
+  var dept=tramDept,lab=ROLES[dept]||dept;
+  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>'+esc(lab)+'</h2><button type="button" class="btn small ghost" data-act="tram-back">Đổi bộ phận</button></div>';
+  var auth=tramAuth(dept);
+  if(auth)return h+auth+'</section>';
+  if(dept==="KT")h+=tramKt(i);
+  else if(dept==="HT")h+=tramHt(i);
+  else if(dept==="KHO")h+=tramKho(i);
+  else if(dept==="XT")h+=tramXt(i);
+  else if(dept==="CN")h+='<p class="hint">Công nhân đứng máy nhập sản lượng ở trang của máy.</p><div class="row"><a class="btn" href="#may-'+esc(i.machine)+'">Mở trang máy '+esc(i.machine)+'</a></div>';
+  else h+='<p class="hint">Quản lý sản xuất và Quản lý làm việc trên hồ sơ lot: chia công đoạn, sửa dòng công nhân nhập sai, xác nhận hàng chờ xử lý.</p>'+
+    '<div class="row"><a class="btn" href="#'+esc(lotHash(k))+'">Hồ sơ lot '+esc(k)+'</a><a class="btn ghost" href="#xu-ly">Xử lý hàng sau sản xuất</a><a class="btn ghost" href="#khuon-sua">Yêu cầu sửa khuôn</a></div>'+
+    (i.outs.length?'<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Giờ</th><th>Ca</th><th class="n">Đạt</th><th class="n">NG</th><th>Công nhân</th><th></th></tr></thead><tbody>'+
+      i.outs.sort(function(a,b){return a.at<b.at?1:-1;}).slice(0,30).map(function(o){return '<tr><td>'+fmtDate(o.at)+'</td><td>'+esc(SHIFT_S[o.shift]||o.shift)+'</td><td class="n">'+fmtN(o.ok)+'</td><td class="n">'+fmtN(o.ng)+'</td><td>'+esc(o.staff||o.by)+'</td><td><a class="btn small ghost" href="#xl-'+esc(o.id)+'">Sửa / chia</a></td></tr>';}).join("")+'</tbody></table></div>':'');
+  return h+'</section>';
+}
+/* ---------- Trạm lot SX: lưu dữ liệu từng bộ phận ---------- */
+async function tramDo(fn,okMsg){
+  if(memMode){toast("Chưa kết nối máy chủ.");return false;}
+  pending++;writeSeq++;
+  var good=false;
+  try{await fn();good=true;if(okMsg)toast(okMsg);}
+  catch(e){toast(errMsg(e,"Không lưu được."));}
+  finally{pending--;}
+  render();
+  return good;
+}
+/* Lot SX dạng AM16-261127 → máy 16, ngày 2026-11-27. Trạm luôn ghi vào đúng lot đã quét,
+   không lấy ngày hôm nay, để dòng purging hay giờ máy không rơi sang lot của ngày khác. */
+function lotParts(k){
+  var m=/^([A-Z]{2})(\d{1,3})-(\d{2})(\d{2})(\d{2})$/.exec(String(k||"").toUpperCase());
+  return m?{prefix:m[1],machine:m[2],date:"20"+m[3]+"-"+m[4]+"-"+m[5]}:null;
+}
+function tramHead(i,shift,date){
+  var lp=lotParts(i.key)||{};
+  return {id:nid6(),machine:String(lp.machine||i.machine||"").replace(/\D/g,"")||"1",prefix:lp.prefix==="NL"?"NL":"AM",
+    shift:CA_OK(shift)?shift:nowShift(),date:lp.date||(/^\d{4}-\d\d-\d\d$/.test(date||"")?date:(i.date||today())),part:(i.part||"GIO-MAY").toUpperCase()};
+}
+function CA_OK(x){return ["N","NT","D","DT"].indexOf(x)>=0;}
+async function tramTech(i){
+  var f=tramForm,pg=[0,1,2,3].map(function(x){return Math.round(num(f["purge"+x])||0);});
+  var sc=Math.round(num(f.scrap)||0),wp=Math.round(num(f.wip)||0);
+  if(pg.reduce(function(a,b){return a+b;},0)+sc+wp<=0&&!(f.tnote||"").trim()){toast("Nhập ít nhất một mục purging, mẫu hư hoặc ghi chú.");return;}
+  var hd=tramHead(i,f.shift,f.date);
+  await tramDo(async function(){
+    var r=await api("saveTech",{tech:Object.assign({},hd,{purge:pg,scrap:sc,wip:wp,note:(f.tnote||"").trim()})});
+    techs.set(r.tech.id,r.tech);["purge0","purge1","purge2","purge3","scrap","wip","tnote"].forEach(function(k){delete tramForm[k];});
+  },"Đã lưu purging, mẫu hư cho lot "+i.key+".");
+}
+async function tramTime(i,kind,val){
+  var r=timeRowLot(i.key),v=val===undefined?(new Date().toTimeString().slice(0,5)):String(val||"").trim();
+  if(v&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(v)){toast("Giờ phải dạng 07:30.");return;}
+  await tramDo(async function(){
+    if(!r){
+      var hd=tramHead(i,tramForm.shift,tramForm.date);
+      var cr=await api("saveOutput",{output:Object.assign({},hd,{staff:cred.name||"",boxes:0,per:0,odd:0,ngBy:{},status:"OK",note:"Dòng ghi giờ máy",timeOnly:true})});
+      r=cr.output;outputs.set(r.id,r);
+    }
+    var t={};t[kind]=v;
+    var u=await api("outUpdate",{op:"time",id:r.id,times:t});
+    outputs.set(u.output.id,u.output);delete tramForm["t_"+kind];
+  },"Đã ghi giờ "+(v||"(xóa)")+".");
+}
+async function tramMreq(i){
+  var f=tramForm;
+  if(!(f.toolId||"").trim()&&!(f.partNo||i.part||"").trim()){toast("Nhập mã khuôn hoặc P/N.");return;}
+  if(!(f.what||"").trim()){toast("Mô tả hiện tượng khuôn hư.");return;}
+  var m=liveMolds().filter(function(x){return String(x.toolId||"").toUpperCase()===String(f.toolId||"").toUpperCase();})[0];
+  await tramDo(async function(){
+    var r=await api("moldReq",{mreq:{id:nid6(),date:today(),toolId:(f.toolId||"").trim(),partNo:(f.partNo!=null?f.partNo:i.part||"").trim(),moldId:m?m.id:"",
+      prodLot:i.key,machine:i.machine,level:f.level||"CA",what:(f.what||"").trim()}});
+    mreqs.set(r.mreq.id,r.mreq);tramForm.what="";
+  },"Đã gửi yêu cầu sửa khuôn cho Kỹ thuật.");
+}
+async function tramFin(i){
+  var f=tramForm,done=Math.round(num(f.done)||0),ng=Math.round(num(f.ng)||0),got=Math.round(num(f.got)||0);
+  if(done+ng<=0){toast("Nhập số đã hoàn thiện hoặc số NG.");return;}
+  if(got>0&&done+ng>got){toast("Hoàn thiện "+fmtN(done+ng)+" pcs vượt số nhận về "+fmtN(got)+" pcs.");return;}
+  await tramDo(async function(){
+    var r=await api("saveFin",{fin:{id:nid6(),date:f.date||today(),shift:CA_OK(f.shift)?f.shift:nowShift(),prodLot:i.key,part:(f.part||i.part||"").toUpperCase(),
+      got:got,done:done,ng:ng,to:f.to||"",staff:(f.staff||cred.name||"").trim(),note:(f.note||"").trim()}});
+    fins.set(r.fin.id,r.fin);["got","done","ng","note"].forEach(function(k){delete tramForm[k];});
+  },"Đã ghi "+fmtN(done)+" pcs hoàn thiện.");
+}
+async function tramDel(i){
+  var f=tramForm.del;
+  var lines=f.lines.map(function(l){return {part:(l.part||"").trim().toUpperCase(),name:(l.name||"").trim(),unit:(l.unit||"pcs").trim(),
+    req:Math.round(num(l.req)||0),qty:Math.round(num(l.qty)||0),lot:(l.lot||"").trim(),box:(l.box||"").trim(),note:(l.note||"").trim()};})
+    .filter(function(l){return l.part||l.name;});
+  if(!lines.length){toast("Thêm ít nhất một dòng hàng.");return;}
+  if(lines.some(function(l){return l.qty<=0;})){toast("Mỗi dòng phải có số lượng thực xuất.");return;}
+  if(!f.receiver.trim()){toast("Nhập họ tên người nhận hàng.");return;}
+  if(!f.po.trim()&&!f.wo.trim()){toast("Nhập số PO hoặc số WO.");return;}
+  var ok=await tramDo(async function(){
+    var r=await api("saveDeliver",{deliver:Object.assign({},f,{id:nid6(),lines:lines})});
+    delivers.set(r.deliver.id,r.deliver);lastDeliver=r.deliver.id;tramForm.del=newDel(i);
+  },null);
+  if(ok&&lastDeliver){toast("Đã lưu phiếu "+(delivers.get(lastDeliver)||{}).no+". Bấm In 02-VT để in biên bản.");}
+}
+async function tramXp(i){
+  var f=tramForm,kg=num(f.kg)||0,kind=f.kind==="TR"?"TR":"XP";
+  if(!(kg>0)){toast("Nhập số kg nhựa xay.");return;}
+  if(memMode){toast("Chưa kết nối máy chủ.");return;}
+  var srcLot=(f.srcLot!=null?f.srcLot:((i.res||{}).lotNo||"")).trim();
+  var b=newBag({kind:kind,lotNo:i.key+"-"+kind,baseLot:i.key,prodLot:i.key,grade:(f.grade!=null?f.grade:((i.res||{}).name||"")).trim()||"Nhựa xay từ lot "+i.key,
+    color:(f.color||"").trim(),unit:"kg",partCode:(f.part!=null?f.part:i.part||"").trim().toUpperCase(),machine:(f.machine!=null?f.machine:i.machine||"").trim(),
+    plannedKg:Math.round(kg*100)/100,status:"PENDING",
+    sources:srcLot?[{bagId:"",lotNo:srcLot,kind:"ZIN",kg:null}]:[],
+    note:((f.note||"").trim()+(srcLot?"":" Tạo từ lot sản xuất "+i.key+", chưa biết lot nhựa gốc.")).trim(),
+    events:[{t:new Date().toISOString(),type:"CREATE",note:"Đội xay/trộn tạo từ lot sản xuất "+i.key}]});
+  await tramDo(async function(){
+    await save(b);
+    labelIds=[b.id];tramForm.kg="";
+  },"Đã tạo tem "+b.lotNo+". Kéo xuống phần tem để in.");
+  if(bags.get(b.id))location.hash="tem-"+b.id;
+}
+/* ---------- Biên bản giao hàng kiêm phiếu xuất kho (mẫu 02-VT) ---------- */
+var VT_CSS='#vt{font-family:"Times New Roman",Times,serif;color:#000;font-size:13px;width:190mm}'+
+  '#vt table{border-collapse:collapse;width:100%}#vt .tb{table-layout:fixed}#vt .tb td,#vt .tb th{border:1px solid #000;padding:3px 4px;vertical-align:top;word-wrap:break-word}#vt .tb th{font-size:11px}'+
+  '#vt h1{font-size:19px;text-align:center;margin:6px 0 2px;letter-spacing:.5px}#vt .ctr{text-align:center}#vt .r{text-align:right}'+
+  '#vt .sm{font-size:11px}#vt .ln{margin:3px 0}#vt .sig{margin-top:14px}#vt .sig td{text-align:center;padding-top:4px;height:78px;vertical-align:top}';
+function vtNum(n){return (Math.round(n*100)/100).toLocaleString("vi-VN",{maximumFractionDigits:2});}
+function vtHtml(d){
+  var co=/^AM/i.test(String(d.prodLot||""))?{co:"CÔNG TY TNHH SX TM & DV AN MY N2P VINA",dept:"Địa chỉ kho: Nam Lâm"}:{co:"CÔNG TY TNHH NAM LÂM",dept:"Bộ phận: "+(DEL_KHO[d.kho]||"Kho thành phẩm")};
+  try{if(window.PX_CO_AM&&/^AM/i.test(String(d.prodLot||"")))co.co=window.PX_CO_AM;if(window.PX_CO_NL&&!/^AM/i.test(String(d.prodLot||"")))co.co=window.PX_CO_NL;}catch(e){}
+  var dt=String(d.date||"").split("-"),tot=d.lines.reduce(function(a,l){return a+(num(l.qty)||0);},0);
+  return '<div id="vt">'+
+    '<table><tr><td style="width:62%"><b>'+esc(co.co)+'</b><div class="sm">'+esc(co.dept)+'</div></td>'+
+    '<td class="r sm"><b>Mẫu số 02 - VT</b><div>(Ban hành theo Thông tư số 200/2014/TT-BTC<br>ngày 22/12/2014 của Bộ Tài chính)</div></td></tr></table>'+
+    '<h1>BIÊN BẢN GIAO HÀNG KIÊM PHIẾU XUẤT KHO</h1>'+
+    '<div class="ctr">Ngày '+esc(dt[2]||"....")+' tháng '+esc(dt[1]||"....")+' năm '+esc(dt[0]||"........")+'</div>'+
+    '<table style="margin:4px 0"><tr><td class="ctr" style="width:70%"></td><td class="sm">Số: <b>'+esc(d.no||"")+'</b><div>Nợ: ..............................</div><div>Có: ..............................</div></td></tr></table>'+
+    '<div class="ln">- Họ và tên người nhận hàng: <b>'+esc(d.receiver||"")+'</b> &nbsp; Địa chỉ (bộ phận): '+esc(d.recvDept||d.cust||"")+'</div>'+
+    '<div class="ln">- Đơn vị nhận hàng: <b>'+esc(d.cust||"")+'</b>'+(d.po?' &nbsp; Số PO: <b>'+esc(d.po)+'</b>':'')+(d.wo?' &nbsp; Số WO: <b>'+esc(d.wo)+'</b>':'')+'</div>'+
+    '<div class="ln">- Lý do xuất kho: '+esc(d.reason||"")+(d.prodLot?' &nbsp; Lot sản xuất: <b>'+esc(d.prodLot)+'</b>':'')+'</div>'+
+    '<div class="ln">- Xuất tại kho (ngăn lô): '+esc(d.place||DEL_KHO[d.kho]||"")+' &nbsp; Địa điểm: .....................................................</div>'+
+    '<table class="tb" style="margin-top:6px"><thead>'+
+    '<tr><th rowspan="2" style="width:30px">STT</th><th rowspan="2">Tên, nhãn hiệu, quy cách, phẩm chất vật tư, dụng cụ, sản phẩm, hàng hóa</th>'+
+    '<th rowspan="2" style="width:90px">Mã số</th><th rowspan="2" style="width:48px">Đơn vị tính</th>'+
+    '<th colspan="2" style="width:150px">Số lượng</th><th rowspan="2" style="width:70px">Đơn giá</th><th rowspan="2" style="width:80px">Thành tiền</th></tr>'+
+    '<tr><th style="width:75px">Yêu cầu</th><th style="width:75px">Thực xuất</th></tr>'+
+    '<tr class="ctr sm"><td>A</td><td>B</td><td>C</td><td>D</td><td>1</td><td>2</td><td>3</td><td>4</td></tr></thead><tbody>'+
+    d.lines.map(function(l,x){return '<tr><td class="ctr">'+(x+1)+'</td><td>'+esc(l.name||l.part)+(l.lot?'<div class="sm">Lot: '+esc(l.lot)+(l.box?" · "+esc(l.box):"")+'</div>':'')+(l.note?'<div class="sm">'+esc(l.note)+'</div>':'')+
+      '</td><td>'+esc(l.part||"")+'</td><td class="ctr">'+esc(l.unit||"pcs")+'</td><td class="r">'+(num(l.req)?vtNum(num(l.req)):"")+'</td><td class="r"><b>'+vtNum(num(l.qty)||0)+'</b></td><td></td><td></td></tr>';}).join("")+
+    (d.lines.length<6?Array.from({length:6-d.lines.length},function(){return '<tr><td style="height:20px"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';}).join(""):"")+
+    '<tr><td colspan="4" class="r"><b>Cộng</b></td><td></td><td class="r"><b>'+vtNum(tot)+'</b></td><td></td><td></td></tr>'+
+    '</tbody></table>'+
+    '<div class="ln">- Tổng số tiền (viết bằng chữ): ..................................................................................................................</div>'+
+    '<div class="ln">- Số chứng từ gốc kèm theo: .......................................................................................................................</div>'+
+    (d.note?'<div class="ln">- Ghi chú: '+esc(d.note)+'</div>':'')+
+    '<div class="r" style="margin-top:6px">Ngày '+esc(dt[2]||"....")+' tháng '+esc(dt[1]||"....")+' năm '+esc(dt[0]||"........")+'</div>'+
+    '<table class="sig"><tr>'+
+    ['Người lập phiếu<div class="sm">(Ký, họ tên)</div>','Người nhận hàng<div class="sm">(Ký, họ tên)</div>','Thủ kho<div class="sm">(Ký, họ tên)</div>','Kế toán trưởng<div class="sm">(Hoặc bộ phận có nhu cầu nhận)</div>','Giám đốc<div class="sm">(Ký, họ tên)</div>']
+      .map(function(t){return '<td><b>'+t+'</b></td>';}).join("")+'</tr>'+
+    '<tr><td class="sm">'+esc(d.by||"")+'</td><td class="sm">'+esc(d.receiver||"")+'</td><td></td><td></td><td></td></tr></table></div>';
+}
+function printVt(id){
+  var d=delivers.get(id);
+  if(!d){toast("Không tìm thấy phiếu xuất.");return;}
+  var box=$("#printbox");if(!box){box=document.createElement("div");box.id="printbox";document.body.appendChild(box);}
+  box.innerHTML='<style>'+VT_CSS+'</style>'+vtHtml(d);
+  var st=document.createElement("style");st.id="vt-page";st.textContent="@media print{@page{size:A4 portrait;margin:10mm}}";document.head.appendChild(st);
+  var done=function(){var e=$("#vt-page");if(e)e.remove();box.textContent="";window.removeEventListener("afterprint",done);};
+  window.addEventListener("afterprint",done);
+  try{window.print();}catch(e){done();toast("Trình duyệt này không mở được hộp thoại in.");}
+}
+function viewDelivers(){
+  var rows=Array.from(delivers.values()).sort(function(a,b){return a.at<b.at?1:-1;}).slice(0,200);
+  var tot=0;liveDels().forEach(function(d){d.lines.forEach(function(l){tot+=num(l.qty)||0;});});
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h2>Phiếu xuất kho thành phẩm, bán thành phẩm</h2>'+
+    '<a class="btn small ghost" href="#xu-ly">Xử lý hàng sau SX</a></div>'+
+    '<p class="hint">Kho TP và kho BTP xuất theo PO hoặc WO từ trạm lot sản xuất. Mỗi phiếu in được biên bản giao hàng kiêm phiếu xuất kho mẫu 02-VT. Tổng đã xuất: <b>'+fmtN(tot)+'</b> pcs.</p>'+
+    (rows.length?'<div class="scroll"><table><thead><tr><th>Số phiếu</th><th>Ngày</th><th>Kho</th><th>Khách hàng</th><th>PO</th><th>WO</th><th>Lot SX</th><th class="n">Tổng</th><th>Người lập</th><th></th></tr></thead><tbody>'+
+      rows.map(function(d){var t=d.lines.reduce(function(a,l){return a+(num(l.qty)||0);},0);
+        return '<tr'+(d.void?' style="opacity:.55"':'')+'><td><b>'+esc(d.no)+'</b></td><td>'+esc((d.date||"").split("-").reverse().join("/"))+'</td><td>'+esc(DEL_KHO[d.kho]||d.kho)+'</td><td>'+esc(d.cust)+'</td><td>'+esc(d.po)+'</td><td>'+esc(d.wo)+'</td>'+
+          '<td>'+(d.prodLot?'<a href="#'+esc(lotHash(d.prodLot))+'">'+esc(d.prodLot)+'</a>':'')+'</td><td class="n">'+fmtN(t)+'</td><td>'+esc(d.by)+(d.void?' <span class="pill ng">đã hủy</span>':'')+'</td>'+
+          '<td class="row" style="gap:4px"><button type="button" class="btn small ghost" data-act="del-print" data-id="'+esc(d.id)+'">In 02-VT</button>'+
+          ((myRole==="QL"||myRole==="KHO")&&!d.void?'<button type="button" class="btn small ghost danger" data-act="del-void" data-id="'+esc(d.id)+'">'+(tramArm===d.id?"Bấm lần nữa":"Hủy")+'</button>':'')+'</td></tr>';}).join("")+
+      '</tbody></table></div>':'<p class="hint">Chưa có phiếu xuất nào. Quét mã QR của lot sản xuất, chọn bộ phận <b>Kho TP / BTP</b> để lập phiếu.</p>')+'</section>';
+}
+function viewMreqs(){
+  var rows=Array.from(mreqs.values()).sort(function(a,b){return a.at<b.at?1:-1;}).slice(0,200);
+  var open=rows.filter(function(x){return x.st!=="XONG"&&x.st!=="HUY";});
+  var can=["KT","QLSX","QL"].indexOf(myRole)>=0;
+  var tb=function(list,done){
+    return '<div class="scroll"><table><thead><tr><th>Ngày</th><th>Khuôn</th><th>Lot SX</th><th>Máy</th><th>Mức độ</th><th>Hiện tượng</th><th>Người báo</th><th>Trạng thái</th>'+(can&&!done?'<th></th>':'')+'</tr></thead><tbody>'+
+      list.map(function(x){return '<tr><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td><b>'+esc(x.toolId||"")+'</b>'+(x.partNo?'<br><span class="hint">'+esc(x.partNo)+'</span>':'')+'</td>'+
+        '<td>'+(x.prodLot?'<a href="#'+esc(lotHash(x.prodLot))+'">'+esc(x.prodLot)+'</a>':'')+'</td><td>'+esc(x.machine||"")+'</td>'+
+        '<td>'+(x.level==="NGAY"?'<span class="pill ng">'+esc(MREQ_MUC[x.level])+'</span>':esc(MREQ_MUC[x.level]||x.level))+'</td><td>'+esc(x.what)+'</td><td>'+esc(x.by)+'<br><span class="hint">'+esc(ROLES[x.role]||x.role)+'</span></td>'+
+        '<td>'+esc(MREQ_ST[x.st]||x.st)+((x.acts||[]).length?'<br><span class="hint">'+esc(x.acts[x.acts.length-1].note||"")+'</span>':'')+'</td>'+
+        (can&&!done?'<td class="row" style="gap:4px">'+["NHAN","SUA","XONG","HUY"].filter(function(k){return k!==x.st;}).map(function(k){return '<button type="button" class="btn small ghost" data-act="mreq-st" data-id="'+esc(x.id)+'" data-st="'+k+'">'+esc(MREQ_ST[k])+'</button>';}).join("")+'</td>':'')+'</tr>';}).join("")+
+      '</tbody></table></div>';};
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h2>Yêu cầu sửa khuôn</h2><a class="btn small ghost" href="#kho-khuon">Sơ đồ kho khuôn</a></div>'+
+    '<p class="hint">Bất kỳ bộ phận nào đứng ở máy cũng báo được khuôn cần sửa, từ trạm lot sản xuất. Kỹ thuật nhận và cập nhật trạng thái.</p>'+
+    (open.length?'<h3>Đang mở ('+open.length+')</h3>'+tb(open,false):'<p class="hint">Không có yêu cầu nào đang mở.</p>')+
+    (rows.length>open.length?'<h3>Đã đóng</h3>'+tb(rows.filter(function(x){return x.st==="XONG"||x.st==="HUY";}).slice(0,40),true):'')+'</section>';
+}
+function finCard(k){
+  var rows=liveFins().filter(function(x){return lotKey(x.prodLot)===k;});
+  if(!rows.length)return "";
+  var d=0,g=0,ng=0;rows.forEach(function(x){d+=num(x.done)||0;g+=num(x.got)||0;ng+=num(x.ng)||0;});
+  return '<section class="card"><h2>Bộ phận hoàn thành</h2><p class="hint">Nhận về '+fmtN(g)+' pcs · đã hoàn thiện <b>'+fmtN(d)+'</b> pcs'+(ng?' · NG '+fmtN(ng)+' pcs':'')+'.</p>'+
+    '<div class="scroll"><table><thead><tr><th>Ngày</th><th>Ca</th><th class="n">Nhận</th><th class="n">Hoàn thiện</th><th class="n">NG</th><th>Vào kho</th><th>Người làm</th><th>Ghi chú</th></tr></thead><tbody>'+
+    rows.sort(function(a,b){return a.at<b.at?-1:1;}).map(function(x){return '<tr><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td>'+esc(SHIFT_S[x.shift]||x.shift)+'</td><td class="n">'+fmtN(x.got||0)+'</td><td class="n"><b>'+fmtN(x.done||0)+'</b></td><td class="n">'+fmtN(x.ng||0)+'</td><td>'+esc(DEL_KHO[x.to]||"")+'</td><td>'+esc(x.staff||x.by)+'</td><td>'+esc(x.note||"")+'</td></tr>';}).join("")+
+    '</tbody></table></div></section>';
+}
+function xtCard(k){
+  var rows=Array.from(bags.values()).filter(function(b){return b.status!=="VOID"&&lotKey(b.prodLot||"")===k;});
+  if(!rows.length)return "";
+  var kg=0;rows.forEach(function(b){kg+=num(b.actualKg!=null?b.actualKg:b.plannedKg)||0;});
+  return '<section class="card"><h2>Nhựa xay, nhựa trộn tạo từ lot này</h2><p class="hint">Tổng '+fmtKg(kg)+' trên '+rows.length+' tem. Mở tem để xem tem đó sau này dùng cho lot nào.</p>'+
+    '<div class="scroll"><table><thead><tr><th>Mã tem</th><th>Lot No</th><th>Loại</th><th>Grade</th><th class="n">Số lượng</th><th>Trạng thái</th><th>Người tạo</th></tr></thead><tbody>'+
+    rows.map(function(b){return '<tr><td><a href="#tem-'+esc(b.id)+'">'+esc(ID(b.id))+'</a></td><td><b>'+esc(b.lotNo)+'</b></td><td>'+esc(b.kind)+'</td><td>'+esc(b.grade||"")+'</td><td class="n">'+fmtKg(b.actualKg!=null?b.actualKg:b.plannedKg,b.unit)+'</td><td>'+esc(STATUS[b.status]||b.status)+'</td><td>'+esc(b.createdBy||"")+'</td></tr>';}).join("")+
+    '</tbody></table></div></section>';
+}
+function delCard(k){
+  var rows=Array.from(delivers.values()).filter(function(x){return lotKey(x.prodLot)===k;});
+  if(!rows.length)return "";
+  return '<section class="card"><h2>Đã xuất kho thành phẩm, bán thành phẩm</h2><div class="scroll"><table><thead><tr><th>Số phiếu</th><th>Ngày</th><th>Kho</th><th>Khách hàng</th><th>PO</th><th>WO</th><th class="n">Tổng</th><th></th></tr></thead><tbody>'+
+    rows.map(function(x){var t=x.lines.reduce(function(a,l){return a+(num(l.qty)||0);},0);
+      return '<tr'+(x.void?' style="opacity:.55"':'')+'><td><b>'+esc(x.no)+'</b></td><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td>'+esc(DEL_KHO[x.kho]||x.kho)+'</td><td>'+esc(x.cust)+'</td><td>'+esc(x.po)+'</td><td>'+esc(x.wo)+'</td><td class="n">'+fmtN(t)+'</td><td><button type="button" class="btn small ghost" data-act="del-print" data-id="'+esc(x.id)+'">In 02-VT</button></td></tr>';}).join("")+
+    '</tbody></table></div></section>';
+}
+function mreqCard(k){
+  var rows=Array.from(mreqs.values()).filter(function(x){return lotKey(x.prodLot)===k;});
+  if(!rows.length)return "";
+  return '<section class="card"><h2>Yêu cầu sửa khuôn của lot này</h2><div class="scroll"><table><thead><tr><th>Ngày</th><th>Khuôn</th><th>Mức độ</th><th>Hiện tượng</th><th>Người báo</th><th>Trạng thái</th></tr></thead><tbody>'+
+    rows.map(function(x){return '<tr><td>'+esc((x.date||"").split("-").reverse().join("/"))+'</td><td><b>'+esc(x.toolId||x.partNo)+'</b></td><td>'+esc(MREQ_MUC[x.level]||x.level)+'</td><td>'+esc(x.what)+'</td><td>'+esc(x.by)+'</td><td>'+esc(MREQ_ST[x.st]||x.st)+'</td></tr>';}).join("")+
+    '</tbody></table></div><p class="hint"><a href="#khuon-sua">Tất cả yêu cầu sửa khuôn</a></p></section>';
+}
 function viewLot(){
   var k=curLot,ss=lotSlips(k),outs=liveOuts().filter(function(o){return lotKey(o.prodLot)===k;});
   if(!ss.length&&!outs.length)return '<section class="card"><h2>Chưa có dữ liệu cho lot '+esc(k)+'</h2><p class="hint">'+(ready?"Lot sản xuất này chưa có phiếu xuất và chưa có sản lượng.":"Đang tải dữ liệu…")+'</p><div><a class="btn ghost" href="#xuat-may">Về danh sách phiếu</a></div></section>';
@@ -3121,7 +3771,7 @@ function viewLot(){
   var bom="";
   if(parts.length>1){parts.forEach(function(p){var keep=lotCalc.last;bom+=bomCard(ss.filter(function(s){return s.partCode===p;}));if(keep)lotCalc.last=keep;});var np=ss.filter(function(s){return !s.partCode;});if(np.length)bom+='<p class="note">'+np.length+' phiếu xuất không ghi mã hàng nên chưa tính vào mã nào: '+np.map(slipNo).map(esc).join(", ")+'</p>';}
   else if(ss.length)bom=bomCard(ss);
-  var h='<section class="card"><div class="baghead"><div><div class="hint">Lot sản xuất</div><div class="lot">'+esc(s0.prodLot)+'</div><div class="row">'+(ss.length?lotPill(k):"")+'<span class="hint">Máy '+esc(s0.machine)+' · '+ss.length+' phiếu xuất</span></div></div><div><a class="btn small ghost" href="#may-'+esc(String(s0.machine).replace(/\D/g,""))+'">Nhập sản lượng máy '+esc(s0.machine)+'</a></div></div>'+
+  var h='<section class="card"><div class="baghead"><div><div class="hint">Lot sản xuất</div><div class="lot">'+esc(s0.prodLot)+'</div><div class="row">'+(ss.length?lotPill(k):"")+'<span class="hint">Máy '+esc(s0.machine)+' · '+ss.length+' phiếu xuất</span></div></div><div class="row"><a class="btn small ghost" href="#'+esc(tramHash(k))+'">Trạm bộ phận</a><button type="button" class="btn small ghost" data-act="lot-qr">In mã QR lot</button><a class="btn small ghost" href="#may-'+esc(String(s0.machine).replace(/\D/g,""))+'">Nhập sản lượng máy '+esc(s0.machine)+'</a></div></div>'+
   '<dl class="facts">'+fact("Mã hàng",parts.join(", "))+fact("Ngày sản xuất",s0.prodDate?s0.prodDate.split("-").reverse().join("/"):"")+'</dl>'+
   Array.from(jobs.values()).filter(function(j){return lotKey(j.prodLot)===k&&j.status!=="CANCEL";}).map(function(j){return '<p class="hint">'+(j.lsx?'Lệnh sản xuất <b>'+esc(j.lsx)+'</b> · ':'')+'<a href="#job-'+esc(j.id)+'">'+esc(j.no)+'</a> · '+esc(j.src+" "+j.ref)+' · '+fmtN(j.qty)+' pcs · '+jobPill(j)+'</p>';}).join("");
   if(ss.length)h+='<div class="scroll"><table><thead><tr><th>Số phiếu</th><th>Xuất lúc</th><th>Mã hàng</th><th>Người nhận</th><th class="n">Tổng</th></tr></thead><tbody>'+ss.map(function(s){return '<tr><td><a href="#px-'+esc(s.id)+'">'+esc(slipNo(s))+'</a></td><td>'+fmtDate(s.createdAt)+'</td><td>'+esc(s.partCode)+'</td><td>'+esc(s.receiver)+'</td><td class="n">'+slipTotal(s)+'</td></tr>';}).join("")+'</tbody></table></div>';
@@ -3129,7 +3779,7 @@ function viewLot(){
   h+='</section>';
   if(ss.length)h+='<section class="card"><h2>Nhựa, vật tư đã xuất cho lot này</h2><div class="scroll"><table><thead><tr><th>Tên vật tư</th><th>Lot No</th><th>Loại</th><th>Phiếu</th><th class="n">SL xuất</th></tr></thead><tbody>'+
   order.map(function(a){var x=agg[a];return '<tr><td>'+esc(x.name)+'</td><td><b>'+esc(x.lotNo)+'</b></td><td>'+esc(x.cls)+'</td><td>'+x.slips.map(function(id){return esc("PX-"+ID(id));}).join(", ")+'</td><td class="n">'+fmtKg(x.kg,x.unit)+'</td></tr>';}).join("")+'</tbody></table></div></section>';
-  return h+bom+outCard(k,ss)+btpCard(k,ss)+scrapCard(k)+(ss.length?confirmCard(k,ss):"");
+  return h+bom+outCard(k,ss)+finCard(k)+xtCard(k)+delCard(k)+btpCard(k,ss)+scrapCard(k)+mreqCard(k)+(ss.length?confirmCard(k,ss):"");
 }
 async function lotConfirm(step,data){
   var k=curLot;
@@ -3183,7 +3833,7 @@ function initOutForm(){
   if(!f.staff)f.staff=cred.name||"";
 }
 function outRows(list,del){
-  return list.map(function(o){return '<tr><td>'+fmtDate(o.at).split(" ")[1]+'</td><td><b>'+esc(o.part)+'</b></td><td class="n">'+(o.boxes?o.boxes+" × "+o.per:"")+(o.odd?(o.boxes?" + ":"")+o.odd:"")+'</td><td class="n"><b>'+fmtN(o.ok)+'</b></td><td class="n">'+fmtN(o.ng)+(o.ng?'<br><span class="hint">'+esc(ngText(o))+'</span>':'')+'</td><td>'+esc(o.staff||o.by)+(o.status==="NG"?' <span class="pill crit">Bất thường</span>':'')+(o.hold0?' <span class="pill warn">Hàng ứ '+fmtN(o.hold0)+' pcs</span>':'')+(o.holdNote?'<br><span class="hint">'+esc(o.holdNote)+'</span>':'')+(o.note?'<br><span class="hint">'+esc(o.note)+'</span>':'')+'</td>'+(del?'<td><button type="button" class="btn small ghost" data-act="out-del" data-id="'+esc(o.id)+'">'+(outArm===o.id?"Bấm lần nữa":"Hủy")+'</button></td>':'')+'</tr>';}).join("");
+  return list.map(function(o){return '<tr><td>'+fmtDate(o.at).split(" ")[1]+'</td><td><b>'+esc(o.part)+'</b></td><td class="n">'+(o.boxes?o.boxes+" × "+o.per:"")+(o.odd?(o.boxes?" + ":"")+o.odd:"")+'</td><td class="n"><b>'+fmtN(o.ok)+'</b></td><td class="n">'+fmtN(o.ng)+(o.ng?'<br><span class="hint">'+esc(ngText(o))+'</span>':'')+'</td><td>'+esc(o.staff||o.by)+(o.status==="NG"?' <span class="pill crit">Bất thường</span>':'')+(o.hold0?' <span class="pill warn">Hàng ứ '+fmtN(o.hold0)+' pcs</span>':'')+(o.holdNote?'<br><span class="hint">'+esc(o.holdNote)+'</span>':'')+(o.note?'<br><span class="hint">'+esc(o.note)+'</span>':'')+'</td>'+(del?'<td class="row" style="gap:4px"><a class="btn small ghost" href="#xl-'+esc(o.id)+'">Sửa</a><button type="button" class="btn small ghost" data-act="out-del" data-id="'+esc(o.id)+'">'+(outArm===o.id?"Bấm lần nữa":"Hủy")+'</button></td>':'')+'</tr>';}).join("");
 }
 function sumByPart(list){var by={},order=[];list.forEach(function(o){if(!by[o.part]){by[o.part]={part:o.part,ok:0,ng:0,boxes:0};order.push(o.part);}by[o.part].ok+=o.ok;by[o.part].ng+=o.ng;by[o.part].boxes+=o.boxes;});return order.map(function(k){return by[k];});}
 function lsxFor(f){var lot=outLot(f.prefix,curMachine,f.date),out=[];jobs.forEach(function(j){if(j.status==="RELEASED"&&lotKey(j.prodLot)===lotKey(lot))out.push(j);});return out;}
@@ -3269,6 +3919,26 @@ function exportOutCsv(){
   var lines=[["Ngày SX","Ca","Máy","NL/AM","Lot SX","Mã hàng","Số thùng","Pcs/thùng","Số lẻ","Đạt (pcs)","NG (pcs)","NG theo lý do","Tình trạng","Công nhân","Người nhập","Nhập lúc","Ghi chú"]].concat(repList().sort(function(a,b){return a.at<b.at?-1:1;}).map(function(o){return [o.date.split("-").reverse().join("/"),SHIFT_S[o.shift],o.machine,o.prefix,o.prodLot,o.part,o.boxes,o.per,o.odd,o.ok,o.ng,ngText(o),o.status==="NG"?"Bất thường":"Bình thường",o.staff||o.by,o.by,fmtDate(o.at),o.note];}));
   saveFile("san-luong-"+repFrom+"_"+repTo+".csv",new Blob(["﻿"+lines.map(function(r){return r.map(csvCell).join(",");}).join("\r\n")],{type:"text/csv"}));
 }
+function lotQrCanvas(k){
+  var i=tramInfo(k),url=PAGE+"#"+tramHash(k);
+  var c=document.createElement("canvas");c.width=1200;c.height=600;var x=c.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,1200,600);x.strokeStyle="#000";x.lineWidth=6;x.strokeRect(3,3,1194,594);
+  x.fillStyle="#000";x.textAlign="left";x.font=F(700,40);x.fillText("LOT SẢN XUẤT",50,90);
+  x.font=F(800,84);x.fillText(k,46,186);
+  x.font=F(600,38);x.fillText((i.part||"—")+(i.machine?"  ·  Máy "+i.machine:""),50,262);
+  x.font=F(400,30);x.fillText("Quét mã, chọn bộ phận rồi nhập mã PIN",50,332);
+  x.font=F(400,25);x.fillText("Kỹ thuật · Hoàn thành · Kho TP/BTP · Xay trộn · QLSX",50,378);
+  x.font=F(400,22);x.fillText((window.APP_NAME||"AN MY N2P VINA")+" · "+url,50,570);
+  drawQR(x,url,690,60,460,k);
+  return c;
+}
+async function printLotQr(k){
+  var box=$("#printbox");if(!box){box=document.createElement("div");box.id="printbox";document.body.appendChild(box);}
+  box.textContent="";
+  var im=document.createElement("img");im.className="plabel";im.alt="";im.src=lotQrCanvas(k).toDataURL("image/png");box.appendChild(im);
+  if(im.decode)await im.decode().catch(function(){});
+  try{window.print();}catch(e){toast("Trình duyệt này không mở được hộp thoại in.");}
+}
 function machineCanvas(m){
   var c=document.createElement("canvas");c.width=1200;c.height=600;var x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,1200,600);x.strokeStyle="#000";x.lineWidth=6;x.strokeRect(3,3,1194,594);
@@ -3313,8 +3983,13 @@ function outCard(k,ss){
   h+='</tbody></table></div>';
   notes.forEach(function(n){h+='<p class="note">'+esc(n)+'</p>';});
   h+='<p class="hint">Đã làm = đạt + NG + mẫu hư lúc chỉnh máy. Nhựa theo định mức đã cộng purging. Chênh lệch = vật tư đủ cho − đã làm. Số dương là vật tư còn lại ở máy tính theo định mức.</p>'+
-  '<div class="scroll"><table><thead><tr><th>Ca</th><th>Giờ</th><th>Mã hàng</th><th class="n">Thùng × pcs + lẻ</th><th class="n">Đạt</th><th class="n">NG</th><th>Công nhân</th></tr></thead><tbody>'+
-  outs.sort(function(a,b){return a.at<b.at?-1:1;}).map(function(o){return '<tr><td>'+esc(SHIFT_S[o.shift])+'</td>'+outRows([o],false).slice(4);}).join("")+'</tbody></table></div></section>';
+  '<div class="scroll"><table><thead><tr><th>Ca</th><th>Giờ</th><th>Mã hàng</th><th class="n">Thùng × pcs + lẻ</th><th class="n">Đạt</th><th class="n">NG</th><th>Công nhân</th><th>Công đoạn</th>'+(canFix()?'<th></th>':'')+'</tr></thead><tbody>'+
+  outs.sort(function(a,b){return a.at<b.at?-1:1;}).map(function(o){
+    var cell='<td>'+(o.disp?ST_KEYS.filter(function(k){return stageN(o.disp,k)>0;}).map(function(k){return esc(ST_SHORT[k])+" "+fmtN(stageN(o.disp,k));}).join("<br>")||"—":'<span class="hint">chưa chia</span>')+
+      (dispPend(o)?'<br><span class="pill warn">treo '+fmtN(dispPend(o))+'</span>':'')+'</td>'+
+      (canFix()?'<td class="row" style="gap:4px"><a class="btn small ghost" href="#xl-'+esc(o.id)+'">Sửa / chia</a></td>':'');
+    return '<tr><td>'+esc(SHIFT_S[o.shift])+'</td>'+outRows([o],false).slice(4).replace(/<\/tr>$/,"")+cell+'</tr>';}).join("")+'</tbody></table></div>'+
+  (canFix()?'<p class="hint">Bấm "Sửa / chia" để sửa dòng công nhân nhập sai (ca, giờ máy, số lượng) hoặc chia sản lượng về kho BTP, kho TP, bộ phận hoàn thành, công nhân xử lý.</p>':'')+'</section>';
   return h;
 }
 
@@ -3643,15 +4318,27 @@ var molds=new Map(),curMold="",moldQ="",moldArm=false,bomSeed=null;
 var OCR_MOLD="mold";
 var MPLACES=["ESTec VINA","Nam Lâm","An My N2P","Sinyoung","Jin Yang (JY)","Xưởng sửa khuôn","Nhà làm khuôn"],MWHY={IN:["Khuôn mới","Chuyển từ vendor khác","Về sau sửa chữa","Chạy thử (Event)","Sản xuất hàng loạt (MP)"],OUT:["Trả khách hàng","Đi sửa chữa","Chuyển sang vendor khác","Hết đơn hàng","Cho mượn"]};
 var moldForm=null;
-function newMoldForm(m){return {id:m?m.id:"",toolId:m?m.toolId:"",partNo:m?m.partNo:"",name:m?m.name:"",cavity:m?m.cavity:"",owner:m?m.owner:"",completion:m?m.completion:"",note:m?m.note||"":"",img:m?m.img||"":"",type:"IN",place:"",reason:"",date:today(),shots:"",mnote:"",status:""};}
+function newMoldForm(m){return {id:m?m.id:"",toolId:m?m.toolId:"",partNo:m?m.partNo:"",name:m?m.name:"",model:m?m.model||"":"",resin:m?m.resin||"":"",cavity:m?m.cavity:"",dim:m?m.dim||"":"",weight:m?m.weight||"":"",machine:m?m.machine||"":"",owner:m?m.owner:"",completion:m?m.completion:"",note:m?m.note||"":"",img:m?m.img||"":"",type:"IN",place:"",reason:"",date:today(),shots:"",mnote:"",status:""};}
+var MOLD_ST={MAY:"Đang trên máy",SUA:"Đang mang đi sửa",BAOTRI:"Đang bảo trì khuôn",KHO:"Trong kho khuôn",DI:"Đã chuyển đi",NHAMAY:"Đang ở nhà máy"};
+function cavNum(v){var ns=String(v==null?"":v).match(/\d+(?:[.,]\d+)?/g);if(!ns)return 1;var k=1;ns.forEach(function(x){var z=Number(String(x).replace(",","."));if(isFinite(z)&&z>0)k*=z;});k=Math.round(k);return k>0&&k<1000?k:1;}
+function ymNow(){var d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1);}
+function moldShotApp(m){var t=0,a=m&&m.shotApp;if(a)Object.keys(a).forEach(function(k){t+=num(a[k])||0;});return t;}
+function moldShotAll(m){return (num(m&&m.shots)||0)+moldShotApp(m);}
+function moldShotMonth(m,k){return num(m&&m.shotApp&&m.shotApp[k||ymNow()])||0;}
+function moldSt(m){
+  var st=m&&m.st;
+  if(st&&MOLD_ST[st.code])return {code:st.code,text:MOLD_ST[st.code],place:st.place||"",why:st.why||"",date:st.date||String(st.at||"").slice(0,10)};
+  var l=moldLast(m)||{};
+  return {code:l.type==="OUT"?"DI":"NHAMAY",text:l.type==="OUT"?MOLD_ST.DI:MOLD_ST.NHAMAY,place:l.place||"",why:l.reason||"",date:l.date||""};
+}
 function canMold(){return ["KT","QLSX","QL","IQC"].indexOf(myRole)>=0;}
 function liveMolds(){return Array.from(molds.values()).filter(function(m){return !m.void;});}
 function moldLast(m){return m.moves&&m.moves.length?m.moves[m.moves.length-1]:null;}
 function moldBom(m){var p=normC(m.partNo);if(!p)return null;var hit=null;boms.forEach(function(b){if(normC(b.code)===p||normC(b.btp)===p)hit=b;});return hit;}
-function moldPill(m){var l=moldLast(m);return '<span class="pill '+(l&&l.type==="OUT"?"warn":"solid")+'">'+(l&&l.type==="OUT"?"Đã chuyển đi":"Đang ở nhà máy")+'</span>';}
+function moldPill(m){var s=moldSt(m),cls=s.code==="MAY"?"ok":s.code==="SUA"||s.code==="BAOTRI"?"ng":s.code==="DI"?"warn":"solid";return '<span class="pill '+cls+'">'+esc(s.text)+(s.code==="MAY"&&s.place?" "+esc(s.place.replace(/^Máy\s*/,"máy ")):"")+'</span>';}
 function moldFields(f,withMove){
   var i=function(k,label,ph,extra){return '<label class="f">'+label+'<input data-mf="'+k+'" value="'+esc(f[k])+'" placeholder="'+(ph||"")+'" autocomplete="off"'+(extra||"")+'></label>';};
-  var h=i("toolId","Mã khuôn (EVS-ID)","EVS-TOOL-22-009",' autocapitalize="characters"')+i("partNo","P/N (mã hàng của khuôn)","C08-778655",' autocapitalize="characters"')+i("name","Tên sản phẩm","FRAME")+i("cavity","Số cavity","1*2")+i("owner","Chủ sở hữu","ESTec VINA")+i("completion","Ngày hoàn thành khuôn","2022.09.28")+'<label class="f full">Ghi chú về khuôn<input data-mf="note" value="'+esc(f.note)+'" autocomplete="off"></label>';
+  var h=i("toolId","Mã khuôn (EVS-ID)","EVS-TOOL-22-009",' autocapitalize="characters"')+i("partNo","P/N (mã hàng của khuôn)","C08-778655",' autocapitalize="characters"')+i("name","Tên sản phẩm","FRAME")+i("model","Model","P23-797678",' autocapitalize="characters"')+i("resin","Mã nhựa / loại nhựa","PP-T020 · LUPOX GP2306F")+i("cavity","Số cavity","1*2")+i("dim","Kích thước khuôn (mm)","560 x 450 x 380")+i("weight","Trọng lượng khuôn (kg)","850")+i("machine","Máy thường chạy","16")+i("owner","Chủ sở hữu","ESTec VINA")+i("completion","Ngày hoàn thành khuôn","2022.09.28")+'<label class="f full">Ghi chú về khuôn<input data-mf="note" value="'+esc(f.note)+'" autocomplete="off"></label>';
   if(withMove)h+=moveFields(f);
   return h;
 }
@@ -3666,15 +4353,20 @@ function moveFields(f){
 }
 function viewMolds(){
   if(!moldForm||moldForm.id)moldForm=newMoldForm();
-  var f=moldForm,q=moldQ.trim().toUpperCase(),list=liveMolds().filter(function(m){return !q||(m.toolId+" "+m.partNo+" "+m.name+" "+m.owner).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return a.at<b.at?1:-1;});
+  var f=moldForm,q=moldQ.trim().toUpperCase(),list=liveMolds().filter(function(m){return !q||(m.toolId+" "+m.partNo+" "+m.name+" "+m.owner+" "+(m.model||"")+" "+(m.resin||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return a.at<b.at?1:-1;});
   var wait=liveMolds().filter(function(m){return m.partNo&&!moldBom(m);}),h="";
   if(canMold())h+='<section class="card"><h2>Nhập khuôn</h2><p class="hint">Chụp bảng tên khuôn để app tự điền, hoặc nhập tay. Kiểm tra lại từng ô trước khi lưu.</p>'+
     '<div class="row"><label class="btn'+(hasOcr?"":" ghost")+'">Chụp / chọn ảnh bảng tên khuôn<input type="file" id="mold-photo" accept="image/*" hidden></label><span class="hint" id="mold-status">'+esc(f.status||(hasOcr?"":"Chưa bật đọc chữ từ ảnh, nhập tay."))+'</span></div>'+
     '<form id="f-mold" class="grid" style="margin-top:10px" novalidate>'+moldFields(f,true)+'<div class="full"><button class="btn"'+dis()+'>Lưu khuôn vào danh sách</button></div></form></section>';
   h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Khuôn chờ BOM</h2><span class="pill '+(wait.length?"warn":"solid")+'">'+wait.length+' khuôn</span></div>'+
     (wait.length?'<div class="scroll"><table><thead><tr><th>P/N</th><th>Mã khuôn</th><th>Cavity</th><th>Nhập lúc</th><th></th></tr></thead><tbody>'+wait.map(function(m){return '<tr><td><b>'+esc(m.partNo)+'</b></td><td><a href="#khuon-'+esc(m.id)+'">'+esc(m.toolId||ID(m.id))+'</a></td><td>'+esc(m.cavity)+'</td><td>'+fmtDate(m.createdAt||m.at)+'</td><td>'+(canBom()?'<button type="button" class="btn small" data-act="mold-bom" data-id="'+esc(m.id)+'">Tạo BOM</button>':'')+'</td></tr>';}).join("")+'</tbody></table></div><p class="hint">Khuôn rời hàng chờ khi có BOM mà Mã TP hoặc Mã BTP trùng với P/N của khuôn.</p>':'<p class="hint">Không có khuôn nào đang chờ BOM.</p>')+'</section>';
-  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Danh sách khuôn</h2><button type="button" class="btn small ghost" data-act="csv-mold">Xuất CSV</button></div><label class="f">Tìm theo mã khuôn, P/N, tên<input id="mold-q" value="'+esc(moldQ)+'" autocomplete="off"></label>'+
-    (list.length?'<div class="scroll"><table><thead><tr><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Cavity</th><th>Trạng thái</th><th>Nơi đi / đến gần nhất</th><th>Lý do</th><th class="n">Shot lũy kế</th><th>BOM</th></tr></thead><tbody>'+list.map(function(m){var l=moldLast(m)||{},b=moldBom(m);return '<tr><td><a href="#khuon-'+esc(m.id)+'"><b>'+esc(m.toolId||ID(m.id))+'</b></a></td><td>'+esc(m.partNo)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.cavity)+'</td><td>'+moldPill(m)+'</td><td>'+esc((l.type==="OUT"?"→ ":"← ")+(l.place||""))+'</td><td>'+esc(l.reason||"")+'</td><td class="n">'+(m.shots===""||m.shots==null?"—":fmtN(m.shots))+'</td><td>'+(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Chưa có khuôn nào.</p>')+'</section>';
+  var sm=0,sa=0;list.forEach(function(m){sm+=moldShotMonth(m);sa+=moldShotAll(m);});
+  h+='<section class="card"><div class="row" style="justify-content:space-between"><h2>Danh sách khuôn</h2><span class="row">'+
+    (canMold()?'<button type="button" class="btn small" data-act="mold-sync">Cập nhật trạng thái và shot</button>':'')+
+    '<a class="btn small ghost" href="#kho-khuon">Sơ đồ kệ</a><button type="button" class="btn small ghost" data-act="csv-mold">Xuất CSV</button></span></div>'+
+    '<p class="hint">Trạng thái chạy theo bản ghi mới nhất về thời gian: phiên máy (lên / xuống khuôn), lần khuôn đến – khuôn đi, yêu cầu sửa khuôn. Shot quy từ sản lượng công nhân nhập: (đạt + NG) ÷ số cavity. Tháng này cả xưởng <b>'+fmtN(sm)+'</b> shot, lũy kế <b>'+fmtN(sa)+'</b> shot.</p>'+
+    '<label class="f">Tìm theo mã khuôn, P/N, tên, model, mã nhựa<input id="mold-q" value="'+esc(moldQ)+'" autocomplete="off"></label>'+
+    (list.length?'<div class="scroll"><table><thead><tr><th>Mã khuôn</th><th>P/N</th><th>Tên</th><th>Model</th><th>Mã nhựa</th><th>Cavity</th><th>Kích thước</th><th class="n">KL (kg)</th><th>Trạng thái</th><th>Ở đâu</th><th class="n">Shot tháng</th><th class="n">Shot lũy kế</th><th>BOM</th></tr></thead><tbody>'+list.map(function(m){var st=moldSt(m),b=moldBom(m);return '<tr><td><a href="#khuon-'+esc(m.id)+'"><b>'+esc(m.toolId||ID(m.id))+'</b></a></td><td>'+esc(m.partNo)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.model||"")+'</td><td>'+esc(m.resin||"")+'</td><td>'+esc(m.cavity)+'</td><td>'+esc(m.dim||"")+'</td><td class="n">'+esc(m.weight||"")+'</td><td>'+moldPill(m)+'</td><td>'+esc(st.place||"")+(m.loc?'<br><span class="hint">Kệ '+esc(m.loc)+'</span>':'')+'</td><td class="n">'+(moldShotMonth(m)?fmtN(moldShotMonth(m)):"")+'</td><td class="n">'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</td><td>'+(b?'<a href="#bom-'+encodeURIComponent(b.code)+'">'+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="hint">Chưa có khuôn nào.</p>')+'</section>';
   return h;
 }
 function viewMold(){
@@ -3682,9 +4374,11 @@ function viewMold(){
   if(!m||m.void)return '<section class="card"><h2>Không tìm thấy khuôn</h2><p class="hint">'+(ready?"":"Đang tải dữ liệu…")+'</p><div><a class="btn ghost" href="#khuon">Về danh sách khuôn</a></div></section>';
   if(!moldForm||moldForm.id!==m.id)moldForm=newMoldForm(m);
   var f=moldForm,b=moldBom(m),ed=canMold();
-  var h='<section class="card"><div class="baghead"><div><div class="hint">Khuôn</div><div class="lot">'+esc(m.toolId||m.partNo)+'</div><div class="row">'+moldPill(m)+(b?'<a class="pill solid" href="#bom-'+encodeURIComponent(b.code)+'">BOM '+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</div></div><div class="remain"><span>Shot lũy kế</span><b>'+(m.shots===""||m.shots==null?"—":fmtN(m.shots))+'</b></div></div>'+
-  '<dl class="facts">'+fact("P/N",m.partNo)+fact("Tên sản phẩm",m.name)+fact("Cavity",m.cavity)+fact("Chủ sở hữu",m.owner)+fact("Ngày hoàn thành khuôn",m.completion)+fact("Ghi chú",m.note)+fact("Cập nhật",fmtDate(m.at)+" · "+m.by)+'</dl>'+(m.img?'<span data-img="'+esc(m.img)+'" class="bomthumb moldimg"></span>':'')+
+  var h='<section class="card"><div class="baghead"><div><div class="hint">Khuôn</div><div class="lot">'+esc(m.toolId||m.partNo)+'</div><div class="row">'+moldPill(m)+(b?'<a class="pill solid" href="#bom-'+encodeURIComponent(b.code)+'">BOM '+esc(b.code)+'</a>':'<span class="pill warn">Chờ BOM</span>')+'</div></div><div class="remain"><span>Shot lũy kế</span><b>'+(moldShotAll(m)?fmtN(moldShotAll(m)):"—")+'</b></div></div>'+
+  '<p class="hint">Shot tháng này: <b>'+fmtN(moldShotMonth(m))+'</b> · khai báo lúc nhận khuôn '+(m.shots===""||m.shots==null?"—":fmtN(m.shots))+' · tính từ sản lượng '+fmtN(moldShotApp(m))+(m.syncAt?' · cập nhật '+esc(fmtDate(m.syncAt)):'')+'</p>'+
+  '<dl class="facts">'+fact("P/N",m.partNo)+fact("Tên sản phẩm",m.name)+fact("Model",m.model)+fact("Mã nhựa",m.resin)+fact("Cavity",m.cavity)+fact("Kích thước khuôn (mm)",m.dim)+fact("Trọng lượng khuôn (kg)",m.weight)+fact("Máy thường chạy",m.machine)+fact("Vị trí kệ",m.loc)+fact("Chủ sở hữu",m.owner)+fact("Ngày hoàn thành khuôn",m.completion)+fact("Trạng thái",moldSt(m).text+(moldSt(m).place?" – "+moldSt(m).place:"")+(moldSt(m).date?" ("+moldSt(m).date.split("-").reverse().join("/")+")":""))+fact("Vì sao",moldSt(m).why)+fact("Ghi chú",m.note)+fact("Cập nhật",fmtDate(m.at)+" · "+m.by)+'</dl>'+(m.img?'<span data-img="'+esc(m.img)+'" class="bomthumb moldimg"></span>':'')+
   '<div class="row" style="margin-top:8px"><a class="btn small ghost" href="#khuon">Danh sách khuôn</a>'+(!b&&canBom()?'<button type="button" class="btn small" data-act="mold-bom" data-id="'+esc(m.id)+'">Tạo BOM cho khuôn này</button>':'')+'</div></section>'+
+  shotCard(m)+
   '<section class="card"><h2>Lịch sử khuôn đến / đi</h2><div class="scroll"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nơi đi / nơi đến</th><th>Lý do</th><th class="n">Shot lũy kế</th><th>Ghi chú</th><th>Người nhập</th></tr></thead><tbody>'+(m.moves||[]).slice().reverse().map(function(v){return '<tr><td>'+v.date.split("-").reverse().join("/")+'</td><td>'+(v.type==="OUT"?"Khuôn đi":"Khuôn đến")+'</td><td>'+esc((v.type==="OUT"?"Đến: ":"Từ: ")+v.place)+'</td><td>'+esc(v.reason)+'</td><td class="n">'+(v.shots===""||v.shots==null?"—":fmtN(v.shots))+'</td><td>'+esc(v.note)+'</td><td>'+esc(v.by)+'</td></tr>';}).join("")+'</tbody></table></div></section>';
   if(ed)h+='<section class="card"><h2>Ghi thêm lần khuôn đến / đi, hoặc cập nhật số shot</h2><form id="f-mold-move" class="grid" novalidate>'+moveFields(f)+'<div class="full"><button class="btn"'+dis()+'>Lưu lần này</button></div></form></section>'+
     '<section class="card"><h2>Sửa thông tin khuôn</h2><form id="f-mold-edit" class="grid" novalidate>'+moldFields(f,false)+'<div class="full row"><button class="btn ghost"'+dis()+'>Lưu thông tin khuôn</button>'+(isMgr()?'<button type="button" class="btn small ghost" data-act="mold-del">'+(moldArm?"Bấm lần nữa để xóa khuôn":"Xóa khuôn")+'</button>':'')+'</div></form></section>';
@@ -3697,7 +4391,7 @@ async function moldPhoto(file){
   if(hasOcr&&!memMode){
     say("Đang đọc bảng tên khuôn…");
     try{var o=await askOcr(OCR_MOLD,file,1800),n=0,set=function(k,v){if(v!=null&&String(v).trim()){f[k]=String(v).trim();n++;}};
-      set("toolId",o.toolId);set("partNo",o.partNo?String(o.partNo).replace(/\s+/g,"").toUpperCase():"");set("cavity",o.cavity);set("owner",o.owner);set("completion",o.completion);
+      set("toolId",o.toolId);set("partNo",o.partNo?String(o.partNo).replace(/\s+/g,"").toUpperCase():"");set("cavity",o.cavity);set("owner",o.owner);set("completion",o.completion);set("model",o.model);set("resin",o.resin);set("dim",o.dim);set("weight",o.weight);
       say(n?"Đã điền "+n+" ô từ ảnh. Bảng tên khuôn thường mòn và chói sáng: so lại từng ký tự với khuôn thật trước khi lưu.":"Không đọc được chữ trên ảnh. Chụp thẳng, gần và tránh chói, hoặc nhập tay.");}
     catch(e){say(errMsg(e,"Không đọc được ảnh. Nhập tay theo bảng tên khuôn."));}
   }else say("Chưa bật đọc chữ từ ảnh. Nhập tay theo bảng tên khuôn.");
@@ -3713,16 +4407,24 @@ async function saveMold(mode){
   var id=f.id;if(isNew){var a="23456789abcdefghjkmnpqrstuvwxyz";do{id="";for(var i=0;i<6;i++)id+=a[Math.floor(Math.random()*a.length)];}while(molds.has(id));}
   pending++;writeSeq++;
   try{
-    var r=await api("saveMold",{mold:{id:id,toolId:f.toolId,partNo:f.partNo,name:f.name,cavity:f.cavity,owner:f.owner,completion:f.completion,note:f.note,img:f.img},move:withMove?{type:f.type,place:f.place,reason:f.reason,date:f.date,shots:f.shots,note:f.mnote}:null});
+    var r=await api("saveMold",{mold:{id:id,toolId:f.toolId,partNo:f.partNo,name:f.name,model:f.model,resin:f.resin,cavity:f.cavity,dim:f.dim,weight:f.weight,machine:f.machine,owner:f.owner,completion:f.completion,note:f.note,img:f.img},move:withMove?{type:f.type,place:f.place,reason:f.reason,date:f.date,shots:f.shots,note:f.mnote}:null});
     molds.set(r.mold.id,r.mold);moldForm=null;
     toast(isNew?"Đã lưu khuôn. "+(moldBom(r.mold)?"Khuôn này đã có BOM.":"Khuôn đang ở hàng chờ BOM."):"Đã lưu.");
   }catch(e){if(e.code==="mold_dup"&&e.dupId){toast("Khuôn này đã có trong danh sách. Đang mở khuôn đó để ghi thêm lần đến / đi.");moldForm=null;location.hash="khuon-"+e.dupId;return;}toast(errMsg(e,"Không lưu được khuôn."));}
   finally{pending--;}
   render();
 }
+function shotCard(m){
+  var a=m.shotApp||{},ks=Object.keys(a).filter(function(k){return (num(a[k])||0)>0;}).sort().reverse().slice(0,18);
+  if(!ks.length)return '<section class="card"><h2>Shot theo tháng</h2><p class="hint">Chưa có shot nào tính từ báo cáo sản lượng. Bấm <b>Cập nhật trạng thái và shot</b> ở trang danh sách khuôn; nếu vẫn trống thì kiểm tra P/N của khuôn có khớp mã hàng công nhân nhập không.</p></section>';
+  var mx=1;ks.forEach(function(k){mx=Math.max(mx,num(a[k])||0);});
+  return '<section class="card"><h2>Shot theo tháng</h2><div class="scroll"><table><thead><tr><th>Tháng</th><th class="n">Số shot</th><th class="n">Quy ra pcs</th><th></th></tr></thead><tbody>'+
+    ks.map(function(k){var v=num(a[k])||0;return '<tr><td>'+esc(k.split("-").reverse().join("/"))+'</td><td class="n"><b>'+fmtN(v)+'</b></td><td class="n">'+fmtN(v*cavNum(m.cavity))+'</td><td style="width:38%"><span style="display:block;height:10px;border-radius:5px;background:#1b55b5;width:'+Math.round(v/mx*100)+'%"></span></td></tr>';}).join("")+
+    '</tbody></table></div><p class="hint">Quy đổi theo '+cavNum(m.cavity)+' cavity. Shot = (đạt + NG) ÷ số cavity, làm tròn lên, lấy từ sản lượng công nhân nhập.</p></section>';
+}
 function exportMoldCsv(){
-  var lines=[["Mã khuôn (EVS-ID)","P/N","Tên sản phẩm","Cavity","Chủ sở hữu","Ngày hoàn thành","Trạng thái","Ngày","Loại","Nơi đi / nơi đến","Lý do","Shot lũy kế","Ghi chú","Người nhập","BOM"]];
-  liveMolds().forEach(function(m){var b=moldBom(m);(m.moves&&m.moves.length?m.moves:[{}]).forEach(function(v){lines.push([m.toolId,m.partNo,m.name,m.cavity,m.owner,m.completion,(moldLast(m)||{}).type==="OUT"?"Đã chuyển đi":"Đang ở nhà máy",v.date?v.date.split("-").reverse().join("/"):"",v.type==="OUT"?"Khuôn đi":v.type?"Khuôn đến":"",v.place||"",v.reason||"",v.shots===""||v.shots==null?"":v.shots,v.note||"",v.by||"",b?b.code:"Chờ BOM"]);});});
+  var lines=[["Mã khuôn (EVS-ID)","P/N","Tên sản phẩm","Model","Mã nhựa","Cavity","Kích thước (mm)","Trọng lượng (kg)","Chủ sở hữu","Ngày hoàn thành","Trạng thái","Ở đâu","Vị trí kệ","Shot tháng này","Shot lũy kế","Ngày","Loại","Nơi đi / nơi đến","Lý do","Ghi chú","Người nhập","BOM"]];
+  liveMolds().forEach(function(m){var b=moldBom(m),st=moldSt(m);(m.moves&&m.moves.length?m.moves:[{}]).forEach(function(v){lines.push([m.toolId,m.partNo,m.name,m.model||"",m.resin||"",m.cavity,m.dim||"",m.weight||"",m.owner,m.completion,st.text,st.place||"",m.loc||"",moldShotMonth(m),moldShotAll(m),v.date?v.date.split("-").reverse().join("/"):"",v.type==="OUT"?"Khuôn đi":v.type?"Khuôn đến":"",v.place||"",v.reason||"",v.note||"",v.by||"",b?b.code:"Chờ BOM"]);});});
   saveFile("danh-sach-khuon-"+today()+".csv",new Blob(["﻿"+lines.map(function(r){return r.map(csvCell).join(",");}).join("\r\n")],{type:"text/csv"}));
 }
 
@@ -3738,7 +4440,8 @@ function homeCounts(){
   c.mold=liveMolds().filter(function(m){return m.partNo&&!moldBom(m);}).length;
   var d=shiftDate(nowShift());liveOuts().forEach(function(o){if(o.date===d)c.out+=o.ok;});
   var mc=mtCounts();c.mrun=mc.RUN+mc.ENDING;c.mpend=mc.pend;c.mrecv=mc.recv;
-  c.disp=liveOuts().filter(function(o){return !o.timeOnly&&o.ok>0&&(!o.disp||o.disp.st!=="DONE");}).length;
+  c.disp=liveOuts().filter(dispOpen).length;
+  c.mreq=Array.from(mreqs.values()).filter(function(x){return x.st!=="XONG"&&x.st!=="HUY";}).length;
   c.pqc=Array.from(pqcs.values()).filter(function(x){return x.date===today();}).length;
   return c;
 }
@@ -3756,7 +4459,7 @@ function viewHome(pub){
   var c=pub?{}:homeCounts();
   return heroHtml(!!pub)+(pub?'<div class="pub"><p>Bạn đang xem trang chủ. Các mục bên dưới cần đăng nhập bằng mã PIN của bộ phận.</p><a class="btn" href="#dang-nhap">Đăng nhập</a></div>':'')+
   '<section class="group"><h2>Tổng quan</h2><div class="tiles">'+tile("dashboard","san-luong","Dashboard tồn kho","NVL → bán thành phẩm → thành phẩm")+tile("tim","quet","Tìm kiếm","Tem, mã hàng, BOM, khuôn, phiếu")+tile("kiem-ke","xuat-may","Kiểm kê phiếu xuất","Đối chiếu hàng đã xuất, phiếu chờ xác nhận",tempSlips().length?tempSlips().length+" phiếu tạm":"")+'</div></section>'+'<section class="group"><h2>Kho nhựa và vật tư</h2><div class="tiles">'+tile("tao-tem","tao-tem","Tạo tem","Nhận nhựa, vật tư; tem xay, tem trộn")+tile("iqc","iqc","IQC","Kiểm hàng nhập, ảnh NG",c.iqc?c.iqc+" chờ":"")+tile("quet","quet","Quét mã","Mở tem, nhập kg thực tế",c.weigh?c.weigh+" chờ cân":"")+tile("kho","kho","Tồn kho FIFO","Sơ đồ kệ, lot cũ dùng trước")+tile("danh-muc","bom","Danh mục vật tư","Mã MISA, tồn đầu kỳ, vị trí")+tile("nhua","tao-tem","Danh mục nhựa","Mã khách, mã nội bộ, chạy cho mã hàng nào")+'</div></section>'+
-  '<section class="group"><h2>Sản xuất</h2><div class="tiles">'+tile("job","job","Job kế hoạch","WO, PO → vật tư → lệnh sản xuất",c.jobs?c.jobs+" đang chờ":"")+tile("xuat-may","xuat-may","Xuất cho máy","Phiếu xuất, xác nhận lot",c.kh+c.sx?(c.kh+c.sx)+" lot chờ":"")+tile("tinh-trang-may","tinh-trang-may","Tình trạng máy","Đang chạy, sắp ngưng, dừng máy 3D5S",c.mrun?c.mrun+" máy đang chạy":"")+tile("may","may","Nhập sản lượng","Theo máy, theo ca")+tile("san-luong","san-luong","Sản lượng","Báo cáo, đối chiếu vật tư",c.out?fmtN(c.out)+" pcs ca này":"")+tile("nhat-ky","nhat-ky","Nhật ký sản xuất","In theo mẫu, xuất Excel")+tile("qr-may","qr-may","Mã QR dán máy","In cho từng máy ép")+tile("bao-phe","bao-phe","Báo phế","Đơn báo phế, biên bản hủy hàng")+tile("xu-ly","san-luong","Xử lý hàng sau SX","Nhập kho, chờ xử lý, NG hủy / gỡ lại",c.disp?c.disp+" chờ":"")+'</div></section>'+
+  '<section class="group"><h2>Sản xuất</h2><div class="tiles">'+tile("job","job","Job kế hoạch","WO, PO → vật tư → lệnh sản xuất",c.jobs?c.jobs+" đang chờ":"")+tile("xuat-may","xuat-may","Xuất cho máy","Phiếu xuất, xác nhận lot",c.kh+c.sx?(c.kh+c.sx)+" lot chờ":"")+tile("tinh-trang-may","tinh-trang-may","Tình trạng máy","Đang chạy, sắp ngưng, dừng máy 3D5S",c.mrun?c.mrun+" máy đang chạy":"")+tile("may","may","Nhập sản lượng","Theo máy, theo ca")+tile("san-luong","san-luong","Sản lượng","Báo cáo, đối chiếu vật tư",c.out?fmtN(c.out)+" pcs ca này":"")+tile("nhat-ky","nhat-ky","Nhật ký sản xuất","In theo mẫu, xuất Excel")+tile("qr-may","qr-may","Mã QR dán máy","In cho từng máy ép")+tile("bao-phe","bao-phe","Báo phế","Đơn báo phế, biên bản hủy hàng")+tile("xu-ly","san-luong","Xử lý hàng sau SX","Chia công đoạn, kho nhận, NG hủy / gỡ lại",c.disp?c.disp+" chờ":"")+tile("xuat-tp","xuat-may","Xuất kho TP / BTP","Theo PO, WO; in biên bản giao hàng 02-VT")+tile("khuon-sua","khuon","Yêu cầu sửa khuôn","Bộ phận báo, Kỹ thuật nhận và xử lý",c.mreq?c.mreq+" đang mở":"")+'</div></section>'+
   '<section class="group"><h2>Kỹ thuật</h2><div class="tiles">'+tile("khuon","khuon","Khuôn","Bảng tên, khuôn đến và đi",c.mold?c.mold+" chờ BOM":"")+tile("kho-khuon","khuon","Kho khuôn","Sơ đồ kệ A–F và khu khuôn to")+tile("bom","bom","BOM","Danh mục vật liệu, xuất Excel")+tile("tieu-chuan","iqc","Tiêu chuẩn kiểm tra","Chỉ số đo, dung sai, CTQ theo mã")+tile("pqc","iqc","Báo cáo PQC","Đầu – giữa – cuối ca, ảnh NG",c.pqc?c.pqc+" phiếu hôm nay":"")+tile("lich-su","lich-su","Lịch sử","Mọi lần nhập, xuất, sửa")+'</div></section>';
 }
 /* ---------- báo phế: đơn báo phế (SX-QT-02/M03) và biên bản hủy hàng (SX-QT-02/M04) ---------- */
@@ -4116,10 +4819,10 @@ function render(){
   if(needLogin){renderBanner();$("#view").innerHTML=view==="home"?viewHome(true):viewLogin();return;}
   if(isWorker()&&view!=="may"){view="may";curMachine="";}
   var nv=$("nav");if(nv)nv.hidden=isWorker();
-  $$("nav a").forEach(function(a){if(a.dataset.nav===view||(view==="tem"&&a.dataset.nav==="quet")||((view==="px"||view==="lsx")&&a.dataset.nav==="xuat-may")||((view==="may"||view==="qr-may"||view==="nhat-ky")&&a.dataset.nav==="san-luong")||(view==="bomdoc"&&a.dataset.nav==="bom")||(view==="khuondoc"&&a.dataset.nav==="khuon")||(view==="bpdoc"&&a.dataset.nav==="bao-phe")||(view==="jobdoc"&&a.dataset.nav==="job")||(view==="btp"&&a.dataset.nav==="xuat-may")||(view==="mttdoc"&&a.dataset.nav==="tinh-trang-may")||((view==="danh-muc"||view==="nhua"||view==="nhuadoc")&&a.dataset.nav==="kho")||((view==="tieu-chuan"||view==="tcdoc"||view==="pqc"||view==="pqcdoc")&&a.dataset.nav==="bom")||((view==="xu-ly"||view==="xldoc")&&a.dataset.nav==="san-luong")||(view==="kiem-ke"&&a.dataset.nav==="xuat-may")||(view==="kho-khuon"&&a.dataset.nav==="khuon"))a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
+  $$("nav a").forEach(function(a){if(a.dataset.nav===view||(view==="tem"&&a.dataset.nav==="quet")||((view==="px"||view==="lsx")&&a.dataset.nav==="xuat-may")||((view==="may"||view==="qr-may"||view==="nhat-ky")&&a.dataset.nav==="san-luong")||(view==="bomdoc"&&a.dataset.nav==="bom")||(view==="khuondoc"&&a.dataset.nav==="khuon")||(view==="bpdoc"&&a.dataset.nav==="bao-phe")||(view==="jobdoc"&&a.dataset.nav==="job")||(view==="btp"&&a.dataset.nav==="xuat-may")||(view==="mttdoc"&&a.dataset.nav==="tinh-trang-may")||((view==="danh-muc"||view==="nhua"||view==="nhuadoc")&&a.dataset.nav==="kho")||((view==="tieu-chuan"||view==="tcdoc"||view==="pqc"||view==="pqcdoc")&&a.dataset.nav==="bom")||((view==="xu-ly"||view==="xldoc"||view==="tram")&&a.dataset.nav==="san-luong")||(view==="xuat-tp"&&a.dataset.nav==="xuat-may")||(view==="khuon-sua"&&a.dataset.nav==="khuon")||(view==="kiem-ke"&&a.dataset.nav==="xuat-may")||(view==="kho-khuon"&&a.dataset.nav==="khuon"))a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
   renderBanner();
   var v=$("#view");
-  v.innerHTML=verWarn()+(view==="home"?viewHome():view==="tao-tem"?viewCreate():view==="quet"?viewScan():view==="kho"?tfBox("Tìm trong tồn kho")+viewStock():view==="lich-su"?tfBox("Tìm trong lịch sử")+viewHistory():view==="iqc"?tfBox("Tìm trong danh sách IQC")+viewIqc():view==="xuat-may"?viewIssue():view==="px"?viewSlip():view==="lsx"?viewLot():view==="may"?mtStrip()+viewMachine():view==="tinh-trang-may"?viewMachineStates():view==="danh-muc"?viewItems():view==="tieu-chuan"?viewStds():view==="nhua"?viewResins():view==="nhuadoc"?viewResin():view==="dashboard"?viewDash():view==="kiem-ke"?viewKk():view==="tim"?viewFind():view==="tcdoc"?viewStd():view==="pqc"?viewPqcs():view==="pqcdoc"?viewPqc():view==="xu-ly"?viewDisp():view==="xldoc"?viewDispOne():view==="kho-khuon"?viewMoldMap():view==="mttdoc"?viewMachineState():view==="san-luong"?viewReport():view==="qr-may"?viewMachineQr():view==="nhat-ky"?viewJournal():view==="bom"?viewBomList():view==="bomdoc"?viewBom():view==="btp"?viewBtp():view==="khuon"?viewMolds():view==="khuondoc"?viewMold():view==="bao-phe"?viewScrapList():view==="bpdoc"?viewScrap():view==="job"?tfBox("Tìm Job, WO, PO, mã hàng")+viewJobs():view==="jobdoc"?viewJob():viewBag());
+  v.innerHTML=verWarn()+(view==="home"?viewHome():view==="tao-tem"?viewCreate():view==="quet"?viewScan():view==="kho"?tfBox("Tìm trong tồn kho")+viewStock():view==="lich-su"?tfBox("Tìm trong lịch sử")+viewHistory():view==="iqc"?tfBox("Tìm trong danh sách IQC")+viewIqc():view==="xuat-may"?viewIssue():view==="px"?viewSlip():view==="lsx"?viewLot():view==="may"?mtStrip()+viewMachine():view==="tinh-trang-may"?viewMachineStates():view==="danh-muc"?viewItems():view==="tieu-chuan"?viewStds():view==="nhua"?viewResins():view==="nhuadoc"?viewResin():view==="dashboard"?viewDash():view==="kiem-ke"?viewKk():view==="tim"?viewFind():view==="tcdoc"?viewStd():view==="pqc"?viewPqcs():view==="pqcdoc"?viewPqc():view==="xu-ly"?viewDisp():view==="xldoc"?viewDispOne():view==="tram"?viewTram():view==="xuat-tp"?viewDelivers():view==="khuon-sua"?viewMreqs():view==="kho-khuon"?viewMoldMap():view==="mttdoc"?viewMachineState():view==="san-luong"?viewReport():view==="qr-may"?viewMachineQr():view==="nhat-ky"?viewJournal():view==="bom"?viewBomList():view==="bomdoc"?viewBom():view==="btp"?viewBtp():view==="khuon"?viewMolds():view==="khuondoc"?viewMold():view==="bao-phe"?viewScrapList():view==="bpdoc"?viewScrap():view==="job"?tfBox("Tìm Job, WO, PO, mã hàng")+viewJobs():view==="jobdoc"?viewJob():viewBag());
   if(view==="bomdoc"||view==="khuondoc"||view==="bpdoc"||view==="pqcdoc")renderBomThumbs();
   if(view==="btp"&&btps.get(curBtp)){var bi=$("#btp-img"),bim=document.createElement("img");bim.className="labelimg";bim.alt="Tem BTP";bim.src=btpCanvas(btps.get(curBtp)).toDataURL("image/png");bi.appendChild(bim);}
   if(view==="qr-may")renderMachineQr();
@@ -4147,8 +4850,8 @@ function route(){
     if(pk!==curPqc||view!=="pqcdoc"||!pqcEdit){pqcPhase="dau";pqcEdit=pk==="new"?newPqc(seed):(pqcs.get(pk)?JSON.parse(JSON.stringify(pqcs.get(pk))):null);
       if(pqcEdit){if(!pqcEdit.ph)pqcEdit.ph={};PH.forEach(function(x){if(!pqcEdit.ph[x[0]])pqcEdit.ph[x[0]]=newPqcPhase();});}}
     view="pqcdoc";curPqc=pk;}
-  else if(/^xl-([0-9a-z]{6})$/i.test(h)){var xk=h.slice(3).toLowerCase();if(xk!==curOut)outDisp=null;view="xldoc";curOut=xk;}
-  else if(/^mtt-\d{1,3}$/.test(h)){var mk=h.slice(4);if(mk!==curMt||view!=="mttdoc")mtForm=null;view="mttdoc";curMt=mk;}
+  else if(/^xl-([0-9a-z]{6})$/i.test(h)){var xk=h.slice(3).toLowerCase();if(xk!==curOut){outDisp=null;outFix=null;dispArm="";}view="xldoc";curOut=xk;}
+  else if(/^mtt-\d{1,3}$/.test(h)){var mk=h.slice(4);if(mk!==curMt||view!=="mttdoc"){mtForm=null;manForm=null;manArm="";}view="mttdoc";curMt=mk;}
   else if(h==="san-luong"||h==="qr-may"||h==="nhat-ky"||h==="bom"||h==="khuon"||h==="home"||h==="bao-phe"||h==="job")view=h;
   else if(/^job-([0-9a-z]{6}|new)$/i.test(h)){var jk=h.slice(4).toLowerCase();if(jk!==curJob||view!=="jobdoc"){jobEdit=null;jobArm="";}view="jobdoc";curJob=jk;}
   else if(/^bp-([0-9a-z]{6}|new)$/i.test(h)){var bpk=h.slice(3).toLowerCase();if(bpk!==curScrap||view!=="bpdoc")scrapEdit=null;view="bpdoc";curScrap=bpk;}
@@ -4156,6 +4859,8 @@ function route(){
   else if(/^bom-.+/i.test(h)){var bk=h.slice(4);try{bk=decodeURIComponent(bk);}catch(e){}bk=bk==="new"?"new":bk.toUpperCase();if(bk!==bomKey||view!=="bomdoc")bomEdit=null;view="bomdoc";bomKey=bk;bomArm=false;}
   else if(/^btp-([0-9a-z]{6})$/i.test(h)){view="btp";curBtp=h.slice(4).toLowerCase();bomArm=false;}
   else if(/^lsx-.+/i.test(h)){var lk=h.slice(4);try{lk=decodeURIComponent(lk);}catch(e){}view="lsx";curLot=lotKey(lk);lotArm=false;}
+  else if(/^tram-.+/i.test(h)){var tkx=h.slice(5);try{tkx=decodeURIComponent(tkx);}catch(e){}tkx=lotKey(tkx);if(tkx!==curTram){tramDept="";tramForm=null;tramArm="";}view="tram";curTram=tkx;}
+  else if(h==="xuat-tp"||h==="khuon-sua"){view=h;tramArm="";}
   else if(["tao-tem","iqc","quet","xuat-may","kho","lich-su"].indexOf(h)>=0)view=h;
   else if(h==="dang-nhap")view=needLogin?"dang-nhap":"home";
   else view="home";
@@ -4167,7 +4872,7 @@ function onData(first){
   if(first){render();return;}
   if(view==="xuat-may"){renderSlipList();return;}
   var a=document.activeElement,typing=a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName);
-  if(view==="kho"||view==="lich-su"||view==="iqc"||((view==="tem"||view==="quet"||view==="px"||view==="lsx"||view==="may"||view==="san-luong"||view==="nhat-ky"||view==="bom"||view==="btp"||view==="khuon"||view==="khuondoc"||view==="home"||view==="bao-phe"||view==="job"||view==="tinh-trang-may"||view==="mttdoc"||view==="danh-muc"||(view==="jobdoc"&&!jobEdit))&&!typing&&!$("#f-iqc")))render();
+  if(view==="kho"||view==="lich-su"||view==="iqc"||((view==="tem"||view==="quet"||view==="px"||view==="lsx"||view==="may"||view==="san-luong"||view==="nhat-ky"||view==="bom"||view==="btp"||view==="khuon"||view==="khuondoc"||view==="home"||view==="bao-phe"||view==="job"||view==="tinh-trang-may"||view==="mttdoc"||view==="danh-muc"||view==="tram"||view==="xuat-tp"||view==="khuon-sua"||view==="xu-ly"||(view==="jobdoc"&&!jobEdit))&&!typing&&!$("#f-iqc")))render();
 }
 
 /* ---------- events ---------- */
@@ -4193,7 +4898,7 @@ document.addEventListener("click",function(e){
   else if(act==="line-del"){slipLines.splice(+t.dataset.i,1);renderLines();}
   else if(act==="slip-dl")guard(function(){return downloadSlip(t.dataset.id,"me");});
   else if(act==="slip-group")guard(function(){return downloadSlip(t.dataset.id,"group");});
-  else if(act==="scan-open")scanQR("Quét mã QR trên tem bao nhựa hoặc phiếu xuất",function(x){var mb=/#btp-([0-9a-z]{6})(?![0-9a-z])/i.exec(x);if(mb){location.hash="btp-"+mb[1].toLowerCase();return true;}var mq=/#may-(\d{1,3})(?!\d)/i.exec(x);if(mq){location.hash="may-"+mq[1];return true;}var ml=/#lsx-([^\s#?&]+)/i.exec(x);if(ml){location.hash="lsx-"+ml[1];return true;}var m=/px-([0-9a-z]{6})(?![0-9a-z])/i.exec(x);if(m){location.hash="px-"+m[1].toLowerCase();return true;}var c=parseCode(x);if(c){location.hash="tem-"+c;return true;}});
+  else if(act==="scan-open")scanQR("Quét mã QR trên tem bao nhựa hoặc phiếu xuất",function(x){var mb=/#btp-([0-9a-z]{6})(?![0-9a-z])/i.exec(x);if(mb){location.hash="btp-"+mb[1].toLowerCase();return true;}var mq=/#may-(\d{1,3})(?!\d)/i.exec(x);if(mq){location.hash="may-"+mq[1];return true;}var mt2=/#tram-([^\s#?&]+)/i.exec(x);if(mt2){location.hash="tram-"+mt2[1];return true;}var ml=/#lsx-([^\s#?&]+)/i.exec(x);if(ml){location.hash="lsx-"+ml[1];return true;}var m=/px-([0-9a-z]{6})(?![0-9a-z])/i.exec(x);if(m){location.hash="px-"+m[1].toLowerCase();return true;}var c=parseCode(x);if(c){location.hash="tem-"+c;return true;}});
   else if(act==="rel-add"){relForm.workers.push({name:"",shift:relForm.workers[relForm.workers.length-1].shift});render();}
   else if(act==="rel-del"){relForm.workers.splice(+t.dataset.i,1);render();}
   else if(act==="job-filter"){jobFilter=t.dataset.f;render();}
@@ -4373,7 +5078,7 @@ async function refresh(){
     if(pending>0||seq!==writeSeq)return;
     bags.clear();(r.bags||[]).forEach(function(v){if(v&&v.id)bags.set(v.id,v);});
     slips.clear();(r.slips||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.lines))slips.set(v.id,v);});lots.clear();(r.lots||[]).forEach(function(v){if(v&&v.key)lots.set(v.key,v);});FLATBOM=Array.isArray(r.bom)?r.bom:[];boms.clear();(r.boms||[]).forEach(function(v){if(v&&v.code&&Array.isArray(v.rows))boms.set(v.code,v);});mergeBom();jobs.clear();(r.jobs||[]).forEach(function(v){if(v&&v.id)jobs.set(v.id,v);});scraps.clear();(r.scraps||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.lines))scraps.set(v.id,v);});molds.clear();(r.molds||[]).forEach(function(v){if(v&&v.id)molds.set(v.id,v);});srvVer=r.ver||"";
-  stds.clear();(r.stds||[]).forEach(function(v){if(v&&v.code)stds.set(String(v.code).toUpperCase(),v);});resins.clear();(r.resins||[]).forEach(function(v){if(v&&v.key)resins.set(String(v.key).toUpperCase(),v);});pqcs.clear();(r.pqcs||[]).forEach(function(v){if(v&&v.id)pqcs.set(v.id,v);});mstates.clear();(r.mstates||[]).forEach(function(v){if(v&&v.id&&v.machine)mstates.set(v.id,v);});btps.clear();(r.btps||[]).forEach(function(v){if(v&&v.id)btps.set(v.id,v);});outputs.clear();(r.outputs||[]).forEach(function(v){if(v&&v.id)outputs.set(v.id,v);});techs.clear();(r.techs||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.purge))techs.set(v.id,v);});
+  stds.clear();(r.stds||[]).forEach(function(v){if(v&&v.code)stds.set(String(v.code).toUpperCase(),v);});resins.clear();(r.resins||[]).forEach(function(v){if(v&&v.key)resins.set(String(v.key).toUpperCase(),v);});pqcs.clear();(r.pqcs||[]).forEach(function(v){if(v&&v.id)pqcs.set(v.id,v);});mstates.clear();(r.mstates||[]).forEach(function(v){if(v&&v.id&&v.machine)mstates.set(v.id,v);});mans.clear();(r.mans||[]).forEach(function(v){if(v&&v.machine)mans.set(String(v.machine),v);});btps.clear();(r.btps||[]).forEach(function(v){if(v&&v.id)btps.set(v.id,v);});outputs.clear();(r.outputs||[]).forEach(function(v){if(v&&v.id)outputs.set(v.id,v);});techs.clear();(r.techs||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.purge))techs.set(v.id,v);});fins.clear();(r.fins||[]).forEach(function(v){if(v&&v.id)fins.set(v.id,v);});delivers.clear();(r.delivers||[]).forEach(function(v){if(v&&v.id&&Array.isArray(v.lines))delivers.set(v.id,v);});mreqs.clear();(r.moldreqs||[]).forEach(function(v){if(v&&v.id)mreqs.set(v.id,v);});
     BOT=r.bot||"";WEBQR=!!r.web;myRole=ROLES[r.role]?r.role:(webMode?cred.role:"KHO");iqcFree=!!r.iqc;myTgId=r.me&&r.me.id?String(r.me.id):null;hasOcr=!!r.hasOcr;hasGroup=!!r.hasGroup;authError="";srvError="";canWrite=true;slow=false;
     var first=!ready;ready=true;renderBanner();onData(first);
   }catch(e){
